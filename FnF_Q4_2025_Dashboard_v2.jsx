@@ -528,12 +528,10 @@ export default function FnFQ4Dashboard() {
 
   // 편집 데이터 변경 시 자동 저장 (debounce 1초)
   const saveTimeoutRef = React.useRef(null);
-  const isInitialLoadRef = React.useRef(true);
   
   React.useEffect(() => {
-    // 초기 로드 시에는 저장하지 않음
+    // 초기 로드 시에는 저장하지 않음 (isInitialLoadRef는 상단에서 선언됨)
     if (isInitialLoadRef.current) {
-      isInitialLoadRef.current = false;
       return;
     }
     
