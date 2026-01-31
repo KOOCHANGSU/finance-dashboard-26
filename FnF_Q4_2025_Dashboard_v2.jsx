@@ -125,57 +125,120 @@ export default function FnFQ4Dashboard() {
   const [aiAnalysisBackup, setAiAnalysisBackup] = useState(null); // 편집 시작 전 백업 데이터
   const [aiSaveStatus, setAiSaveStatus] = useState(''); // 저장 상태 표시 ('saving', 'saved', 'error', '')
   const [aiLastUpdated, setAiLastUpdated] = useState(null); // 마지막 업데이트 시간
+  const [serverSaveStatus, setServerSaveStatus] = useState(''); // 전체 설정 저장 상태
   const fileInputRef = React.useRef(null); // 파일 업로드용 ref
+  const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
 
-  // incomeEditData 변경 시 localStorage에 자동 저장
+  // 모든 설정 변경 시 localStorage 저장 + 서버 자동 저장 (debounce 2초)
   React.useEffect(() => {
+    // localStorage에 저장
     if (Object.keys(incomeEditData).length > 0) {
       saveToStorage(STORAGE_KEYS.INCOME_EDIT, incomeEditData);
     }
-  }, [incomeEditData]);
-
-  // bsEditData 변경 시 localStorage에 자동 저장
-  React.useEffect(() => {
     if (Object.keys(bsEditData).length > 0) {
       saveToStorage(STORAGE_KEYS.BS_EDIT, bsEditData);
     }
-  }, [bsEditData]);
-
-  // aiAnalysisData 변경 시 localStorage에 자동 저장 + 서버 자동 저장 (debounce)
-  const aiAnalysisDataRef = React.useRef(aiAnalysisData);
-  const isInitialEditRef = React.useRef(false);
-  
-  React.useEffect(() => {
-    // 편집 모드 시작 시 초기화 플래그 설정
-    if (aiEditMode) {
-      isInitialEditRef.current = true;
-    }
-  }, [aiEditMode]);
-  
-  React.useEffect(() => {
     if (Object.keys(aiAnalysisData).length > 0) {
       saveToStorage(STORAGE_KEYS.AI_ANALYSIS, aiAnalysisData);
-      
-      // 편집 모드일 때만 서버에 자동 저장 (1.5초 debounce)
-      // 단, 편집 모드 시작 직후의 초기화는 저장하지 않음
-      if (aiEditMode && !isInitialEditRef.current) {
-        const timeoutId = setTimeout(() => {
-          saveAiAnalysisToServer(aiAnalysisData);
-        }, 1500);
-        return () => clearTimeout(timeoutId);
-      }
-      
-      // 초기화 플래그 해제 (다음 변경부터는 저장)
-      if (isInitialEditRef.current) {
-        isInitialEditRef.current = false;
-      }
     }
-  }, [aiAnalysisData]);
+    localStorage.setItem('fnf_hidden_entity_cards', JSON.stringify(hiddenEntityCards));
+    localStorage.setItem('fnf_hidden_detail_sections', JSON.stringify(hiddenDetailSections));
+    
+    // 초기 로드 시에는 서버 저장 안함
+    if (isInitialLoadRef.current) {
+      return;
+    }
+    
+    // 서버에 자동 저장 (2초 debounce)
+    const timeoutId = setTimeout(() => {
+      saveAllSettingsToServer();
+    }, 2000);
+    return () => clearTimeout(timeoutId);
+  }, [incomeEditData, bsEditData, aiAnalysisData, hiddenEntityCards, hiddenDetailSections]);
 
-  // 컴포넌트 마운트 시 서버에서 AI 분석 데이터 불러오기
+  // 컴포넌트 마운트 시 서버에서 모든 설정 불러오기
   React.useEffect(() => {
-    loadAiAnalysisFromServer();
+    loadAllSettingsFromServer();
   }, []);
+
+  // 서버에서 모든 설정 불러오기
+  const loadAllSettingsFromServer = async () => {
+    try {
+      const response = await fetch('/api/load-data');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data) {
+          const data = result.data;
+          
+          // 각 설정 복원
+          if (data.aiAnalysisData) {
+            setAiAnalysisData(data.aiAnalysisData);
+            saveToStorage(STORAGE_KEYS.AI_ANALYSIS, data.aiAnalysisData);
+          }
+          if (data.incomeEditData) {
+            setIncomeEditData(data.incomeEditData);
+            saveToStorage(STORAGE_KEYS.INCOME_EDIT, data.incomeEditData);
+          }
+          if (data.bsEditData) {
+            setBsEditData(data.bsEditData);
+            saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
+          }
+          if (data.hiddenEntityCards) {
+            setHiddenEntityCards(data.hiddenEntityCards);
+            localStorage.setItem('fnf_hidden_entity_cards', JSON.stringify(data.hiddenEntityCards));
+          }
+          if (data.hiddenDetailSections) {
+            setHiddenDetailSections(data.hiddenDetailSections);
+            localStorage.setItem('fnf_hidden_detail_sections', JSON.stringify(data.hiddenDetailSections));
+          }
+          
+          setAiLastUpdated(data.lastUpdated);
+        }
+      }
+    } catch (error) {
+      console.log('서버에서 설정 불러오기 실패, localStorage 사용:', error);
+    } finally {
+      // 초기 로드 완료 후 플래그 해제 (약간의 딜레이 후)
+      setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 500);
+    }
+  };
+
+  // 서버에 모든 설정 저장하기
+  const saveAllSettingsToServer = async () => {
+    setServerSaveStatus('saving');
+    try {
+      const allSettings = {
+        aiAnalysisData,
+        incomeEditData,
+        bsEditData,
+        hiddenEntityCards,
+        hiddenDetailSections,
+      };
+      
+      const response = await fetch('/api/save-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(allSettings),
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setServerSaveStatus('saved');
+        setAiLastUpdated(result.timestamp);
+        setTimeout(() => setServerSaveStatus(''), 2000);
+      } else {
+        setServerSaveStatus('error');
+        setTimeout(() => setServerSaveStatus(''), 3000);
+      }
+    } catch (error) {
+      console.error('서버 저장 실패:', error);
+      setServerSaveStatus('error');
+      setTimeout(() => setServerSaveStatus(''), 3000);
+    }
+  };
 
   // 편집 모드 시작할 때 현재 표시 데이터를 aiAnalysisData에 초기화하고 백업 저장
   React.useEffect(() => {
@@ -207,48 +270,17 @@ export default function FnFQ4Dashboard() {
     }
   }, [aiEditMode]);
 
-  // 서버에서 AI 분석 데이터 불러오기
+  // 서버에서 AI 분석 데이터 불러오기 (전체 설정 불러오기로 대체)
   const loadAiAnalysisFromServer = async () => {
-    try {
-      const response = await fetch('/api/load-data');
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          setAiAnalysisData(result.data);
-          setAiLastUpdated(result.data.lastUpdated);
-          saveToStorage(STORAGE_KEYS.AI_ANALYSIS, result.data);
-        }
-      }
-    } catch (error) {
-      console.log('서버에서 데이터 불러오기 실패, localStorage 사용:', error);
-    }
+    await loadAllSettingsFromServer();
   };
 
-  // 서버에 AI 분석 데이터 저장하기
+  // 서버에 AI 분석 데이터 저장하기 (전체 설정 저장으로 대체)
   const saveAiAnalysisToServer = async (data) => {
     setAiSaveStatus('saving');
-    try {
-      const response = await fetch('/api/save-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      if (response.ok) {
-        const result = await response.json();
-        setAiSaveStatus('saved');
-        setAiLastUpdated(result.timestamp);
-        setTimeout(() => setAiSaveStatus(''), 2000);
-      } else {
-        setAiSaveStatus('error');
-        setTimeout(() => setAiSaveStatus(''), 3000);
-      }
-    } catch (error) {
-      console.error('서버 저장 실패:', error);
-      setAiSaveStatus('error');
-      setTimeout(() => setAiSaveStatus(''), 3000);
-    }
+    await saveAllSettingsToServer();
+    setAiSaveStatus('saved');
+    setTimeout(() => setAiSaveStatus(''), 2000);
   };
 
   // AI 분석 항목 업데이트 함수들
@@ -373,16 +405,6 @@ export default function FnFQ4Dashboard() {
       localStorage.removeItem(STORAGE_KEYS.AI_ANALYSIS);
     }
   };
-
-  // hiddenEntityCards 변경 시 localStorage에 자동 저장
-  React.useEffect(() => {
-    localStorage.setItem('fnf_hidden_entity_cards', JSON.stringify(hiddenEntityCards));
-  }, [hiddenEntityCards]);
-
-  // hiddenDetailSections 변경 시 localStorage에 자동 저장
-  React.useEffect(() => {
-    localStorage.setItem('fnf_hidden_detail_sections', JSON.stringify(hiddenDetailSections));
-  }, [hiddenDetailSections]);
 
   // 법인 카드 숨기기/복원 함수
   const hideEntityCard = (accountKey, entity) => {
