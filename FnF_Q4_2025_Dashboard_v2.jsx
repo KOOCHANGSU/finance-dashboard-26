@@ -2888,13 +2888,17 @@ export default function FnFQ4Dashboard() {
           desc: `${Math.round(cashCurr*0.4/100)}억원을 M&A 또는 신규 브랜드에 투자 시 ROE ${totalEquityCurr > 0 ? (cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1) : '0.0'}%p 추가 개선 가능`
         });
         
+        // 차입금 상환 시 이자비용 절감 효과 계산
+        const debtRepaymentAmount = Math.min(cashCurr * 0.3, totalBorrowing * 0.5); // 현금의 30% 또는 차입금의 50% 중 작은 값
+        const interestSavingFromRepayment = debtRepaymentAmount * 0.045; // 연 4.5% 이자 절감
+        
         improvementTargets.push({
           area: '잉여현금 전략적 재배치',
-          current: `현금성자산 ${Math.round(cashCurr/100)}억원 (자산대비 ${cashRatio.toFixed(1)}%)`,
-          target: `적정 현금 ${Math.round(cashCurr*0.6/100)}억원 유지 + 전략투자 ${Math.round(cashCurr*0.4/100)}억원`,
-          impact: `ROE 15% 투자처 발굴 시 연결 ROE +${totalEquityCurr > 0 ? (cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1) : '0.0'}%p, 주주가치 증대`,
-          method: `옵션1: 고수익 브랜드 M&A (목표 ROE 18%+), 옵션2: 배당성향 30%→50% 확대 + 자사주 매입 ${Math.round(cashCurr*0.15/100)}억원, 옵션3: 해외 거점 확대 투자 (동남아, 중동)`,
-          rationale: `[목표 근거] 동종업계 적정 현금보유 비율 5~8% 대비 현재 ${cashRatio.toFixed(1)}%로 과다. 운영자금(매출의 1~2개월분) + 비상예비금 감안 시 60% 유지로 충분하며, 40%는 M&A·배당·자사주 매입 등 전략적 재배치를 통한 주주가치 제고 가능`
+          current: `현금성자산 ${Math.round(cashCurr/100)}억원 (자산대비 ${cashRatio.toFixed(1)}%), 차입금 ${Math.round(totalBorrowing/100)}억원`,
+          target: `적정 현금 ${Math.round(cashCurr*0.6/100)}억원 유지 + 전략활용 ${Math.round(cashCurr*0.4/100)}억원`,
+          impact: `전략 선택에 따라 ROE +0.5~2.0%p, 이자비용 절감 또는 성장투자 효과`,
+          method: `옵션1: 차입금 ${Math.round(debtRepaymentAmount/100)}억원 상환 (이자비용 -${Math.round(interestSavingFromRepayment/100)}억원/년, 부채비율 개선), 옵션2: 고수익 브랜드 M&A (목표 ROE 18%+), 옵션3: 배당성향 확대 + 자사주 매입, 옵션4: 해외 거점 확대 투자`,
+          rationale: `[목표 근거] 동종업계 적정 현금보유 비율 5~8% 대비 현재 ${cashRatio.toFixed(1)}%로 과다. 운영자금 + 비상예비금 감안 시 60% 유지로 충분. 잉여 40%는 ①차입금 상환(이자절감+재무안정성), ②M&A(성장), ③주주환원 중 전략적 선택 필요`
         });
       }
     } else if (cashCurr < totalAssetsCurr * 0.05) {
@@ -3296,33 +3300,6 @@ export default function FnFQ4Dashboard() {
         impact: `운전자본 ${Math.round(targetReduction/100)}억원 절감, 이자비용 -${Math.round(interestSaving/100)}억원, ROE +${totalEquityCurr > 0 ? (interestSaving/totalEquityCurr*100).toFixed(1) : '0.0'}%p`,
         method: '시즌별 재고 회전율 목표 관리, 프로모션 타이밍 최적화, 느린 상품 조기 할인',
         rationale: `[목표 근거] 연결 재고회전일수 ${Math.round(consolidatedInventoryDays)}일, 전년대비 ${inventoryGrowth.toFixed(0)}% 증가로 매출 성장률 대비 과잉 재고 발생. 의류업계 적정 회전일수 ${industryAvgInventoryDays}일 수준 달성을 위해 25% 감축 목표 설정. 재고 감축 시 평가손실 리스크 감소 및 자금효율 개선`
-      });
-    }
-    
-    // 차입금 감축 타겟 (구체화)
-    if (totalBorrowing > 100000 && borrowingsByEntity.length > 0) {
-      const topDebtor = borrowingsByEntity[0];
-      const targetReduction = totalBorrowing * 0.5; // 50% 감축 시
-      const interestRate = 0.045; // 연 4.5% 가정
-      const interestSaving = targetReduction * interestRate; // 연 이자 절감
-      const netIncomIncrease = interestSaving * 0.73; // 세후 효과 (법인세율 27%)
-      let roeImpact = 0;
-      if (totalEquityCurr > 0) {
-        roeImpact = (netIncomIncrease / totalEquityCurr * 100);
-        if (!isFinite(roeImpact) || isNaN(roeImpact)) roeImpact = 0;
-      }
-      
-      // 차입금 대비 현금 보유 비율 계산
-      const cashToBorrowingRatio = totalBorrowing > 0 ? (cashCurr / totalBorrowing * 100) : 0;
-      const targetDebtRatio = 50; // 업계 적정 부채비율 목표
-      
-      improvementTargets.push({
-        area: '차입금 전략적 감축',
-        current: `총 ${Math.round(totalBorrowing/100)}억원 (${topDebtor.entity} ${Math.round(topDebtor.debt/100)}억원, 부채비율 ${topDebtor.debtRatio.toFixed(0)}%)`,
-        target: `${Math.round(totalBorrowing*0.5/100)}억원으로 감축 (${topDebtor.entity} 우선 상환)`,
-        impact: `이자비용 -${Math.round(interestSaving/100)}억원/년, 당기순이익 +${Math.round(netIncomIncrease/100)}억원, 순이익률 +${(netIncomIncrease/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p, 부채비율 ${totalEquityCurr > 0 ? (debtRatioCurr - totalBorrowing*0.5/totalEquityCurr*100).toFixed(0) : debtRatioCurr.toFixed(0)}%로 개선`,
-        method: `${topDebtor.entity} 재고 감축으로 현금 ${Math.round(topDebtor.debt*0.3/100)}억원 확보 + 영업이익 개선 + 본사 여유자금 ${Math.round(cashCurr*0.3/100)}억원 지원 + 저효율 자산 매각`,
-        rationale: `[목표 근거] 연결 현금 ${Math.round(cashCurr/100)}억원 보유로 차입금 대비 ${cashToBorrowingRatio.toFixed(0)}% 수준. 현금 여력 충분 시 차입금 50% 상환으로 이자비용 연 ${Math.round(interestSaving/100)}억원 절감 가능. 의류업계 적정 부채비율 ${targetDebtRatio}% 수준 달성 및 재무안정성 강화 목적. 단, 중국 차입금은 M&A 등 전략적 투자 목적으로 별도 관리`
       });
     }
     
