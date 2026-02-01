@@ -2788,8 +2788,9 @@ export default function FnFQ4Dashboard() {
     }
     
     // 법인별 수익성 분석 (상세)
+    // 중국은 이전가격 조정으로 영업이익률 ~4% 구조적 설정이므로 저수익 분석에서 제외
     const topProfitEntity = entityProfitability.length > 0 ? entityProfitability[0] : null;
-    const lowProfitEntity = entityProfitability.find(e => e.margin < 15 && e.sales > 50000);
+    const lowProfitEntity = entityProfitability.find(e => e.margin < 15 && e.sales > 50000 && e.entity !== '중국' && e.entity !== 'ST미국');
     
     // 최고 수익성 법인
     if (topProfitEntity && topProfitEntity.margin > 25) {
@@ -2807,8 +2808,8 @@ export default function FnFQ4Dashboard() {
     const topROEEntity = entityROEAnalysis.length > 0 ? entityROEAnalysis[0] : null;
     const lowROEEntity = entityROEAnalysis.find(e => e.roe < 10 && e.equity > 10000);
     
-    // ST미국 제외하고 ROE 저하 분석 (ST미국은 소송비용 일시적 상황)
-    const lowROEEntityExcludingST = entityROEAnalysis.find(e => e.roe < 10 && e.equity > 10000 && e.entity !== 'ST미국');
+    // ST미국, 중국 제외하고 ROE 저하 분석 (ST미국: 소송비용 일시적, 중국: 이전가격 구조)
+    const lowROEEntityExcludingST = entityROEAnalysis.find(e => e.roe < 10 && e.equity > 10000 && e.entity !== 'ST미국' && e.entity !== '중국');
     if (lowROEEntityExcludingST && topROEEntity && topROEEntity.roe > lowROEEntityExcludingST.roe + 5) {
       risks.push({
         title: `${lowROEEntityExcludingST.entity} 자본 효율성 저하`,
@@ -3230,8 +3231,9 @@ export default function FnFQ4Dashboard() {
     // 9) 연결관점 개선 타겟 분석
     // 수익성 개선 포텐셜이 큰 영역 파악
     
-    // 타겟 1: 저수익 고매출 법인 수익성 개선 (ST미국 제외)
-    const highSalesLowMargin = entityProfitability.filter(e => e.sales > 100000 && e.margin < 20 && e.entity !== 'ST미국');
+    // 타겟 1: 저수익 고매출 법인 수익성 개선 (ST미국, 중국 제외)
+    // ST미국: Movin 소송 일시적 상황, 중국: 이전가격 조정으로 영업이익률 ~4% 구조적 설정
+    const highSalesLowMargin = entityProfitability.filter(e => e.sales > 100000 && e.margin < 20 && e.entity !== 'ST미국' && e.entity !== '중국');
     if (highSalesLowMargin.length > 0) {
       const target = highSalesLowMargin[0];
       const potentialIncrease = (target.sales * 0.05); // 영업이익률 5%p 개선 시
