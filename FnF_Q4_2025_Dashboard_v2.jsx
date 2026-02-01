@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 // ============================================
 // F&F Corporation Q4 2025 Financial Dashboard
 // shadcn/ui 스타일 적용
+// Build: 20260201-1
 // ============================================
 
 // 커스텀 도넛 차트 툴팁 컴포넌트
