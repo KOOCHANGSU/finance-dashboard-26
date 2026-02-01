@@ -4883,18 +4883,16 @@ export default function FnFQ4Dashboard() {
         {/* 영업 섹션 법인별 증감 분석 - 전체 너비 */}
         {selectedAccount !== '지분법손익' && !['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'].includes(selectedAccount) && (
         <>
-        {/* 숨겨진 섹션 - 편집 모드에서만 작은 복원 링크 표시 */}
+        {/* 숨겨진 섹션 - 항상 복원 링크 표시 */}
         {isDetailSectionHidden(selectedAccount) ? (
-          incomeEditMode && (
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => restoreDetailSection(selectedAccount)}
-                className="text-xs text-zinc-400 hover:text-blue-500 transition-colors"
-              >
-                + 구성 상세 표시
-              </button>
-            </div>
-          )
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => restoreDetailSection(selectedAccount)}
+              className="text-xs text-zinc-400 hover:text-blue-500 transition-colors"
+            >
+              + 구성 상세 표시
+            </button>
+          </div>
         ) : (
         <div className="mt-4 bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
@@ -5417,18 +5415,16 @@ export default function FnFQ4Dashboard() {
           {/* 영업외 법인별 증감 분석 - 전체 너비 */}
           {selectedNonOpAccount !== '지분법손익' && (
           <>
-          {/* 숨겨진 섹션 - 편집 모드에서만 작은 복원 링크 표시 */}
+          {/* 숨겨진 섹션 - 항상 복원 링크 표시 */}
           {isDetailSectionHidden(selectedNonOpAccount) ? (
-            nonOpEditMode && (
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => restoreDetailSection(selectedNonOpAccount)}
-                  className="text-xs text-zinc-400 hover:text-blue-500 transition-colors"
-                >
-                  + 구성 상세 표시
-                </button>
-              </div>
-            )
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => restoreDetailSection(selectedNonOpAccount)}
+                className="text-xs text-zinc-400 hover:text-blue-500 transition-colors"
+              >
+                + 구성 상세 표시
+              </button>
+            </div>
           ) : (
           <div className="mt-4 bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
             <div className="flex items-center justify-between mb-3">
@@ -6438,18 +6434,16 @@ export default function FnFQ4Dashboard() {
 
         {/* 구성 상세 - 전체 너비 */}
         <>
-        {/* 숨겨진 섹션 - 편집 모드에서만 작은 복원 링크 표시 */}
+        {/* 숨겨진 섹션 - 항상 복원 링크 표시 */}
         {isDetailSectionHidden(selectedBSAccount) ? (
-          bsEditMode && (
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => restoreDetailSection(selectedBSAccount)}
-                className="text-xs text-zinc-400 hover:text-blue-500 transition-colors"
-              >
-                + 구성 상세 표시
-              </button>
-            </div>
-          )
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => restoreDetailSection(selectedBSAccount)}
+              className="text-xs text-zinc-400 hover:text-blue-500 transition-colors"
+            >
+              + 구성 상세 표시
+            </button>
+          </div>
         ) : (
         <div className="mt-4 bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
