@@ -2828,7 +2828,7 @@ export default function FnFQ4Dashboard() {
       ...e,
       salesShare: totalSales > 0 ? (e.sales / totalSales * 100) : 0,
       profitShare: totalOpIncome > 0 ? (e.opIncome / totalOpIncome * 100) : 0
-    })).filter(e => e.salesShare > 15 && e.profitShare < e.salesShare * 0.7);
+    })).filter(e => e.salesShare > 15 && e.profitShare < e.salesShare * 0.7 && e.entity !== '중국' && e.entity !== 'ST미국');
     
     if (entityImbalance.length > 0) {
       const target = entityImbalance[0];
@@ -3294,7 +3294,7 @@ export default function FnFQ4Dashboard() {
       const consolidatedInventoryDays = salesCurr > 0 ? (inventoryCurr / salesCurr * 365) : 0;
       const industryAvgInventoryDays = 90; // 의류업계 평균 회전일수
       improvementTargets.push({
-        area: '재고자산 최적화',
+        area: '연결 재고자산 최적화',
         current: `${Math.round(inventoryCurr/100)}억원 (전년대비 +${inventoryGrowth.toFixed(0)}%)`,
         target: `${Math.round(inventoryCurr*0.75/100)}억원 (25% 감축)`,
         impact: `운전자본 ${Math.round(targetReduction/100)}억원 절감, 이자비용 -${Math.round(interestSaving/100)}억원, ROE +${totalEquityCurr > 0 ? (interestSaving/totalEquityCurr*100).toFixed(1) : '0.0'}%p`,
@@ -3364,7 +3364,7 @@ export default function FnFQ4Dashboard() {
       insights: insights.slice(0, 4),
       risks: sortedRisks.slice(0, 4),
       actions: actions.slice(0, 4),
-      improvementTargets: improvementTargets.slice(0, 4) // 상위 4개 개선 타겟
+      improvementTargets: improvementTargets.slice(0, 3) // 상위 3개 개선 타겟
     };
   };
 
