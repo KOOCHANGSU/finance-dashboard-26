@@ -3312,12 +3312,17 @@ export default function FnFQ4Dashboard() {
         if (!isFinite(roeImpact) || isNaN(roeImpact)) roeImpact = 0;
       }
       
+      // 차입금 대비 현금 보유 비율 계산
+      const cashToBorrowingRatio = totalBorrowing > 0 ? (cashCurr / totalBorrowing * 100) : 0;
+      const targetDebtRatio = 50; // 업계 적정 부채비율 목표
+      
       improvementTargets.push({
         area: '차입금 전략적 감축',
         current: `총 ${Math.round(totalBorrowing/100)}억원 (${topDebtor.entity} ${Math.round(topDebtor.debt/100)}억원, 부채비율 ${topDebtor.debtRatio.toFixed(0)}%)`,
         target: `${Math.round(totalBorrowing*0.5/100)}억원으로 감축 (${topDebtor.entity} 우선 상환)`,
         impact: `이자비용 -${Math.round(interestSaving/100)}억원/년, 당기순이익 +${Math.round(netIncomIncrease/100)}억원, 순이익률 +${(netIncomIncrease/salesCurr*100).toFixed(1)}%p, ROE +${roeImpact.toFixed(1)}%p, 부채비율 ${totalEquityCurr > 0 ? (debtRatioCurr - totalBorrowing*0.5/totalEquityCurr*100).toFixed(0) : debtRatioCurr.toFixed(0)}%로 개선`,
-        method: `${topDebtor.entity} 재고 감축으로 현금 ${Math.round(topDebtor.debt*0.3/100)}억원 확보 + 영업이익 개선 + 본사 여유자금 ${Math.round(cashCurr*0.3/100)}억원 지원 + 저효율 자산 매각`
+        method: `${topDebtor.entity} 재고 감축으로 현금 ${Math.round(topDebtor.debt*0.3/100)}억원 확보 + 영업이익 개선 + 본사 여유자금 ${Math.round(cashCurr*0.3/100)}억원 지원 + 저효율 자산 매각`,
+        rationale: `[목표 근거] 연결 현금 ${Math.round(cashCurr/100)}억원 보유로 차입금 대비 ${cashToBorrowingRatio.toFixed(0)}% 수준. 현금 여력 충분 시 차입금 50% 상환으로 이자비용 연 ${Math.round(interestSaving/100)}억원 절감 가능. 의류업계 적정 부채비율 ${targetDebtRatio}% 수준 달성 및 재무안정성 강화 목적. 단, 중국 차입금은 M&A 등 전략적 투자 목적으로 별도 관리`
       });
     }
     
