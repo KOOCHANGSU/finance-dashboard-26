@@ -522,9 +522,16 @@ export default function FnFQ4Dashboard() {
     }
   };
 
-  // 앱 시작 시 클라우드에서 데이터 불러오기
+  // 앱 시작 시 클라우드에서 데이터 불러오기 + 30초마다 자동 동기화
   React.useEffect(() => {
     loadFromCloud();
+    
+    // 30초마다 다른 사용자의 변경사항 자동 동기화
+    const syncInterval = setInterval(() => {
+      loadFromCloud();
+    }, 30000); // 30초
+    
+    return () => clearInterval(syncInterval);
   }, []);
 
   // 편집 데이터 변경 시 자동 저장 (debounce 1초)
