@@ -5990,8 +5990,8 @@ export default function FnFQ4Dashboard() {
         return p[accountKey];
       }
       
-      // 2. entityBalanceDetailData에서 찾기 (사용권자산 등)
-      const detailData = entityBalanceDetailData?.[accountKey]?.[period];
+      // 2. bsDetailData에서 찾기 (사용권자산 등)
+      const detailData = bsDetailData?.[accountKey]?.[period];
       if (detailData) {
         // 연결 키 제외하고 법인별 데이터만 반환
         const { 연결, category, ...entityData } = detailData;
