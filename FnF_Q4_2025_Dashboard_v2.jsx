@@ -407,28 +407,32 @@ export default function FnFQ4Dashboard() {
     }
   };
 
-  // 법인 카드 숨기기/복원 함수
-  const hideEntityCard = (accountKey, entity) => {
+  // 법인 카드 숨기기/복원 함수 (viewMode로 분기/누적 분리)
+  const hideEntityCard = (accountKey, entity, viewMode = '') => {
+    const key = viewMode ? `${accountKey}_${viewMode}` : accountKey;
     setHiddenEntityCards(prev => ({
       ...prev,
-      [accountKey]: [...(prev[accountKey] || []), entity]
+      [key]: [...(prev[key] || []), entity]
     }));
   };
 
-  const restoreEntityCard = (accountKey, entity) => {
+  const restoreEntityCard = (accountKey, entity, viewMode = '') => {
+    const key = viewMode ? `${accountKey}_${viewMode}` : accountKey;
     setHiddenEntityCards(prev => ({
       ...prev,
-      [accountKey]: (prev[accountKey] || []).filter(e => e !== entity)
+      [key]: (prev[key] || []).filter(e => e !== entity)
     }));
   };
 
-  const getVisibleEntities = (accountKey, entities) => {
-    const hidden = hiddenEntityCards[accountKey] || [];
+  const getVisibleEntities = (accountKey, entities, viewMode = '') => {
+    const key = viewMode ? `${accountKey}_${viewMode}` : accountKey;
+    const hidden = hiddenEntityCards[key] || [];
     return entities.filter(e => !hidden.includes(e.entity));
   };
 
-  const getHiddenEntitiesForAccount = (accountKey) => {
-    return hiddenEntityCards[accountKey] || [];
+  const getHiddenEntitiesForAccount = (accountKey, viewMode = '') => {
+    const key = viewMode ? `${accountKey}_${viewMode}` : accountKey;
+    return hiddenEntityCards[key] || [];
   };
 
   // 구성 상세 섹션 숨기기/복원 함수
@@ -4959,8 +4963,8 @@ export default function FnFQ4Dashboard() {
                 return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
               });
               
-              // 숨겨진 법인 필터링
-              const visibleData = getVisibleEntities(selectedAccount, sortedData);
+              // 숨겨진 법인 필터링 (분기/누적별 분리)
+              const visibleData = getVisibleEntities(selectedAccount, sortedData, incomeViewMode);
               
               return visibleData.map((row, idx) => {
                 const diff = row.currVal - row.prevVal;
@@ -4977,7 +4981,7 @@ export default function FnFQ4Dashboard() {
                     {/* 삭제 버튼 - 편집 모드에서만 표시 */}
                     {incomeEditMode && (
                       <button
-                        onClick={() => hideEntityCard(selectedAccount, row.entity)}
+                        onClick={() => hideEntityCard(selectedAccount, row.entity, incomeViewMode)}
                         className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-rose-100 text-rose-500 hover:bg-rose-200 transition-colors text-xs"
                         title={`${row.entity} 카드 숨기기`}
                       >
@@ -5030,15 +5034,15 @@ export default function FnFQ4Dashboard() {
             })()}
           </div>
           
-          {/* 숨겨진 법인 복원 영역 - 편집 모드에서만 표시 */}
-          {incomeEditMode && getHiddenEntitiesForAccount(selectedAccount).length > 0 && (
+          {/* 숨겨진 법인 복원 영역 - 편집 모드에서만 표시 (분기/누적별 분리) */}
+          {incomeEditMode && getHiddenEntitiesForAccount(selectedAccount, incomeViewMode).length > 0 && (
             <div className="mt-2 p-2 bg-zinc-100 rounded-lg">
               <div className="flex items-center flex-wrap gap-2">
                 <span className="text-xs text-zinc-500">숨겨진 법인:</span>
-                {getHiddenEntitiesForAccount(selectedAccount).map(entity => (
+                {getHiddenEntitiesForAccount(selectedAccount, incomeViewMode).map(entity => (
                   <button
                     key={entity}
-                    onClick={() => restoreEntityCard(selectedAccount, entity)}
+                    onClick={() => restoreEntityCard(selectedAccount, entity, incomeViewMode)}
                     className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-white border border-zinc-300 text-zinc-600 hover:bg-zinc-50 transition-colors"
                   >
                     <span 
@@ -5511,8 +5515,8 @@ export default function FnFQ4Dashboard() {
                   return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
                 });
                 
-                // 숨겨진 법인 필터링
-                const visibleData = getVisibleEntities(selectedNonOpAccount, sortedData);
+                // 숨겨진 법인 필터링 (분기/누적별 분리)
+                const visibleData = getVisibleEntities(selectedNonOpAccount, sortedData, incomeViewMode);
                 
                 return visibleData.map((row, idx) => {
                   const diff = row.currVal - row.prevVal;
@@ -5528,7 +5532,7 @@ export default function FnFQ4Dashboard() {
                       {/* 삭제 버튼 - 편집 모드에서만 표시 */}
                       {nonOpEditMode && (
                         <button
-                          onClick={() => hideEntityCard(selectedNonOpAccount, row.entity)}
+                          onClick={() => hideEntityCard(selectedNonOpAccount, row.entity, incomeViewMode)}
                           className="absolute top-1 right-1 w-5 h-5 flex items-center justify-center rounded-full bg-rose-100 text-rose-500 hover:bg-rose-200 transition-colors text-xs"
                           title={`${row.entity} 카드 숨기기`}
                         >
@@ -5581,15 +5585,15 @@ export default function FnFQ4Dashboard() {
               })()}
             </div>
             
-            {/* 숨겨진 법인 복원 영역 - 편집 모드에서만 표시 */}
-            {nonOpEditMode && getHiddenEntitiesForAccount(selectedNonOpAccount).length > 0 && (
+            {/* 숨겨진 법인 복원 영역 - 편집 모드에서만 표시 (분기/누적별 분리) */}
+            {nonOpEditMode && getHiddenEntitiesForAccount(selectedNonOpAccount, incomeViewMode).length > 0 && (
               <div className="mt-2 p-2 bg-zinc-100 rounded-lg">
                 <div className="flex items-center flex-wrap gap-2">
                   <span className="text-xs text-zinc-500">숨겨진 법인:</span>
-                  {getHiddenEntitiesForAccount(selectedNonOpAccount).map(entity => (
+                  {getHiddenEntitiesForAccount(selectedNonOpAccount, incomeViewMode).map(entity => (
                     <button
                       key={entity}
-                      onClick={() => restoreEntityCard(selectedNonOpAccount, entity)}
+                      onClick={() => restoreEntityCard(selectedNonOpAccount, entity, incomeViewMode)}
                       className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-white border border-zinc-300 text-zinc-600 hover:bg-zinc-50 transition-colors"
                     >
                       <span 
