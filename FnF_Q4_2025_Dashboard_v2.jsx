@@ -5984,9 +5984,23 @@ export default function FnFQ4Dashboard() {
     };
 
     const getBaseBSBreakdown = (accountKey, period) => {
+      // 1. 먼저 entityBSData에서 찾기
       const p = entityBSData?.[period];
-      if (!p) return {};
-      return p[accountKey] || p['자산총계'] || {};
+      if (p && p[accountKey]) {
+        return p[accountKey];
+      }
+      
+      // 2. entityBalanceDetailData에서 찾기 (사용권자산 등)
+      const detailData = entityBalanceDetailData?.[accountKey]?.[period];
+      if (detailData) {
+        // 연결 키 제외하고 법인별 데이터만 반환
+        const { 연결, category, ...entityData } = detailData;
+        return entityData;
+      }
+      
+      // 3. 둘 다 없으면 자산총계 반환
+      if (p) return p['자산총계'] || {};
+      return {};
     };
 
     const getAlignedBSBreakdown = (accountKey, period) => {
