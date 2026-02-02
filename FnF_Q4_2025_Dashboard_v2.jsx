@@ -4967,8 +4967,8 @@ export default function FnFQ4Dashboard() {
                 const isPositive = diff >= 0;
                 const diffBil = Math.round(diff / 100);
                 
-                // 편집 가능한 분석 문장
-                const editKey = `${selectedAccount}_${row.entity}`;
+                // 편집 가능한 분석 문장 (분기/누적별 분리 저장)
+                const editKey = `${selectedAccount}_${row.entity}_${incomeViewMode}`;
                 const defaultTexts = generateIncomeAnalysisText(selectedAccount, row.entity, currPeriod, prevPeriod);
                 const analysisTexts = incomeEditData[editKey] || defaultTexts;
                 
@@ -5063,7 +5063,7 @@ export default function FnFQ4Dashboard() {
             const totalChange = totalPrev !== 0 ? ((totalDiff / totalPrev) * 100).toFixed(1) : 0;
             const isPositive = totalDiff >= 0;
             
-            const totalEditKey = `${selectedAccount}_total`;
+            const totalEditKey = `${selectedAccount}_total_${incomeViewMode}`;
             const totalEdited = incomeEditData[totalEditKey] || {};
             const displayTotalAmount = totalEdited.amount !== undefined ? totalEdited.amount : `${isPositive ? '+' : ''}${formatNumber(totalDiffBil)}`;
             const displayTotalRate = totalEdited.rate !== undefined ? totalEdited.rate : `${isPositive ? '+' : ''}${totalChange}`;
@@ -5519,8 +5519,8 @@ export default function FnFQ4Dashboard() {
                   const isPositive = diff >= 0;
                   const diffBil = Math.round(diff / 100);
                   
-                  // 편집 가능한 분석 문장
-                  const editKey = `${selectedNonOpAccount}_${row.entity}`;
+                  // 편집 가능한 분석 문장 (분기/누적별 분리 저장)
+                  const editKey = `${selectedNonOpAccount}_${row.entity}_${incomeViewMode}`;
                   const analysisTexts = incomeEditData[editKey] || [];
                   
                   return (
