@@ -4797,6 +4797,20 @@ export default function FnFQ4Dashboard() {
               ))}
             </div>
             )}
+            
+            {/* 계정별 설명 멘트 */}
+            {selectedAccount === '매출액' && (
+              <div className="text-xs text-zinc-500 mt-3 px-1">
+                <span className="font-medium text-zinc-600">[매출액]</span> : 내부거래(OC의 중국, 홍콩 수출)제거한 순매출액 표시.
+                <div style={{ paddingLeft: '53px' }}>OC(국내)=국내+3자수출분</div>
+              </div>
+            )}
+            {selectedAccount === '매출원가' && (
+              <div className="text-xs text-zinc-500 mt-3 px-1">
+                <span className="font-medium text-zinc-600">[매출원가]</span> : 내부거래 제거한 실제 연결법인의 매출원가.
+                <div style={{ paddingLeft: '62px' }}>중국/홍콩 (OC매입상품의) 매출원가→OC 생산원가</div>
+              </div>
+            )}
           </div>
             );
           })()}
