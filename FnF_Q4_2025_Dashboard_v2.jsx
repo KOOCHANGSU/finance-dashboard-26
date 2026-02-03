@@ -99,7 +99,7 @@ export default function FnFQ4Dashboard() {
   const [nonOpSectionExpanded, setNonOpSectionExpanded] = useState(true); // 영업외 손익 섹션 접기/펼치기
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
   const [selectedPeriod, setSelectedPeriod] = useState('2025_Q4'); // 선택된 조회기간 ('2025_Q1' ~ '2025_Q4')
-  const [summaryKpiMode, setSummaryKpiMode] = useState('cumulative'); // 'quarter' | 'cumulative' - 손익 요약 카드 보기 모드
+  const [summaryKpiMode, setSummaryKpiMode] = useState('quarter'); // 'quarter' | 'cumulative' - 손익 요약 카드 보기 모드
   const [balanceKpiMode, setBalanceKpiMode] = useState('yearEnd'); // 'sameQuarter' | 'yearEnd' - 재무상태 요약 카드 보기 모드
   const [incomeEditMode, setIncomeEditMode] = useState(false); // 영업 섹션 증감 분석 편집 모드
   const [nonOpEditMode, setNonOpEditMode] = useState(false); // 영업외 섹션 증감 분석 편집 모드
@@ -562,7 +562,7 @@ export default function FnFQ4Dashboard() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [incomeEditData, bsEditData, hiddenEntityCards, hiddenDetailSections]);
+  }, [incomeEditData, bsEditData, aiAnalysisData, hiddenEntityCards, hiddenDetailSections]);
 
   // JSON 내보내기 함수 (로컬 파일)
   const exportEditData = () => {
@@ -3557,7 +3557,7 @@ export default function FnFQ4Dashboard() {
               <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
                 isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
               }`}>
-                {diff !== 0 ? `${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
+                {diff !== 0 ? `YoY ${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
               </span>
             </div>
             
@@ -3616,7 +3616,7 @@ export default function FnFQ4Dashboard() {
             <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
               isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
             }`}>
-              {change != 0 ? `${isPositive ? '+' : ''}${change}%` : '-'}
+              {change != 0 ? `YoY ${isPositive ? '+' : ''}${change}%` : '-'}
             </span>
           </div>
           
@@ -3778,7 +3778,7 @@ export default function FnFQ4Dashboard() {
                   className="p-1 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded transition-colors"
                   title="편집"
                 >
-                  ✏️
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                 </button>
               )}
             </div>
@@ -4489,7 +4489,7 @@ export default function FnFQ4Dashboard() {
       { key: '배당수익', label: '(5)배당수익', depth: 1, selectable: true },
       { key: '기부금', label: '(6)기부금', depth: 1, selectable: true },
       { key: '기타손익', label: '(7)기타손익', depth: 1, selectable: true },
-      { key: '지분법손익', label: 'VII. 지분법손익', depth: 0, bold: true },
+      { key: '지분법손익', label: 'VII. 지분법손익', depth: 0, bold: true, selectable: true },
       { key: '법인세비용차감전순이익', label: 'VIII. 법인세비용차감전순이익', depth: 0, bold: true, selectable: true },
       { key: '법인세비용', label: 'IX. 법인세비용', depth: 0, bold: true, selectable: true },
       { key: '법인세율', label: '법인세율', depth: 0, isRate: true, rateOf: ['법인세비용', '법인세비용차감전순이익'], highlight: 'blue' },
@@ -4705,8 +4705,8 @@ export default function FnFQ4Dashboard() {
         <div className="w-full xl:w-[45%] xl:min-w-[420px] flex-shrink-0 space-y-3">
           {/* 법인별 분석 헤더 */}
           {(() => {
-            // 영업외손익 하위 계정들 (도넛 차트 숨김)
-            const nonOperatingSubAccounts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
+            // 영업외손익 관련 계정들 (도넛 차트 숨김)
+            const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
             const hideDonutChart = nonOperatingSubAccounts.includes(selectedAccount);
             
             return (
@@ -4825,11 +4825,11 @@ export default function FnFQ4Dashboard() {
               </thead>
               <tbody>
                 {(() => {
-                  const nonOperatingSubAccounts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
+                  const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
                   const hideZeroEntities = nonOperatingSubAccounts.includes(selectedAccount);
                   
                   let data = getEntityTableData();
-                  // 영업외손익 하위 계정: 전기/당기 모두 0인 법인 숨김
+                  // 영업외손익 관련 계정: 전기/당기 모두 0인 법인 숨김
                   if (hideZeroEntities) {
                     data = data.filter(row => row.prevVal !== 0 || row.currVal !== 0);
                   }
@@ -4864,7 +4864,7 @@ export default function FnFQ4Dashboard() {
                 })()}
                 {/* 합계 행 */}
                 {(() => {
-                  const nonOperatingSubAccounts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
+                  const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
                   const hideZeroEntities = nonOperatingSubAccounts.includes(selectedAccount);
                   let data = getEntityTableData();
                   if (hideZeroEntities) {
@@ -4953,14 +4953,14 @@ export default function FnFQ4Dashboard() {
               )}
               <button
                 onClick={() => setIncomeEditMode(!incomeEditMode)}
-                className={`text-xs px-1.5 py-1 rounded transition-colors ${
+                className={`p-1 rounded transition-colors ${
                   incomeEditMode 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                    ? 'text-blue-500 bg-blue-50' 
+                    : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
                 }`}
                 title={incomeEditMode ? '편집 완료' : '분석 문장 편집'}
               >
-                {incomeEditMode ? '✓' : '✏️'}
+                {incomeEditMode ? '✓' : <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>}
               </button>
             </div>
             {/* 숨겨진 파일 입력 */}
@@ -5204,13 +5204,12 @@ export default function FnFQ4Dashboard() {
             </div>
 
             {/* 우측: 영업외 섹션 법인별 분석 */}
-            {/* 지분법손익은 법인별 분석 표시하지 않음 */}
-            {selectedNonOpAccount !== '지분법손익' && (
+            {(
             <div className="w-full xl:w-[45%] xl:min-w-[420px] flex-shrink-0 space-y-3">
               {/* 법인별 분석 헤더 */}
               {(() => {
-                // 영업외손익 하위 계정들 (도넛 차트 숨김)
-                const nonOperatingSubAccounts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
+                // 영업외손익 관련 계정들 (도넛 차트 숨김)
+                const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
                 const hideDonutChart = nonOperatingSubAccounts.includes(selectedNonOpAccount);
                 
                 // 영업외 섹션용 법인별 분석 데이터 함수
@@ -5428,7 +5427,7 @@ export default function FnFQ4Dashboard() {
           </div>
 
           {/* 영업외 법인별 증감 분석 - 전체 너비 */}
-          {selectedNonOpAccount !== '지분법손익' && (
+          {(
           <>
           {/* 숨겨진 섹션 - 항상 복원 링크 표시 */}
           {isDetailSectionHidden(selectedNonOpAccount) ? (
@@ -5485,14 +5484,14 @@ export default function FnFQ4Dashboard() {
                 )}
                 <button
                   onClick={() => setNonOpEditMode(!nonOpEditMode)}
-                  className={`text-xs px-1.5 py-1 rounded transition-colors ${
+                  className={`p-1 rounded transition-colors ${
                     nonOpEditMode 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                      ? 'text-blue-500 bg-blue-50' 
+                      : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
                   }`}
                   title={nonOpEditMode ? '편집 완료' : '분석 문장 편집'}
                 >
-                  {nonOpEditMode ? '✓' : '✏️'}
+                  {nonOpEditMode ? '✓' : <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>}
                 </button>
               </div>
             </div>
@@ -6518,14 +6517,14 @@ export default function FnFQ4Dashboard() {
               )}
               <button
                 onClick={() => setBsEditMode(!bsEditMode)}
-                className={`text-xs px-1.5 py-1 rounded transition-colors ${
+                className={`p-1 rounded transition-colors ${
                   bsEditMode 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                    ? 'text-blue-500 bg-blue-50' 
+                    : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
                 }`}
                 title={bsEditMode ? '편집 완료' : '분석 문장 편집'}
               >
-                {bsEditMode ? '✓' : '✏️'}
+                {bsEditMode ? '✓' : <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>}
               </button>
             </div>
           </div>
