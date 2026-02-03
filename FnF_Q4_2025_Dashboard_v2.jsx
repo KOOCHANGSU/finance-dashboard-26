@@ -1083,11 +1083,11 @@ export default function FnFQ4Dashboard() {
       매출원가: 181038,      // 연간 642,187 - 3분기누적 461,149
       매출총이익: 394214,    // 연간 1,291,809 - 3분기누적 897,595
       판매비와관리비: 261338, // 연간 823,266 - 3분기누적 561,928
-      인건비: 20948,         // 연간 83,728 - 3분기누적 62,780 (추정)
+      인건비: 22031,         // 급여 20,948 + 퇴직급여 1,083 (2025_IS.csv 기준)
       광고선전비: 39904,     // 연간 109,084 - 3분기누적 69,180
       수수료: 155022,        // 연간 458,879 - 3분기누적 303,857 (운반비 8,094 + 지급수수료 146,928)
       감가상각비: 22961,     // 연간 91,847 - 3분기누적 68,886 (추정)
-      기타판관비: 22503,     // 261,338 - 20,948 - 39,904 - 155,022 - 22,961 (수수료에 운반비 포함으로 조정)
+      기타판관비: 21420,     // 261,338 - 22,031 - 39,904 - 155,022 - 22,961
       영업이익: 132876,      // 연간 468,543 - 3분기누적 335,667
       영업외손익: -2285,     // 영업외수익 - 영업외비용 - 지분법손익 (4Q 분기)
       외환손익: 4666,        // 외환차익 + 외화환산이익 - 외환차손 - 외화환산손실
@@ -1109,11 +1109,11 @@ export default function FnFQ4Dashboard() {
       매출원가: 642187,      // 연결 손익계산서 연간 누적
       매출총이익: 1291809,   // 연결 손익계산서 연간 누적
       판매비와관리비: 823266, // 연결 손익계산서 연간 누적
-      인건비: 83728,         // 급여+퇴직급여 추정
+      인건비: 84811,         // 급여 80,199 + 퇴직급여 4,612 (2025_IS.csv 기준)
       광고선전비: 109084,    // 광고선전비 연간
       수수료: 458879,        // 운반비 24,855 + 지급수수료 434,024 연간
       감가상각비: 91847,     // 감가상각비+무형자산상각비 연간
-      기타판관비: 79728,     // 823,266 - 83,728 - 109,084 - 458,879 - 91,847 (수수료에 운반비 포함으로 조정)
+      기타판관비: 78645,     // 823,266 - 84,811 - 109,084 - 458,879 - 91,847
       영업이익: 468543,      // 연결 영업이익
       영업외손익: -16322,    // 영업외수익 - 영업외비용 - 지분법손익 (연간 누적)
       외환손익: 3685,        // (외환차익+외화환산이익) - (외환차손+외화환산손실)
@@ -2137,22 +2137,22 @@ export default function FnFQ4Dashboard() {
       '2025_Year': { 'OC(국내)': 51536, '중국': 25016, '홍콩': 11469, 'ST미국': 476, '기타': 3346 },
     },
     '기타판관비': {
-      '2024_1Q': { 'OC(국내)': 11333, '중국': 10054, '홍콩': 2670, 'ST미국': 1260, '기타': -12 },
-      '2024_1Q_Year': { 'OC(국내)': 11333, '중국': 10054, '홍콩': 2670, 'ST미국': 1260, '기타': -12 },
-      '2024_2Q': { 'OC(국내)': 10453, '중국': 6031, '홍콩': 2375, 'ST미국': 1707, '기타': -57 },
-      '2024_2Q_Year': { 'OC(국내)': 21786, '중국': 16085, '홍콩': 5045, 'ST미국': 2967, '기타': -69 },
-      '2024_3Q': { 'OC(국내)': 9321, '중국': 10054, '홍콩': 2552, 'ST미국': 1183, '기타': -356 },
-      '2024_3Q_Year': { 'OC(국내)': 31107, '중국': 26139, '홍콩': 7597, 'ST미국': 4150, '기타': -425 },
-      '2024_4Q': { 'OC(국내)': 14468, '중국': 9636, '홍콩': 3536, 'ST미국': 2377, '기타': 100 },
-      '2024_Year': { 'OC(국내)': 45575, '중국': 35775, '홍콩': 11133, 'ST미국': 6527, '기타': -325 },
-      '2025_1Q': { 'OC(국내)': 10906, '중국': 9821, '홍콩': 3799, 'ST미국': 1829, '기타': 147 },
-      '2025_1Q_Year': { 'OC(국내)': 10906, '중국': 9821, '홍콩': 3799, 'ST미국': 1829, '기타': 147 },
-      '2025_2Q': { 'OC(국내)': 9642, '중국': 6522, '홍콩': 3527, 'ST미국': 1905, '기타': 106 },
-      '2025_2Q_Year': { 'OC(국내)': 20548, '중국': 16343, '홍콩': 7326, 'ST미국': 3734, '기타': 253 },
-      '2025_3Q': { 'OC(국내)': 8069, '중국': 10664, '홍콩': 3186, 'ST미국': 3728, '기타': 141 },
-      '2025_3Q_Year': { 'OC(국내)': 28617, '중국': 27007, '홍콩': 10512, 'ST미국': 7462, '기타': 394 },
-      '2025_4Q': { 'OC(국내)': 13623, '중국': 12658, '홍콩': 3539, 'ST미국': -427, '기타': 123 },
-      '2025_Year': { 'OC(국내)': 42240, '중국': 39665, '홍콩': 14051, 'ST미국': 7035, '기타': 517 },
+      '2024_1Q': { 'OC(국내)': 11388, '중국': 5585, '홍콩': 1532, 'ST미국': 740, '기타': -69 },
+      '2024_1Q_Year': { 'OC(국내)': 11388, '중국': 5585, '홍콩': 1532, 'ST미국': 740, '기타': -69 },
+      '2024_2Q': { 'OC(국내)': 10441, '중국': 3883, '홍콩': 1390, 'ST미국': 767, '기타': 103 },
+      '2024_2Q_Year': { 'OC(국내)': 21829, '중국': 9468, '홍콩': 2922, 'ST미국': 1507, '기타': 34 },
+      '2024_3Q': { 'OC(국내)': 9439, '중국': 5952, '홍콩': 1478, 'ST미국': -1002, '기타': 1228 },
+      '2024_3Q_Year': { 'OC(국내)': 31268, '중국': 15420, '홍콩': 4400, 'ST미국': 505, '기타': 1262 },
+      '2024_4Q': { 'OC(국내)': 14379, '중국': 4950, '홍콩': 2397, 'ST미국': 1724, '기타': 137 },
+      '2024_Year': { 'OC(국내)': 45647, '중국': 20370, '홍콩': 6797, 'ST미국': 2229, '기타': 1399 },
+      '2025_1Q': { 'OC(국내)': 10904, '중국': 5466, '홍콩': 2581, 'ST미국': 1470, '기타': 151 },
+      '2025_1Q_Year': { 'OC(국내)': 10904, '중국': 5466, '홍콩': 2581, 'ST미국': 1470, '기타': 151 },
+      '2025_2Q': { 'OC(국내)': 9650, '중국': 3353, '홍콩': 2577, 'ST미국': 1503, '기타': 110 },
+      '2025_2Q_Year': { 'OC(국내)': 20554, '중국': 8819, '홍콩': 5158, 'ST미국': 2973, '기타': 261 },
+      '2025_3Q': { 'OC(국내)': 8091, '중국': 5795, '홍콩': 2164, 'ST미국': 3297, '기타': 145 },
+      '2025_3Q_Year': { 'OC(국내)': 28645, '중국': 14614, '홍콩': 7322, 'ST미국': 6270, '기타': 406 },
+      '2025_4Q': { 'OC(국내)': 13594, '중국': 6556, '홍콩': 2435, 'ST미국': -1322, '기타': 128 },
+      '2025_Year': { 'OC(국내)': 42239, '중국': 21170, '홍콩': 9757, 'ST미국': 4948, '기타': 534 },
     },
     '영업이익': {
       '2024_1Q': { 'OC(국내)': 95453, '중국': 24681, '홍콩': 650, 'ST미국': 2590, '기타': 6837 },
@@ -5365,9 +5365,13 @@ export default function FnFQ4Dashboard() {
                     </tr>
                     <tr className="bg-zinc-50 border-b border-zinc-200">
                       <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                      <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">비중</th>
+                      <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">
+                        {selectedNonOpAccount === '법인세비용' ? '유효세율' : '비중'}
+                      </th>
                       <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                      <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">비중</th>
+                      <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">
+                        {selectedNonOpAccount === '법인세비용' ? '유효세율' : '비중'}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -5380,9 +5384,35 @@ export default function FnFQ4Dashboard() {
                       const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                       const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
                       
+                      // 법인세비용 선택 시 법인세비용차감전순이익 데이터 가져오기 (전기/당기)
+                      const ebtDataCurr = selectedNonOpAccount === '법인세비용' 
+                        ? entityData['법인세비용차감전순이익']?.[currPeriod] || {}
+                        : {};
+                      const ebtDataPrev = selectedNonOpAccount === '법인세비용' 
+                        ? entityData['법인세비용차감전순이익']?.[prevPeriod] || {}
+                        : {};
+                      
                       return data.map((row, idx) => {
                         const diff = row.currVal - row.prevVal;
                         const prevRatio = totalPrev !== 0 ? ((row.prevVal / totalPrev) * 100).toFixed(1) : '0.0';
+                        
+                        // 법인별 유효세율 계산 (법인세비용 / 법인세비용차감전순이익 * 100)
+                        let effectiveTaxRateCurr = '-';
+                        let effectiveTaxRatePrev = '-';
+                        if (selectedNonOpAccount === '법인세비용') {
+                          const entityKey = row.entity === '기타(연결조정)' ? '기타' : row.entity;
+                          // 당기 유효세율
+                          const ebtCurr = ebtDataCurr[entityKey] || 0;
+                          if (ebtCurr > 0 && row.currVal > 0) {
+                            effectiveTaxRateCurr = ((row.currVal / ebtCurr) * 100).toFixed(1) + '%';
+                          }
+                          // 전기 유효세율
+                          const ebtPrev = ebtDataPrev[entityKey] || 0;
+                          if (ebtPrev > 0 && row.prevVal > 0) {
+                            effectiveTaxRatePrev = ((row.prevVal / ebtPrev) * 100).toFixed(1) + '%';
+                          }
+                        }
+                        
                         return (
                         <tr key={idx} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td className="px-2 py-1.5 text-zinc-700 whitespace-nowrap border-r border-zinc-100">
@@ -5393,9 +5423,13 @@ export default function FnFQ4Dashboard() {
                             {row.entity}
                           </td>
                           <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums">{formatNumber(row.prevVal)}</td>
-                          <td className="text-right px-1 py-1.5 text-zinc-400 tabular-nums border-r border-zinc-100">{prevRatio}%</td>
+                          <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-600 font-medium' : 'text-zinc-400'}`}>
+                            {selectedNonOpAccount === '법인세비용' ? effectiveTaxRatePrev : `${prevRatio}%`}
+                          </td>
                           <td className="text-right px-1 py-1.5 text-zinc-900 font-medium tabular-nums">{formatNumber(row.currVal)}</td>
-                          <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums border-r border-zinc-100">{row.ratio}%</td>
+                          <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-600 font-medium' : 'text-zinc-500'}`}>
+                            {selectedNonOpAccount === '법인세비용' ? effectiveTaxRateCurr : `${row.ratio}%`}
+                          </td>
                           <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                             {diff >= 0 ? '+' : ''}{formatNumber(diff)}
                           </td>
@@ -5415,13 +5449,32 @@ export default function FnFQ4Dashboard() {
                       const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                       const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
                       const totalDiff = totalCurr - totalPrev;
+                      
+                      // 합계 유효세율 계산 (전기/당기)
+                      let totalEffectiveTaxRateCurr = '-';
+                      let totalEffectiveTaxRatePrev = '-';
+                      if (selectedNonOpAccount === '법인세비용') {
+                        const ebtTotalCurr = incomeStatementData[currPeriod]?.['법인세비용차감전순이익'] || 0;
+                        const ebtTotalPrev = incomeStatementData[prevPeriod]?.['법인세비용차감전순이익'] || 0;
+                        if (ebtTotalCurr > 0 && totalCurr > 0) {
+                          totalEffectiveTaxRateCurr = ((totalCurr / ebtTotalCurr) * 100).toFixed(1) + '%';
+                        }
+                        if (ebtTotalPrev > 0 && totalPrev > 0) {
+                          totalEffectiveTaxRatePrev = ((totalPrev / ebtTotalPrev) * 100).toFixed(1) + '%';
+                        }
+                      }
+                      
                       return (
                     <tr className="bg-zinc-50 font-medium">
                       <td className="px-2 py-1.5 text-zinc-900 whitespace-nowrap border-r border-zinc-200">합계</td>
                       <td className="text-right px-1 py-1.5 text-zinc-700 tabular-nums">{formatNumber(totalPrev)}</td>
-                      <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">100%</td>
+                      <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-200 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-600 font-semibold' : 'text-zinc-600'}`}>
+                        {selectedNonOpAccount === '법인세비용' ? totalEffectiveTaxRatePrev : '100%'}
+                      </td>
                       <td className="text-right px-1 py-1.5 text-zinc-900 tabular-nums">{formatNumber(totalCurr)}</td>
-                      <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">100%</td>
+                      <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-200 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-600 font-semibold' : 'text-zinc-600'}`}>
+                        {selectedNonOpAccount === '법인세비용' ? totalEffectiveTaxRateCurr : '100%'}
+                      </td>
                       <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-200 ${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {totalDiff >= 0 ? '+' : ''}{formatNumber(totalDiff)}
                       </td>
