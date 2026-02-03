@@ -6212,7 +6212,7 @@ export default function FnFQ4Dashboard() {
                   </div>
                 </div>
 
-                <p className="text-xs text-zinc-400">* 4Q 분기(3개월) 기준 | 선물환 계약: CNY 기준 USD/KRW 환헤지 | 평가손익은 연 누적기준 0 (분기별 환입)</p>
+                <p className="text-xs text-zinc-400">* 4Q 분기(3개월) 기준 | 선물환 계약: CNY 기준 USD/KRW 환헤지 | 평가손익은 연 누적기준 0</p>
               </div>
             )}
           </div>
