@@ -164,12 +164,16 @@ export default function FnFQ4Dashboard() {
 
   // 서버에서 모든 설정 불러오기
   const loadAllSettingsFromServer = async () => {
+    console.log('[Redis Sync] 서버에서 데이터 로드 시작...');
     try {
       const response = await fetch('/api/load-data');
+      console.log('[Redis Sync] 로드 응답 상태:', response.status);
       if (response.ok) {
         const result = await response.json();
+        console.log('[Redis Sync] 로드 결과:', result);
         if (result.success && result.data) {
           const data = result.data;
+          console.log('[Redis Sync] 로드된 aiAnalysisData:', data.aiAnalysisData);
           
           // 각 설정 복원
           if (data.aiAnalysisData) {
@@ -194,10 +198,15 @@ export default function FnFQ4Dashboard() {
           }
           
           setAiLastUpdated(data.lastUpdated);
+          console.log('[Redis Sync] 데이터 로드 완료, lastUpdated:', data.lastUpdated);
+        } else {
+          console.log('[Redis Sync] 서버에 저장된 데이터 없음 (result.data가 null)');
         }
+      } else {
+        console.error('[Redis Sync] 로드 실패 응답:', await response.text());
       }
     } catch (error) {
-      console.log('서버에서 설정 불러오기 실패, localStorage 사용:', error);
+      console.error('[Redis Sync] 서버에서 설정 불러오기 실패:', error);
     } finally {
       // 초기 로드 완료 후 플래그 해제 (약간의 딜레이 후)
       setTimeout(() => {
