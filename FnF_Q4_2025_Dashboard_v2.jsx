@@ -4811,6 +4811,12 @@ export default function FnFQ4Dashboard() {
                 <div style={{ paddingLeft: '62px' }}>중국/홍콩 (OC매입상품의) 매출원가→OC 생산원가</div>
               </div>
             )}
+            {selectedAccount === '영업이익' && (
+              <div className="text-xs text-zinc-500 mt-3 px-1">
+                <span className="font-medium text-zinc-600">[영업이익]</span> : 별도 법인 기준 표시.
+                <div style={{ paddingLeft: '62px' }}>기타(연결조정) - 내부거래제거 및 OC 중국/홍콩 수출판매분 이익조정 내역</div>
+              </div>
+            )}
           </div>
             );
           })()}
@@ -5365,11 +5371,11 @@ export default function FnFQ4Dashboard() {
                     </tr>
                     <tr className="bg-zinc-50 border-b border-zinc-200">
                       <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                      <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">
+                      <th className={`text-center px-1 py-1 font-medium min-w-[38px] border-r border-zinc-200 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-500' : 'text-zinc-500'}`}>
                         {selectedNonOpAccount === '법인세비용' ? '유효세율' : '비중'}
                       </th>
                       <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                      <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">
+                      <th className={`text-center px-1 py-1 font-medium min-w-[38px] border-r border-zinc-200 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-500' : 'text-zinc-500'}`}>
                         {selectedNonOpAccount === '법인세비용' ? '유효세율' : '비중'}
                       </th>
                     </tr>
