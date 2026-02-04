@@ -7141,12 +7141,24 @@ export default function FnFQ4Dashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {(() => {
-              const curr2025 = getAlignedBSBreakdown(selectedBSAccount, bsCurrentPeriod);
-              const curr2024 = getAlignedBSBreakdown(selectedBSAccount, bsPrevPeriod);
+              const curr2025Raw = getAlignedBSBreakdown(selectedBSAccount, bsCurrentPeriod);
+              const curr2024Raw = getAlignedBSBreakdown(selectedBSAccount, bsPrevPeriod);
+              
+              // '기타' 키를 '연결조정'으로 합산 (중복 방지)
+              const mergeGitaToAdjustment = (data) => {
+                const result = { ...data };
+                if (result['기타'] !== undefined) {
+                  result['연결조정'] = (result['연결조정'] || 0) + result['기타'];
+                  delete result['기타'];
+                }
+                return result;
+              };
+              
+              const curr2025 = mergeGitaToAdjustment(curr2025Raw);
+              const curr2024 = mergeGitaToAdjustment(curr2024Raw);
               
               // 법인별 증감 계산
               const changes = Object.keys(curr2025)
-                .filter(entity => entity !== '기타')
                 .map(entity => ({
                   name: entity,
                   currVal: curr2025[entity] || 0,
@@ -7155,10 +7167,11 @@ export default function FnFQ4Dashboard() {
                   rate: curr2024[entity] !== 0 ? ((curr2025[entity] - curr2024[entity]) / Math.abs(curr2024[entity]) * 100).toFixed(1) : 0
                 }));
               
-              // 법인 순서 고정: OC(국내), 중국, 홍콩, ST미국, 기타(연결조정)
+              // 법인 순서 고정: OC(국내), 중국, 홍콩, ST미국, 연결조정
+              const bsEntityOrder = ['OC(국내)', '중국', '홍콩', 'ST미국', '연결조정'];
               const sortedChanges = [...changes].sort((a, b) => {
-                const orderA = ENTITY_ORDER.indexOf(a.name);
-                const orderB = ENTITY_ORDER.indexOf(b.name);
+                const orderA = bsEntityOrder.indexOf(a.name);
+                const orderB = bsEntityOrder.indexOf(b.name);
                 return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
               });
               
