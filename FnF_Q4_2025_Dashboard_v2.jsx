@@ -5952,11 +5952,11 @@ export default function FnFQ4Dashboard() {
                           <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">213,817</td>
                           <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">36,379</td>
                           <td className="text-right px-2 py-2 text-zinc-700 tabular-nums font-medium border-r border-zinc-300">{formatNumber(3855)}</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">171.0</td>
+                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">186.5</td>
                           <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">184.4</td>
-                          <td className="text-right px-2 py-2 text-blue-600 tabular-nums font-medium">+7.8%</td>
+                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium">-1.1%</td>
                           <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">203,281</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">34,761</td>
+                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">37,920</td>
                           <td className="text-right px-2 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(931)}</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
@@ -5971,7 +5971,7 @@ export default function FnFQ4Dashboard() {
                           <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
                           <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
                           <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">11,313</td>
+                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">8,154</td>
                           <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(152)})</td>
                         </tr>
                         {/* 예금 (1행) */}
