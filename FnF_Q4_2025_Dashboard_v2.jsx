@@ -6793,7 +6793,7 @@ export default function FnFQ4Dashboard() {
                         <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△65억</td>
                       </tr>
                       <tr className="border-b border-zinc-100">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">③ STE 지분취득 자본조정</td>
+                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">③ STE 지분취득 자본조정 <span className="text-zinc-600">(모빈지분 인수 USD 19.16M)</span></td>
                         <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△276억</td>
                       </tr>
                       
