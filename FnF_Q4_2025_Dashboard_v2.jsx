@@ -6758,6 +6758,7 @@ export default function FnFQ4Dashboard() {
           <div className="w-full xl:w-[45%] xl:min-w-[420px] flex-shrink-0 space-y-3">
             {/* 자본총계 변동 분석 - 자본총계 선택 시에만 표시 */}
             {selectedBSAccount === '자본총계' && (
+              <>
               <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
                 <div className="bg-zinc-50 px-4 py-2.5 border-b border-zinc-200">
                   <h3 className="text-sm font-semibold text-zinc-800">자본총계 변동 분석 (YoY)</h3>
@@ -6793,7 +6794,7 @@ export default function FnFQ4Dashboard() {
                         <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△65억</td>
                       </tr>
                       <tr className="border-b border-zinc-100">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">③ STE 지분취득 자본조정 <span className="text-zinc-600">(모빈지분 인수 USD 19.16M)</span></td>
+                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">③ STE 지분취득 자본조정 <span className="text-zinc-600">(모빈지분 인수 USD 19.16M)</span><span className="text-zinc-400">*</span></td>
                         <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△276억</td>
                       </tr>
                       
@@ -6816,6 +6817,17 @@ export default function FnFQ4Dashboard() {
                   </table>
                 </div>
               </div>
+              
+              <div className="mt-3 px-3 py-2 bg-zinc-50 rounded-lg text-xs text-zinc-600">
+                <div className="font-medium text-zinc-700 mb-1">* 연결자본 : 모회사의 자본+비지배지분</div>
+                <div className="pl-3">{"→ 추가 비지배지분의 취득 : 지분율↑/자본감소(비지배지분제거)"}</div>
+                <div className="mt-2 pl-2 text-zinc-500">
+                  {"(예시) 모회사 자본 100/ 종속 자본 10 →"}<br/>
+                  <span className="pl-8">{"①100%투자 : 연결자본 100 (종속 자본 10 상계 제거)"}</span><br/>
+                  <span className="pl-8">{"②50%투자 : 연결자본 105 (모회사 100 + 비지배 5)"}</span>
+                </div>
+              </div>
+              </>
             )}
 
             {/* 법인별 분석 헤더 */}
