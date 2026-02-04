@@ -208,6 +208,7 @@ export default function FnFQ4Dashboard() {
 
   // 서버에 모든 설정 저장하기
   const saveAllSettingsToServer = async () => {
+    console.log('[Redis Sync] 서버 저장 시작...', { aiAnalysisData, incomeEditData, bsEditData });
     setServerSaveStatus('saving');
     try {
       const allSettings = {
@@ -225,17 +226,21 @@ export default function FnFQ4Dashboard() {
         },
         body: JSON.stringify(allSettings),
       });
+      console.log('[Redis Sync] 응답 상태:', response.status);
       if (response.ok) {
         const result = await response.json();
+        console.log('[Redis Sync] 저장 성공:', result);
         setServerSaveStatus('saved');
         setAiLastUpdated(result.timestamp);
         setTimeout(() => setServerSaveStatus(''), 2000);
       } else {
+        const errorText = await response.text();
+        console.error('[Redis Sync] 저장 실패:', response.status, errorText);
         setServerSaveStatus('error');
         setTimeout(() => setServerSaveStatus(''), 3000);
       }
     } catch (error) {
-      console.error('서버 저장 실패:', error);
+      console.error('[Redis Sync] 서버 저장 실패:', error);
       setServerSaveStatus('error');
       setTimeout(() => setServerSaveStatus(''), 3000);
     }
@@ -3826,6 +3831,16 @@ export default function FnFQ4Dashboard() {
                     </div>
                     {aiEditMode && (
                       <span className="ml-auto px-2 py-0.5 text-[10px] font-medium text-amber-400 bg-amber-400/20 rounded">편집 모드</span>
+                    )}
+                    {serverSaveStatus && (
+                      <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${
+                        serverSaveStatus === 'saving' ? 'text-blue-400 bg-blue-400/20' :
+                        serverSaveStatus === 'saved' ? 'text-emerald-400 bg-emerald-400/20' :
+                        'text-rose-400 bg-rose-400/20'
+                      }`}>
+                        {serverSaveStatus === 'saving' ? '서버 저장 중...' :
+                         serverSaveStatus === 'saved' ? '서버 저장 완료' : '저장 실패'}
+                      </span>
                     )}
                   </div>
                   
