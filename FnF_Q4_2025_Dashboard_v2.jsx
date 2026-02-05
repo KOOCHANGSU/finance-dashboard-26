@@ -5907,7 +5907,7 @@ export default function FnFQ4Dashboard() {
                   </div>
                 </div>
 
-                {/* 평가손익 테이블 */}
+                {/* 평가손익 테이블 - 3Q 분석 */}
                 <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
                   <div className="bg-zinc-50 px-3 py-2 border-b border-zinc-200 flex justify-between items-center">
                     <div>
@@ -5920,28 +5920,32 @@ export default function FnFQ4Dashboard() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-zinc-100 border-b border-zinc-200">
-                          <th rowSpan={3} className="text-center px-2 py-2 font-semibold text-zinc-700 border-r border-zinc-200 w-[70px]">구분</th>
-                          <th rowSpan={3} className="text-center px-2 py-2 font-semibold text-zinc-700 border-r border-zinc-200 w-[50px]">통화</th>
-                          <th colSpan={6} className="text-center px-1 py-1.5 font-semibold text-zinc-600 border-r border-zinc-300 bg-zinc-100">24.4Q</th>
-                          <th colSpan={6} className="text-center px-1 py-1.5 font-semibold text-zinc-700 bg-zinc-50">25.4Q</th>
+                          <th rowSpan={3} className="text-center px-2 py-2 font-semibold text-zinc-700 border-r border-zinc-200 w-[60px]">구분</th>
+                          <th rowSpan={3} className="text-center px-2 py-2 font-semibold text-zinc-700 border-r border-zinc-200 w-[45px]">통화</th>
+                          <th colSpan={7} className="text-center px-1 py-1.5 font-semibold text-zinc-600 border-r border-zinc-300 bg-zinc-100">24.3Q</th>
+                          <th colSpan={7} className="text-center px-1 py-1.5 font-semibold text-zinc-700 bg-zinc-50">25.3Q</th>
                         </tr>
                         <tr className="bg-zinc-50 border-b border-zinc-100 text-xs">
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-medium text-zinc-600 w-[55px]">장부환율</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-medium text-zinc-600 w-[55px]">기말환율</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-medium text-zinc-600 w-[45px]">비율</th>
-                          <th colSpan={2} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">기말잔액</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-semibold text-zinc-700 border-r border-zinc-300 w-[55px]">손익</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-medium text-zinc-600 w-[55px]">장부환율</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-medium text-zinc-600 w-[55px]">기말환율</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-medium text-zinc-600 w-[45px]">비율</th>
-                          <th colSpan={2} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">기말잔액</th>
-                          <th rowSpan={2} className="text-center px-2 py-1.5 font-semibold text-zinc-700 w-[55px]">손익</th>
+                          <th colSpan={3} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">환율(24.3Q)</th>
+                          <th colSpan={2} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">기말 잔액</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-medium text-zinc-600 w-[50px]">2024<br/>평가손익①</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-emerald-700 border-r border-zinc-300 w-[50px]">3Q손익</th>
+                          <th colSpan={3} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">환율(25.3Q)</th>
+                          <th colSpan={2} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">기말 잔액</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-medium text-zinc-600 w-[50px]">2025<br/>평가손익①</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-emerald-700 w-[50px]">3Q손익</th>
                         </tr>
                         <tr className="bg-zinc-50 border-b border-zinc-200 text-xs">
-                          <th className="text-center px-2 py-1 font-medium text-zinc-500 w-[55px]">외화</th>
-                          <th className="text-center px-2 py-1 font-medium text-zinc-500 w-[55px]">원화</th>
-                          <th className="text-center px-2 py-1 font-medium text-zinc-500 w-[55px]">외화</th>
-                          <th className="text-center px-2 py-1 font-medium text-zinc-500 w-[55px]">원화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">장부환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">기말환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[40px]">비율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">외화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">원화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">장부환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">기말환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[40px]">비율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">외화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">원화</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -5949,121 +5953,313 @@ export default function FnFQ4Dashboard() {
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td rowSpan={3} className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200 align-middle">채권</td>
                           <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">CNY</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">184.5</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">201.3</td>
-                          <td className="text-right px-2 py-2 text-blue-600 tabular-nums font-medium">+9.1%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">6,847</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,263</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(8)})</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">208.1</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">204.8</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium">-1.6%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">364,979</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">75,951</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(2131)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">188.3</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">188.7</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+0.2%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">275,094</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">51,798</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(123)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium border-r border-zinc-300">{formatNumber(81)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">195.3</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">196.8</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+0.8%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">591,064</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">115,420</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(913)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(1039)}</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">HKD</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">170.1</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">189.3</td>
-                          <td className="text-right px-2 py-2 text-blue-600 tabular-nums font-medium">+11.3%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">213,817</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">36,379</td>
-                          <td className="text-right px-2 py-2 text-zinc-700 tabular-nums font-medium border-r border-zinc-300">{formatNumber(3855)}</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">186.5</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">184.4</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium">-1.1%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">203,281</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">37,920</td>
-                          <td className="text-right px-2 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(931)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">168.7</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">169.8</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+0.7%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">217,880</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">36,746</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(241)}</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(1949)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">186.4</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">180.2</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-3.3%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">219,765</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">40,955</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(1364)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(1760)}</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">기타</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">11,521</td>
-                          <td className="text-right px-2 py-2 text-zinc-700 tabular-nums font-medium border-r border-zinc-300">{formatNumber(772)}</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">8,154</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(152)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">13,277</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(152)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(307)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">15,653</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(38)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(15)}</td>
                         </tr>
                         {/* 예금 (1행) */}
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200">예금</td>
                           <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">USD</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,379.7</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,470.0</td>
-                          <td className="text-right px-2 py-2 text-blue-600 tabular-nums font-medium">+6.5%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">33,505</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">46,227</td>
-                          <td className="text-right px-2 py-2 text-zinc-700 tabular-nums font-medium border-r border-zinc-300">{formatNumber(3026)}</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,434.1</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,434.9</td>
-                          <td className="text-right px-2 py-2 text-blue-600 tabular-nums font-medium">+0.1%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">68,300</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">97,952</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(158)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,319.6</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,319.6</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums font-medium">+0.0%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">43,293</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">57,131</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(1)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(2149)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,397.1</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,402.2</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+0.4%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">40,829</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">57,041</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(209)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(957)}</td>
                         </tr>
                         {/* 채무 (2행 병합) */}
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td rowSpan={2} className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200 align-middle">채무</td>
                           <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">USD</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,429.1</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,470.0</td>
-                          <td className="text-right px-2 py-2 text-blue-600 tabular-nums font-medium">+2.9%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">44,489</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">63,579</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(2542)})</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,460.1</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">1,434.9</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium">-1.7%</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">57,935</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">84,591</td>
-                          <td className="text-right px-2 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(2032)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,334.0</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,319.6</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-1.1%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">50,069</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">66,793</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(722)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(1108)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,392.9</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,402.2</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+0.7%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">61,251</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">85,315</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(571)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(1046)})</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                           <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">기타</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">133</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(7)})</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-600 tabular-nums">243</td>
-                          <td className="text-right px-2 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(10)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">633</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(5)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(5)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">87</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(1)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(1)})</td>
                         </tr>
                         {/* 기타(연결) */}
                         <tr className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
                           <td className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200 whitespace-nowrap">기타(연결)</td>
                           <td className="text-center px-2 py-2 text-zinc-400 border-r border-zinc-100">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-700 tabular-nums font-medium border-r border-zinc-300">{formatNumber(31)}</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-zinc-400 tabular-nums">-</td>
-                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(57)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(50)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(221)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(1)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(0)})</td>
                         </tr>
                         {/* 합계 */}
-                        <tr className="bg-zinc-100 font-semibold">
-                          <td colSpan={7} className="px-3 py-2 text-zinc-800 border-r border-zinc-200">평가손익 계 <span className="font-normal text-zinc-500">(※ 분기실적 = 기말 평가손익 - 3Q평가손익)</span></td>
-                          <td className="text-right px-2 py-2 text-zinc-700 tabular-nums border-r border-zinc-300">{formatNumber(5127)}</td>
+                        <tr className="bg-emerald-50 font-semibold">
+                          <td colSpan={7} className="px-3 py-2 text-zinc-800 border-r border-zinc-200">평가손익 계</td>
+                          <td className="text-right px-2 py-2 text-emerald-700 tabular-nums border-r border-zinc-300">{formatNumber(887)}</td>
+                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums">({formatNumber(3432)})</td>
                           <td colSpan={5} className=""></td>
-                          <td className="text-right px-2 py-2 text-zinc-900 tabular-nums">{formatNumber(475)}</td>
+                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums">({formatNumber(776)})</td>
+                          <td className="text-right px-2 py-2 text-emerald-700 tabular-nums">{formatNumber(2724)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 평가손익 테이블 - 4Q 분석 */}
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-zinc-100 border-b border-zinc-200">
+                          <th rowSpan={3} className="text-center px-2 py-2 font-semibold text-zinc-700 border-r border-zinc-200 w-[60px]">구분</th>
+                          <th rowSpan={3} className="text-center px-2 py-2 font-semibold text-zinc-700 border-r border-zinc-200 w-[45px]">통화</th>
+                          <th colSpan={7} className="text-center px-1 py-1.5 font-semibold text-zinc-600 border-r border-zinc-300 bg-zinc-100">24.4Q</th>
+                          <th colSpan={7} className="text-center px-1 py-1.5 font-semibold text-zinc-700 bg-zinc-50">25.4Q</th>
+                        </tr>
+                        <tr className="bg-zinc-50 border-b border-zinc-100 text-xs">
+                          <th colSpan={3} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">환율(24.4Q)</th>
+                          <th colSpan={2} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">기말 잔액</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-medium text-zinc-600 w-[50px]">2024<br/>평가손익②</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-blue-700 border-r border-zinc-300 w-[50px]">4Q손익<br/>(②-①)</th>
+                          <th colSpan={3} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">환율(25.4Q)</th>
+                          <th colSpan={2} className="text-center px-1 py-1 font-medium text-zinc-600 border-b border-zinc-200">기말 잔액</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-medium text-zinc-600 w-[50px]">2025<br/>평가손익②</th>
+                          <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-blue-700 w-[50px]">4Q손익<br/>(②-①)</th>
+                        </tr>
+                        <tr className="bg-zinc-50 border-b border-zinc-200 text-xs">
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">장부환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">기말환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[40px]">비율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">외화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">원화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">장부환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[50px]">기말환율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[40px]">비율</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">외화</th>
+                          <th className="text-center px-1 py-1 font-medium text-zinc-500 w-[55px]">원화</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* 채권 (3행 병합) */}
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                          <td rowSpan={3} className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200 align-middle">채권</td>
+                          <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">CNY</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">184.5</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">201.3</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+9.1%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">6,847</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,263</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(115)}</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(8)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">208.1</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">204.8</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-1.6%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">364,979</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">75,951</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(1218)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(2131)})</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                          <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">HKD</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">170.1</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">189.3</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+11.3%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">213,817</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">36,379</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(4097)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(3855)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">186.5</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">184.4</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-1.1%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">203,281</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">37,920</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(433)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(931)}</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                          <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">기타</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">11,521</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(620)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(772)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">8,154</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(114)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(152)})</td>
+                        </tr>
+                        {/* 예금 (1행) */}
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                          <td className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200">예금</td>
+                          <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">USD</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,379.7</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,470.0</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+6.5%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">33,505</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">46,227</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(3025)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(3026)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,434.1</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,434.9</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-0.1%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">68,300</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">97,952</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(54)}</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(158)})</td>
+                        </tr>
+                        {/* 채무 (2행 병합) */}
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                          <td rowSpan={2} className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200 align-middle">채무</td>
+                          <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">USD</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,429.1</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,470.0</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+2.9%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">44,489</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">63,579</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(1820)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(2542)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,460.1</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,434.9</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-1.7%</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">57,935</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">84,591</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(1460)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(2032)}</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                          <td className="text-center px-2 py-2 text-zinc-600 border-r border-zinc-100">기타</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">133</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(2)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium border-r border-zinc-300">({formatNumber(7)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">243</td>
+                          <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(9)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-semibold">{formatNumber(10)}</td>
+                        </tr>
+                        {/* 기타(연결) */}
+                        <tr className="border-b border-zinc-200 hover:bg-zinc-50 transition-colors">
+                          <td className="text-center px-2 py-2 text-zinc-700 font-semibold border-r border-zinc-200 whitespace-nowrap">기타(연결)</td>
+                          <td className="text-center px-2 py-2 text-zinc-400 border-r border-zinc-100">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(20)})</td>
+                          <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(31)}</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-zinc-400 tabular-nums">-</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">({formatNumber(59)})</td>
+                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-semibold">({formatNumber(57)})</td>
+                        </tr>
+                        {/* 합계 */}
+                        <tr className="bg-blue-50 font-semibold">
+                          <td colSpan={7} className="px-3 py-2 text-zinc-800 border-r border-zinc-200">평가손익 계 <span className="font-normal text-zinc-500">(※ 분기실적 = 기말 평가손익 - 3Q평가손익)</span></td>
+                          <td className="text-right px-2 py-2 text-blue-700 tabular-nums border-r border-zinc-300">{formatNumber(6015)}</td>
+                          <td className="text-right px-2 py-2 text-zinc-700 tabular-nums">{formatNumber(5127)}</td>
+                          <td colSpan={5} className=""></td>
+                          <td className="text-right px-2 py-2 text-rose-600 tabular-nums">({formatNumber(301)})</td>
+                          <td className="text-right px-2 py-2 text-zinc-800 tabular-nums">{formatNumber(475)}</td>
                         </tr>
                       </tbody>
                     </table>
