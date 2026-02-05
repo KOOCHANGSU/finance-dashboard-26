@@ -2837,13 +2837,7 @@ export default function FnFQ4Dashboard() {
     const topProfitEntity = entityProfitability.length > 0 ? entityProfitability[0] : null;
     const lowProfitEntity = entityProfitability.find(e => e.margin < 15 && e.sales > 50000 && e.entity !== '중국' && e.entity !== 'ST미국');
     
-    // 최고 수익성 법인
-    if (topProfitEntity && topProfitEntity.margin > 25) {
-      insights.push({
-        title: `${topProfitEntity.entity} 수익성 우수`,
-        desc: `영업이익률 ${topProfitEntity.margin.toFixed(1)}%, ROE ${topProfitEntity.roe.toFixed(1)}%, 매출 ${Math.round(topProfitEntity.sales/100)}억원. 성공 모델로 다른 법인 벤치마킹`
-      });
-    }
+    // 최고 수익성 법인 - 삭제됨 (사용자 요청)
     
     // 법인별 ROE 분석
     const entityROEAnalysis = entityProfitability
@@ -2889,7 +2883,7 @@ export default function FnFQ4Dashboard() {
       const top = highSGA[0];
       risks.push({
         title: `${top.item} 급증`,
-        desc: `${Math.round(top.curr/100)}억원으로 전년대비 ${top.change.toFixed(1)}% 증가 (+${Math.round((top.curr-top.prev)/100)}억원), 매출대비 ${top.salesRatio.toFixed(1)}%`
+        desc: `${formatNumber(Math.round(top.curr/100))}억원으로 전년대비 ${top.change.toFixed(1)}% 증가 (+${formatNumber(Math.round((top.curr-top.prev)/100))}억원), 매출대비 ${top.salesRatio.toFixed(1)}%`
       });
       actions.push({
         title: `${top.item} 최적화`,
@@ -2905,9 +2899,9 @@ export default function FnFQ4Dashboard() {
       
       improvementTargets.push({
         area: `${top.item} 구조 혁신`,
-        current: `${Math.round(top.curr/100)}억원 (매출대비 ${top.salesRatio.toFixed(1)}%, 전년대비 +${top.change.toFixed(0)}%)`,
-        target: `${Math.round(top.curr*0.85/100)}억원 (매출대비 ${(top.salesRatio*0.85).toFixed(1)}%)`,
-        impact: `영업이익 +${Math.round(targetReduction/100)}억원 (+${(targetReduction/opIncomeCurr*100).toFixed(1)}%), 영업이익률 +${(targetReduction/salesCurr*100).toFixed(1)}%p, 당기순이익 +${Math.round(targetReduction*0.73/100)}억원, ROE +${roeImpact.toFixed(1)}%p`,
+        current: `${formatNumber(Math.round(top.curr/100))}억원 (매출대비 ${top.salesRatio.toFixed(1)}%, 전년대비 +${top.change.toFixed(0)}%)`,
+        target: `${formatNumber(Math.round(top.curr*0.85/100))}억원 (매출대비 ${(top.salesRatio*0.85).toFixed(1)}%)`,
+        impact: `영업이익 +${formatNumber(Math.round(targetReduction/100))}억원 (+${(targetReduction/opIncomeCurr*100).toFixed(1)}%), 영업이익률 +${(targetReduction/salesCurr*100).toFixed(1)}%p, 당기순이익 +${formatNumber(Math.round(targetReduction*0.73/100))}억원, ROE +${roeImpact.toFixed(1)}%p`,
         method: top.item === '광고선전비' 
           ? `성과 기반 집행 체계 (매출 전환율 목표 달성 시 집행), 디지털 광고 비중 60%→80% 확대 (CPM 30% 절감), 대행사 수수료 재협상`
           : top.item === '인건비'
@@ -2923,14 +2917,14 @@ export default function FnFQ4Dashboard() {
     if (cashGrowth > 50) {
       insights.push({
         title: '유동성 대폭 개선',
-        desc: `현금성자산 ${Math.round(cashCurr/100)}억원으로 ${cashGrowth.toFixed(0)}% 증가 (전년 +${Math.round((cashCurr-cashPrev)/100)}억원). 자산대비 ${cashRatio.toFixed(1)}%로 투자 여력 확보`
+        desc: `현금성자산 ${formatNumber(Math.round(cashCurr/100))}억원으로 ${cashGrowth.toFixed(0)}% 증가 (전년 +${formatNumber(Math.round((cashCurr-cashPrev)/100))}억원). 자산대비 ${cashRatio.toFixed(1)}%로 투자 여력 확보`
       });
       
       // 잉여현금이 많으면 활용 방안 제시
       if (cashCurr > totalAssetsCurr * 0.1) {
         actions.push({
           title: '잉여현금 전략적 활용',
-          desc: `${Math.round(cashCurr*0.4/100)}억원을 M&A 또는 신규 브랜드에 투자 시 ROE ${totalEquityCurr > 0 ? (cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1) : '0.0'}%p 추가 개선 가능`
+          desc: `${formatNumber(Math.round(cashCurr*0.4/100))}억원을 M&A 또는 신규 브랜드에 투자 시 ROE ${totalEquityCurr > 0 ? (cashCurr*0.4*0.15/totalEquityCurr*100).toFixed(1) : '0.0'}%p 추가 개선 가능`
         });
         
         // 차입금 상환 시 이자비용 절감 효과 계산
@@ -2939,21 +2933,21 @@ export default function FnFQ4Dashboard() {
         
         improvementTargets.push({
           area: '잉여현금 전략적 재배치',
-          current: `현금성자산 ${Math.round(cashCurr/100)}억원 (자산대비 ${cashRatio.toFixed(1)}%), 차입금 ${Math.round(totalBorrowing/100)}억원`,
-          target: `적정 현금 ${Math.round(cashCurr*0.6/100)}억원 유지 + 전략활용 ${Math.round(cashCurr*0.4/100)}억원`,
+          current: `현금성자산 ${formatNumber(Math.round(cashCurr/100))}억원 (자산대비 ${cashRatio.toFixed(1)}%), 차입금 ${formatNumber(Math.round(totalBorrowing/100))}억원`,
+          target: `적정 현금 ${formatNumber(Math.round(cashCurr*0.6/100))}억원 유지 + 전략활용 ${formatNumber(Math.round(cashCurr*0.4/100))}억원`,
           impact: `전략 선택에 따라 ROE +0.5~2.0%p, 이자비용 절감 또는 성장투자 효과`,
-          method: `옵션1: 차입금 ${Math.round(debtRepaymentAmount/100)}억원 상환 (이자비용 -${Math.round(interestSavingFromRepayment/100)}억원/년, 부채비율 개선), 옵션2: 고수익 브랜드 M&A (목표 ROE 18%+), 옵션3: 배당성향 확대 + 자사주 매입, 옵션4: 해외 거점 확대 투자`,
+          method: `옵션1: 차입금 ${formatNumber(Math.round(debtRepaymentAmount/100))}억원 상환 (이자비용 -${formatNumber(Math.round(interestSavingFromRepayment/100))}억원/년, 부채비율 개선), 옵션2: 고수익 브랜드 M&A (목표 ROE 18%+), 옵션3: 배당성향 확대 + 자사주 매입, 옵션4: 해외 거점 확대 투자`,
           rationale: `[목표 근거] 동종업계 적정 현금보유 비율 5~8% 대비 현재 ${cashRatio.toFixed(1)}%로 과다. 운영자금 + 비상예비금 감안 시 60% 유지로 충분. 잉여 40%는 ①차입금 상환(이자절감+재무안정성), ②M&A(성장), ③주주환원 중 전략적 선택 필요`
         });
       }
     } else if (cashCurr < totalAssetsCurr * 0.05) {
       risks.push({
         title: '유동성 부족',
-        desc: `현금성자산 ${Math.round(cashCurr/100)}억원, 자산대비 ${cashRatio.toFixed(1)}%. 단기 자금 압박 리스크`
+        desc: `현금성자산 ${formatNumber(Math.round(cashCurr/100))}억원, 자산대비 ${cashRatio.toFixed(1)}%. 단기 자금 압박 리스크`
       });
       actions.push({
         title: '유동성 확보',
-        desc: `재고 감축, 매출채권 팩토링, 단기 여신 한도 확보로 ${Math.round(totalAssetsCurr*0.08/100)}억원 확보`
+        desc: `재고 감축, 매출채권 팩토링, 단기 여신 한도 확보로 ${formatNumber(Math.round(totalAssetsCurr*0.08/100))}억원 확보`
       });
     }
     
@@ -2980,7 +2974,7 @@ export default function FnFQ4Dashboard() {
     if (inventoryGrowth > 30) {
       risks.push({
         title: '재고자산 급증',
-        desc: `${Math.round(inventoryCurr/100)}억원으로 ${inventoryGrowth.toFixed(0)}% 증가. 재고회전율 악화 및 평가손실 리스크`
+        desc: `${formatNumber(Math.round(inventoryCurr/100))}억원으로 ${inventoryGrowth.toFixed(0)}% 증가. 재고회전율 악화 및 평가손실 리스크`
       });
       actions.push({
         title: '재고 효율화',
@@ -2993,11 +2987,11 @@ export default function FnFQ4Dashboard() {
       const topDebtor = borrowingsByEntity[0];
       risks.push({
         title: `${topDebtor.entity} 차입금 부담`,
-        desc: `${Math.round(topDebtor.debt/100)}억원 (전체 ${(topDebtor.debt/totalBorrowing*100).toFixed(0)}%), 이자비용 연 ${Math.round(topDebtor.debt*0.045/100)}억원 추정, 환위험 노출`
+        desc: `${formatNumber(Math.round(topDebtor.debt/100))}억원 (전체 ${(topDebtor.debt/totalBorrowing*100).toFixed(0)}%), 이자비용 연 ${formatNumber(Math.round(topDebtor.debt*0.045/100))}억원 추정, 환위험 노출`
       });
       actions.push({
         title: '차입금 감축',
-        desc: `${topDebtor.entity} 영업현금 창출 강화, 운전자본 효율화로 연간 ${Math.round(topDebtor.debt*0.3/100)}억원 상환 목표`
+        desc: `${topDebtor.entity} 영업현금 창출 강화, 운전자본 효율화로 연간 ${formatNumber(Math.round(topDebtor.debt*0.3/100))}억원 상환 목표`
       });
     }
     
@@ -3024,7 +3018,7 @@ export default function FnFQ4Dashboard() {
       if (stUSData.retainedEarnings < 0) {
         insights.push({
           title: 'ST미국 일시적 적자 (Movin 소송)',
-          desc: `이익잉여금 ${Math.round(stUSData.retainedEarnings/100)}억원 적자. Movin 소송비용의 일시적 과대 계상에 따른 손실로, 25년내 이슈 해결 예정이며 26년 흑자 전환 전망`
+          desc: `이익잉여금 ${formatNumber(Math.round(stUSData.retainedEarnings/100))}억원 적자. Movin 소송비용의 일시적 과대 계상에 따른 손실로, 25년내 이슈 해결 예정이며 26년 흑자 전환 전망`
         });
       }
       // ST미국 장기차입금: 소송비용 지급 관련, 경영구조 변경에 따른 일시적 상황
@@ -3033,7 +3027,7 @@ export default function FnFQ4Dashboard() {
       if (stUSData.borrowings > 50000 && stUSBorrowingsPrev === 0) {
         insights.push({
           title: 'ST미국 차입금 (소송비용 지급 관련)',
-          desc: `${Math.round(stUSData.borrowings/100)}억원 신규 차입. 소송비용 지급 관련 일시적 조달이며 브랜드 투자와 무관. 추후 STE에서 STO로 배당/감자를 통해 상환 가능한 규모로, 경영구조 변경에 따른 일시적 상황`
+          desc: `${formatNumber(Math.round(stUSData.borrowings/100))}억원 신규 차입. 소송비용 지급 관련 일시적 조달이며 브랜드 투자와 무관. 추후 STE에서 STO로 배당/감자를 통해 상환 가능한 규모로, 경영구조 변경에 따른 일시적 상황`
         });
       }
       if (stUSData.retainedEarnings < 0 || stUSData.borrowings > 50000) {
@@ -3057,7 +3051,7 @@ export default function FnFQ4Dashboard() {
       if (chinaInventoryGrowth > 80) {
         risks.push({
           title: '중국 재고자산 급증',
-          desc: `${Math.round(chinaInventoryCurr/100)}억원 (전년대비 +${chinaInventoryGrowth.toFixed(0)}%, +${Math.round((chinaInventoryCurr-chinaInventoryPrev)/100)}억원). 시장 확대 대응이나 재고 리스크 관리 필요`
+          desc: `${formatNumber(Math.round(chinaInventoryCurr/100))}억원 (전년대비 +${chinaInventoryGrowth.toFixed(0)}%, +${formatNumber(Math.round((chinaInventoryCurr-chinaInventoryPrev)/100))}억원). 시장 확대 대응이나 재고 리스크 관리 필요`
         });
         // 중국 재고 회전일수 계산
         const chinaSales = entityData.매출액?.[selectedYearKey]?.['중국'] || 0;
@@ -3065,9 +3059,9 @@ export default function FnFQ4Dashboard() {
         const targetInventoryDays = 90; // 업계 적정 수준
         improvementTargets.push({
           area: '중국 재고자산 최적화',
-          current: `${Math.round(chinaInventoryCurr/100)}억원 (전년대비 +${chinaInventoryGrowth.toFixed(0)}%)`,
-          target: `${Math.round(chinaInventoryCurr*0.8/100)}억원 (20% 감축)`,
-          impact: `운전자본 ${Math.round(chinaInventoryCurr*0.2/100)}억원 절감, 이자비용 -${Math.round(chinaInventoryCurr*0.2*0.045/100)}억원/년, 재고평가손실 리스크 감소`,
+          current: `${formatNumber(Math.round(chinaInventoryCurr/100))}억원 (전년대비 +${chinaInventoryGrowth.toFixed(0)}%)`,
+          target: `${formatNumber(Math.round(chinaInventoryCurr*0.8/100))}억원 (20% 감축)`,
+          impact: `운전자본 ${formatNumber(Math.round(chinaInventoryCurr*0.2/100))}억원 절감, 이자비용 -${formatNumber(Math.round(chinaInventoryCurr*0.2*0.045/100))}억원/년, 재고평가손실 리스크 감소`,
           method: `재고회전율 KPI 강화, 시즌별 프로모션 조기 집행, 슬로우 상품 처리 가속화, 발주 시스템 고도화`,
           rationale: `[목표 근거] 현재 중국 재고회전일수 ${Math.round(chinaInventoryDays)}일로 의류업계 적정 수준(${targetInventoryDays}일) 대비 ${Math.round(chinaInventoryDays - targetInventoryDays)}일 초과. 전년대비 ${chinaInventoryGrowth.toFixed(0)}% 급증한 점 감안, 매출 성장률 대비 과잉 재고 해소를 위해 20% 감축 목표 설정`
         });
@@ -3081,7 +3075,7 @@ export default function FnFQ4Dashboard() {
       if (chinaBorrowingsGrowth > 50 && chinaData.borrowings > 100000) {
         insights.push({
           title: '중국 차입금 (M&A 등 투자 대응)',
-          desc: `${Math.round(chinaData.borrowings/100)}억원 (전년대비 +${chinaBorrowingsGrowth.toFixed(0)}%). M&A 등 대규모 현금지출 계획으로 일시적 차입 발생. 이자비용 연 84억원 예상. 연결 현금 3,254억원으로 충분하며, 추후 지출 계획에 맞추어 조정 예정`
+          desc: `${formatNumber(Math.round(chinaData.borrowings/100))}억원 (전년대비 +${chinaBorrowingsGrowth.toFixed(0)}%). M&A 등 대규모 현금지출 계획으로 일시적 차입 발생. 이자비용 연 84억원 예상. 연결 현금 ${formatNumber(3254)}억원으로 충분하며, 추후 지출 계획에 맞추어 조정 예정`
         });
       }
       
@@ -3100,7 +3094,7 @@ export default function FnFQ4Dashboard() {
       if (domesticROA > 8) {
         insights.push({
           title: '국내 법인 자산 효율성 우수',
-          desc: `자산 ${Math.round(domesticData.assets/100)}억원, ROA ${domesticROA.toFixed(1)}%. 안정적 수익 기반 유지`
+          desc: `자산 ${formatNumber(Math.round(domesticData.assets/100))}억원, ROA ${domesticROA.toFixed(1)}%. 안정적 수익 기반 유지`
         });
       }
       
@@ -3114,7 +3108,7 @@ export default function FnFQ4Dashboard() {
       if (domesticCashGrowth > 200) {
         insights.push({
           title: '국내 현금성자산 대폭 증가',
-          desc: `${Math.round(domesticCashCurr/100)}억원 (전년대비 +${domesticCashGrowth.toFixed(0)}%, +${Math.round((domesticCashCurr-domesticCashPrev)/100)}억원). 영업활동 현금흐름 개선 및 투자 여력 확보`
+          desc: `${formatNumber(Math.round(domesticCashCurr/100))}억원 (전년대비 +${domesticCashGrowth.toFixed(0)}%, +${formatNumber(Math.round((domesticCashCurr-domesticCashPrev)/100))}억원). 영업활동 현금흐름 개선 및 투자 여력 확보`
         });
       }
       
@@ -3135,7 +3129,7 @@ export default function FnFQ4Dashboard() {
         const investIncrease = investLandCurr - investLandPrev;
         insights.push({
           title: '국내 부동산 포트폴리오 재편',
-          desc: `토지 ${Math.round(landDecrease/100)}억원 감소, 투자부동산 ${Math.round(investIncrease/100)}억원 증가. 유휴 자산의 수익형 자산 전환으로 자산 효율성 제고`
+          desc: `토지 ${formatNumber(Math.round(landDecrease/100))}억원 감소, 투자부동산 ${formatNumber(Math.round(investIncrease/100))}억원 증가. 유휴 자산의 수익형 자산 전환으로 자산 효율성 제고`
         });
       }
     }
@@ -3148,7 +3142,7 @@ export default function FnFQ4Dashboard() {
       });
       actions.push({
         title: '부채비율 개선',
-        desc: `자기자본 확충 또는 부채 상환으로 부채비율 100% 이하 목표. 연간 ${Math.round(totalDebtCurr*0.2/100)}억원 상환 계획`
+        desc: `자기자본 확충 또는 부채 상환으로 부채비율 100% 이하 목표. 연간 ${formatNumber(Math.round(totalDebtCurr*0.2/100))}억원 상환 계획`
       });
     } else if (debtRatioCurr > 50 && debtRatioCurr <= 100) {
       risks.push({
@@ -3189,11 +3183,11 @@ export default function FnFQ4Dashboard() {
     if (wcSalesRatio > 50) {
       risks.push({
         title: '운전자본 과다',
-        desc: `${Math.round(workingCapitalCurr/100)}억원, 매출대비 ${wcSalesRatio.toFixed(0)}%. 자금 효율 저하`
+        desc: `${formatNumber(Math.round(workingCapitalCurr/100))}억원, 매출대비 ${wcSalesRatio.toFixed(0)}%. 자금 효율 저하`
       });
       actions.push({
         title: '운전자본 최적화',
-        desc: `매출채권 회수기간 단축, 재고 감축, 매입채무 조건 개선으로 ${Math.round(workingCapitalCurr*0.2/100)}억원 절감`
+        desc: `매출채권 회수기간 단축, 재고 감축, 매입채무 조건 개선으로 ${formatNumber(Math.round(workingCapitalCurr*0.2/100))}억원 절감`
       });
     }
     
@@ -3230,7 +3224,7 @@ export default function FnFQ4Dashboard() {
       if (chinaGrowth && chinaGrowth.growth > 10) {
         insights.push({
           title: '중국 시장 고성장',
-          desc: `매출 ${Math.round(chinaGrowth.currSales/100)}억원 (전년대비 +${chinaGrowth.growth.toFixed(1)}%, +${Math.round((chinaGrowth.currSales-chinaGrowth.prevSales)/100)}억원). MLB 브랜드 확장 및 온라인 채널 성장`
+          desc: `매출 ${formatNumber(Math.round(chinaGrowth.currSales/100))}억원 (전년대비 +${chinaGrowth.growth.toFixed(1)}%, +${formatNumber(Math.round((chinaGrowth.currSales-chinaGrowth.prevSales)/100))}억원). MLB 브랜드 확장 및 온라인 채널 성장`
         });
       }
     }
@@ -3245,7 +3239,7 @@ export default function FnFQ4Dashboard() {
     } else if (assetGrowth < -5) {
       risks.push({
         title: '자산 규모 축소',
-        desc: `자산총계 ${Math.round(totalAssetsCurr/100)}억원 (전년대비 ${assetGrowth.toFixed(1)}%). 사업 축소 또는 구조조정 진행 중`
+        desc: `자산총계 ${formatNumber(Math.round(totalAssetsCurr/100))}억원 (전년대비 ${assetGrowth.toFixed(1)}%). 사업 축소 또는 구조조정 진행 중`
       });
     }
     
@@ -3272,7 +3266,7 @@ export default function FnFQ4Dashboard() {
       if (topAssetEntity.contribution > 70) {
         insights.push({
           title: `${topAssetEntity.entity} 자산 집중도`,
-          desc: `연결 자산의 ${topAssetEntity.contribution.toFixed(0)}% 차지 (${Math.round(topAssetEntity.assets/100)}억원). 핵심 수익 기반`
+          desc: `연결 자산의 ${topAssetEntity.contribution.toFixed(0)}% 차지 (${formatNumber(Math.round(topAssetEntity.assets/100))}억원). 핵심 수익 기반`
         });
       }
     }
@@ -6840,6 +6834,89 @@ export default function FnFQ4Dashboard() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+              
+              {/* 자본 상세 테이블 */}
+              <div className="mt-3 text-right text-[10px] text-zinc-400">(단위 : 백만원)</div>
+              <div className="mt-1 overflow-hidden rounded-lg border border-zinc-200">
+                <table className="w-full text-xs table-fixed">
+                  <colgroup>
+                    <col className="w-[20%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[20%]" />
+                    <col className="w-[20%]" />
+                  </colgroup>
+                  <thead>
+                    <tr className="bg-zinc-100">
+                      <th className="px-3 py-2 text-left font-semibold text-zinc-700 border-b border-zinc-200">자본</th>
+                      <th className="px-3 py-2 text-right font-semibold text-zinc-700 border-b border-zinc-200">24년말</th>
+                      <th className="px-3 py-2 text-right font-semibold text-zinc-700 border-b border-zinc-200">25년말</th>
+                      <th className="px-3 py-2 text-right font-semibold text-zinc-700 border-b border-zinc-200">차이</th>
+                      <th className="px-3 py-2 text-right font-semibold text-blue-600 border-b border-zinc-200">STE조정</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-zinc-100">
+                      <td className="px-3 py-1.5 text-zinc-600">자본금</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">3,831</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">3,831</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">0</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">0</td>
+                    </tr>
+                    <tr className="border-b border-zinc-100">
+                      <td className="px-3 py-1.5 text-zinc-600">자본잉여금</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">317,545</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">307,395</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(10,150)</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(10,150)</td>
+                    </tr>
+                    <tr className="border-b border-zinc-100">
+                      <td className="px-3 py-1.5 text-zinc-600">기타포괄손익</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">10,009</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">7,584</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(2,425)</td>
+                      <td className="px-3 py-1.5 text-right text-emerald-600 tabular-nums">+758</td>
+                    </tr>
+                    <tr className="border-b border-zinc-100">
+                      <td className="px-3 py-1.5 text-zinc-600">이익잉여금</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">1,283,355</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">1,619,815</td>
+                      <td className="px-3 py-1.5 text-right text-emerald-600 tabular-nums">+336,460</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums"></td>
+                    </tr>
+                    <tr className="border-b border-zinc-100">
+                      <td className="px-3 py-1.5 text-zinc-600">자본조정</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">(52,539)</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">(59,049)</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(6,510)</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(6,510)</td>
+                    </tr>
+                    <tr className="border-b border-zinc-200 bg-amber-50/50">
+                      <td className="px-3 py-1.5 text-zinc-800 font-semibold">비지배지분</td>
+                      <td className="px-3 py-1.5 text-right font-semibold tabular-nums">15,098</td>
+                      <td className="px-3 py-1.5 text-right font-semibold tabular-nums">0</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 font-bold tabular-nums">(15,098)</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 font-bold tabular-nums">(15,098)</td>
+                    </tr>
+                    <tr className="border-b border-zinc-200 bg-zinc-100">
+                      <td className="px-3 py-2 text-zinc-800 font-semibold">합계</td>
+                      <td className="px-3 py-2 text-right font-semibold tabular-nums">1,577,298</td>
+                      <td className="px-3 py-2 text-right font-semibold tabular-nums">1,879,575</td>
+                      <td className="px-3 py-2 text-right text-emerald-600 font-semibold tabular-nums">+302,277</td>
+                      <td className="px-3 py-2 text-right text-rose-600 font-semibold tabular-nums">(24,490)</td>
+                    </tr>
+                    <tr className="border-b border-zinc-100">
+                      <td className="px-3 py-1.5 text-zinc-500" colSpan="2"></td>
+                      <td className="px-3 py-1.5 text-right text-zinc-500 whitespace-nowrap" colSpan="2">25년 비지배지분이익</td>
+                      <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(3,112)</td>
+                    </tr>
+                    <tr className="bg-blue-50">
+                      <td className="px-3 py-2 text-right text-blue-700 font-semibold" colSpan="4">STE 취득(연결 자본상계 → 자본감소)</td>
+                      <td className="px-3 py-2 text-right text-rose-600 font-bold tabular-nums border-2 border-rose-400 rounded">(27,603)</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               
               <div className="mt-3 px-3 py-2 bg-zinc-50 rounded-lg text-xs text-zinc-600">
