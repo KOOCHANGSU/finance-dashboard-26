@@ -6191,7 +6191,7 @@ export default function FnFQ4Dashboard() {
                           <td className="text-right px-1 py-2 text-zinc-800 tabular-nums font-medium border-r border-zinc-300">{formatNumber(3026)}</td>
                           <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,434.1</td>
                           <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">1,434.9</td>
-                          <td className="text-right px-1 py-2 text-rose-600 tabular-nums font-medium">-0.1%</td>
+                          <td className="text-right px-1 py-2 text-blue-600 tabular-nums font-medium">+0.1%</td>
                           <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">68,300</td>
                           <td className="text-right px-1 py-2 text-zinc-600 tabular-nums">97,952</td>
                           <td className="text-right px-1 py-2 text-zinc-700 tabular-nums font-medium">{formatNumber(54)}</td>
