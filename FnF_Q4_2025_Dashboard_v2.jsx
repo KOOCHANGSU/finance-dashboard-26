@@ -91,6 +91,99 @@ const saveToStorage = (key, data) => {
 
 const PERIOD_KEY_REGEX = /^(20\d{2})_(?:[1-4]Q(?:_Year)?|Year)$/;
 
+const parseCsvText = (text) => {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i += 1;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += c;
+      }
+      continue;
+    }
+    if (c === '"') { inQuotes = true; continue; }
+    if (c === ',') { row.push(field); field = ''; continue; }
+    if (c === '\r') continue;
+    if (c === '\n') {
+      row.push(field);
+      field = '';
+      if (row.some((v) => String(v ?? '').trim() !== '')) rows.push(row);
+      row = [];
+      continue;
+    }
+    field += c;
+  }
+  row.push(field);
+  if (row.some((v) => String(v ?? '').trim() !== '')) rows.push(row);
+  return rows;
+};
+
+const parseCsvNumber = (raw) => {
+  const s0 = String(raw ?? '').trim();
+  if (s0 === '') return undefined;
+  const isNeg = s0.includes('(') && s0.includes(')');
+  const cleaned = s0.replace(/[(),\s]/g, '');
+  if (cleaned === '') return undefined;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) return undefined;
+  return isNeg ? -n / 1_000_000 : n / 1_000_000;
+};
+
+const normalizeAccount = (v) =>
+  String(v ?? '')
+    .replace(/\s+/g, '')
+    .replace(/[.,]/g, '')
+    .replace(/[()]/g, '')
+    .replace(/Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ/g, '')
+    .trim();
+
+const buildEntityQuarterLookup = (rows, year) => {
+  const lookup = {};
+  if (!rows?.length) return lookup;
+  const header = rows[0].map((c) => String(c ?? '').trim());
+  const quarterOffsets = [];
+  for (let i = 0; i < header.length; i += 1) {
+    if (/^\d{2}\.[1-4]Q$/.test(header[i])) quarterOffsets.push(i);
+  }
+  const entityCols = {
+    'OC(국내)': 1,
+    중국: 2,
+    홍콩: 3,
+    베트남: 4,
+    엔터테인먼트: 6,
+    ST미국: 7,
+  };
+  quarterOffsets.forEach((offset) => {
+    const m = header[offset].match(/^\d{2}\.([1-4])Q$/);
+    if (!m) return;
+    const q = Number(m[1]);
+    const period = `${year}_${q}Q`;
+    if (!lookup[period]) lookup[period] = {};
+    for (let r = 1; r < rows.length; r += 1) {
+      const row = rows[r];
+      const rawAccount = row[offset];
+      if (!String(rawAccount ?? '').trim()) continue;
+      const accountKey = normalizeAccount(rawAccount);
+      if (!lookup[period][accountKey]) lookup[period][accountKey] = {};
+      Object.entries(entityCols).forEach(([entity, rel]) => {
+        const v = parseCsvNumber(row[offset + rel]);
+        if (v !== undefined) lookup[period][accountKey][entity] = v;
+      });
+    }
+  });
+  return lookup;
+};
+
 const deepClone = (value) => {
   if (value == null || typeof value !== 'object') return value;
   return JSON.parse(JSON.stringify(value));
@@ -179,6 +272,7 @@ export default function FnFQ4Dashboard() {
   const fileInputRef = React.useRef(null); // 파일 업로드용 ref
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
+  const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
 
   useEffect(() => {
     let cancelled = false;
@@ -247,6 +341,35 @@ export default function FnFQ4Dashboard() {
     }
     detect2026Quarters();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadEntityCsvLookup() {
+      try {
+        const [is25, is26, bs25, bs26] = await Promise.all([
+          fetch('/2025_분기IS_법인별.csv').then((r) => r.text()),
+          fetch('/2026_분기IS_법인별.csv').then((r) => r.text()),
+          fetch('/2025_BS.csv').then((r) => r.text()),
+          fetch('/2026_BS.csv').then((r) => r.text()),
+        ]);
+        const isLookup = {
+          ...buildEntityQuarterLookup(parseCsvText(is25), '2025'),
+          ...buildEntityQuarterLookup(parseCsvText(is26), '2026'),
+        };
+        const bsLookup = {
+          ...buildEntityQuarterLookup(parseCsvText(bs25), '2025'),
+          ...buildEntityQuarterLookup(parseCsvText(bs26), '2026'),
+        };
+        if (!cancelled) setEntityCsvLookup({ is: isLookup, bs: bsLookup });
+      } catch {
+        // CSV 직접 로딩 실패 시 기존 데이터 소스 사용
+      }
+    }
+    loadEntityCsvLookup();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // 모든 설정 변경 시 localStorage 저장 + 서버 자동 저장 (debounce 2초)
@@ -7946,7 +8069,35 @@ export default function FnFQ4Dashboard() {
           if (fromDetail !== undefined) return fromDetail;
           const fromEntity = entityData?.[k]?.[period]?.[ek];
           if (fromEntity !== undefined) return fromEntity;
+          const csvKey = normalizeAccount(k);
+          const fromCsv = entityCsvLookup?.is?.[period]?.[csvKey]?.[ek];
+          if (fromCsv !== undefined) return fromCsv;
         }
+      }
+
+      // 파생 계정 보정 (매핑 누락 대응)
+      if (account === '판매비와관리비') {
+        const parts = ['인건비', '광고선전비', '수수료', '감가상각비', '기타판관비'];
+        const vals = parts.map((k) => getISRaw(k, period));
+        if (vals.some((v) => v !== undefined)) return vals.reduce((s, v) => s + Number(v || 0), 0);
+      }
+      if (account === '영업외손익') {
+        const parts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
+        const vals = parts.map((k) => getISRaw(k, period));
+        if (vals.some((v) => v !== undefined)) return vals.reduce((s, v) => s + Number(v || 0), 0);
+      }
+      if (account === '법인세비용차감전순이익') {
+        const op = getISRaw('영업이익', period);
+        const nonOp = getISRaw('영업외손익', period);
+        const equity = getISRaw('지분법손익', period);
+        if (op !== undefined || nonOp !== undefined || equity !== undefined) {
+          return Number(op || 0) + Number(nonOp || 0) + Number(equity || 0);
+        }
+      }
+      if (account === '당기순이익') {
+        const ebt = getISRaw('법인세비용차감전순이익', period);
+        const tax = getISRaw('법인세비용', period);
+        if (ebt !== undefined || tax !== undefined) return Number(ebt || 0) - Number(tax || 0);
       }
       return undefined;
     };
@@ -7962,6 +8113,76 @@ export default function FnFQ4Dashboard() {
         for (const ek of entityCandidates) {
           if (d[ek] !== undefined) return d[ek];
         }
+      }
+
+      const bsAliasMap = {
+        현금성자산: ['현금및현금성자산', '현금성자산'],
+        금융자산: ['기타유동금융자산', '유동금융자산', '당기손익공정가치측정금융자산'],
+        매출채권: ['매출채권'],
+        대여금: ['단기대여금', '대여금'],
+        재고자산: ['재고자산', '상품', '제품', '원재료', '재공품', '미착품'],
+        투자자산: ['투자자산', '관계기업투자', '관계기업및종속기업투자'],
+        유무형자산: ['유무형자산', '유형자산', '무형자산', '토지', '건물', '영업권', '소프트웨어', '공기구비품'],
+        사용권자산: ['사용권자산'],
+        기타자산: ['기타자산', '기타비유동자산', '기타유동자산'],
+        자산총계: ['자산총계'],
+        매입채무: ['매입채무'],
+        미지급금: ['미지급금'],
+        보증금: ['보증금', '유동성보증금'],
+        차입금: ['차입금', '단기차입금', '장기차입금'],
+        리스부채: ['리스부채', '유동리스부채'],
+        금융부채: ['금융부채'],
+        기타부채: ['기타부채', '비유동부채', '유동부채'],
+        부채총계: ['부채총계'],
+        자본총계: ['자본총계'],
+      };
+      const candidates = bsAliasMap[account] || [account];
+      for (const c of candidates) {
+        const csvKey = normalizeAccount(c);
+        for (const ek of entityCandidates) {
+          const fromCsv = entityCsvLookup?.bs?.[period]?.[csvKey]?.[ek];
+          if (fromCsv !== undefined) return fromCsv;
+        }
+      }
+
+      // BS 파생/별칭 보정 (매핑 누락 대응)
+      const sumFromDetail = (keys) =>
+        keys.reduce((sum, k) => {
+          const dv = bsDetailData?.[k]?.[period];
+          if (!dv) return sum;
+          for (const ek of entityCandidates) {
+            if (dv[ek] !== undefined) return sum + Number(dv[ek] || 0);
+          }
+          return sum;
+        }, 0);
+
+      if (account === '재고자산') {
+        const v = sumFromDetail(['상품', '상품(충당금)', '제품', '재공품', '원재료', '미착품']);
+        if (v !== 0) return v;
+      }
+      if (account === '유무형자산') {
+        const v = sumFromDetail(['토지', '건물', '토지(투자부동산)', '건물(투자부동산)', '임차시설물', '공기구비품', '건설중인자산', '라이선스', '브랜드', '소프트웨어', '영업권']);
+        if (v !== 0) return v;
+      }
+      if (account === '투자자산') {
+        const v = sumFromDetail(['관계기업투자']);
+        if (v !== 0) return v;
+      }
+      if (account === '차입금') {
+        const v = sumFromDetail(['단기차입금', '장기차입금']);
+        if (v !== 0) return v;
+      }
+      if (account === '현금성자산') {
+        const v = sumFromDetail(['현금및현금성자산']);
+        if (v !== 0) return v;
+      }
+      if (account === '금융자산') {
+        const v = sumFromDetail(['기타유동금융자산', '당기손익-공정가치금융자산']);
+        if (v !== 0) return v;
+      }
+      if (account === '사용권자산') {
+        const v = sumFromDetail(['사용권자산']);
+        if (v !== 0) return v;
       }
       return undefined;
     };
@@ -7984,6 +8205,19 @@ export default function FnFQ4Dashboard() {
 
     const isRows = buildRows(operatingItems, getISRaw);
     const bsRows = buildRows(balanceItems, getBSRaw);
+    const buildSubtotalRow = (rows, baseKey, label = '소계') => {
+      const base = rows.find((r) => r.key === baseKey);
+      if (!base) return null;
+      return {
+        ...base,
+        key: `${base.key}_subtotal`,
+        label,
+        depth: 0,
+        analysis: base.analysis,
+      };
+    };
+    const isSubtotal = buildSubtotalRow(isRows, '당기순이익', '소계');
+    const bsSubtotal = buildSubtotalRow(bsRows, '자본총계', '소계');
 
     return (
       <div className="space-y-4">
@@ -8024,7 +8258,7 @@ export default function FnFQ4Dashboard() {
               </thead>
               <tbody>
                 {isRows.map((r) => (
-                  <tr key={`is-${r.account}`} className="border-t border-zinc-100">
+                  <tr key={`is-${r.key}`} className="border-t border-zinc-100">
                     <td className={`px-3 py-2 text-zinc-800 ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
                     <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25, !!r.isRateRow)}</td>
                     <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26, !!r.isRateRow)}</td>
@@ -8033,6 +8267,16 @@ export default function FnFQ4Dashboard() {
                     <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
                   </tr>
                 ))}
+                {isSubtotal && (
+                  <tr className="border-t-2 border-zinc-300 bg-zinc-50">
+                    <td className="px-3 py-2 font-semibold text-zinc-900">{isSubtotal.label}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(isSubtotal.v25, !!isSubtotal.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(isSubtotal.v26, !!isSubtotal.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{isSubtotal.delta == null ? '' : formatCell(isSubtotal.delta)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{isSubtotal.rate == null ? '' : `${isSubtotal.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-700">{isSubtotal.analysis}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -8057,7 +8301,7 @@ export default function FnFQ4Dashboard() {
               </thead>
               <tbody>
                 {bsRows.map((r) => (
-                  <tr key={`bs-${r.account}`} className="border-t border-zinc-100">
+                  <tr key={`bs-${r.key}`} className="border-t border-zinc-100">
                     <td className={`px-3 py-2 text-zinc-800 ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
                     <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25)}</td>
                     <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26)}</td>
@@ -8066,6 +8310,16 @@ export default function FnFQ4Dashboard() {
                     <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
                   </tr>
                 ))}
+                {bsSubtotal && (
+                  <tr className="border-t-2 border-zinc-300 bg-zinc-50">
+                    <td className="px-3 py-2 font-semibold text-zinc-900">{bsSubtotal.label}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(bsSubtotal.v25)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(bsSubtotal.v26)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{bsSubtotal.delta == null ? '' : formatCell(bsSubtotal.delta)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{bsSubtotal.rate == null ? '' : `${bsSubtotal.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-700">{bsSubtotal.analysis}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
