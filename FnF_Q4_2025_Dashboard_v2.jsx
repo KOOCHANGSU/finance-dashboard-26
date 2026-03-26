@@ -8351,13 +8351,14 @@ export default function FnFQ4Dashboard() {
       const keys = isAliasMap[account] || [account];
       for (const k of keys) {
         for (const ek of entityCandidates) {
+          // CSV 최신값을 최우선으로 사용해 파일 업데이트를 즉시 반영
+          const csvKey = normalizeAccount(k);
+          const fromCsv = entityCsvLookup?.is?.[period]?.[csvKey]?.[ek];
+          if (fromCsv !== undefined) return fromCsv;
           const fromDetail = entityDetailData?.[k]?.[period]?.[ek];
           if (fromDetail !== undefined) return fromDetail;
           const fromEntity = entityData?.[k]?.[period]?.[ek];
           if (fromEntity !== undefined) return fromEntity;
-          const csvKey = normalizeAccount(k);
-          const fromCsv = entityCsvLookup?.is?.[period]?.[csvKey]?.[ek];
-          if (fromCsv !== undefined) return fromCsv;
         }
       }
 
@@ -8388,19 +8389,6 @@ export default function FnFQ4Dashboard() {
       return undefined;
     };
     const getBSRaw = (account, period) => {
-      const p = entityBSData?.[period];
-      if (p && p[account]) {
-        for (const ek of entityCandidates) {
-          if (p[account][ek] !== undefined) return p[account][ek];
-        }
-      }
-      const d = bsDetailData?.[account]?.[period];
-      if (d) {
-        for (const ek of entityCandidates) {
-          if (d[ek] !== undefined) return d[ek];
-        }
-      }
-
       const bsAliasMap = {
         현금성자산: ['현금및현금성자산', '현금성자산'],
         금융자산: ['기타유동금융자산', '유동금융자산', '당기손익공정가치측정금융자산'],
@@ -8431,6 +8419,19 @@ export default function FnFQ4Dashboard() {
         }
       }
 
+      // CSV에 값이 없을 때만 기존 내장 데이터로 폴백
+      const p = entityBSData?.[period];
+      if (p && p[account]) {
+        for (const ek of entityCandidates) {
+          if (p[account][ek] !== undefined) return p[account][ek];
+        }
+      }
+      const d = bsDetailData?.[account]?.[period];
+      if (d) {
+        for (const ek of entityCandidates) {
+          if (d[ek] !== undefined) return d[ek];
+        }
+      }
       // BS 파생/별칭 보정 (매핑 누락 대응)
       const sumFromDetail = (keys) =>
         keys.reduce((sum, k) => {
