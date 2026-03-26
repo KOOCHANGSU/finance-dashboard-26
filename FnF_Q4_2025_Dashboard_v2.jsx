@@ -131,6 +131,27 @@ const parseCsvText = (text) => {
   return rows;
 };
 
+const decodeCsvBuffer = (buffer) => {
+  const utf8 = new TextDecoder('utf-8').decode(buffer);
+  const eucKr = new TextDecoder('euc-kr').decode(buffer);
+
+  const score = (text) => {
+    const replacementCount = (text.match(/�/g) || []).length;
+    const hasQuarterHeader = /\d{2}\.[1-4]Q/.test(text);
+    const hasMajorAccount = /(매출액|영업이익|당기순이익|법인세비용차감전순이익)/.test(text);
+    // 깨짐 문자가 적고, 분기 헤더/핵심 계정이 보이면 높은 점수
+    return (hasQuarterHeader ? 2 : 0) + (hasMajorAccount ? 2 : 0) - replacementCount;
+  };
+
+  return score(eucKr) > score(utf8) ? eucKr : utf8;
+};
+
+const fetchCsvTextWithFallback = async (url) => {
+  const res = await fetch(url);
+  const buffer = await res.arrayBuffer();
+  return decodeCsvBuffer(buffer);
+};
+
 const parseCsvNumber = (raw) => {
   const s0 = String(raw ?? '').trim();
   if (s0 === '') return undefined;
@@ -586,7 +607,7 @@ export default function FnFQ4Dashboard() {
 
     async function detect2026Quarters() {
       try {
-        const text = await fetch('/2026_IS.csv').then((r) => r.text());
+        const text = await fetchCsvTextWithFallback('/2026_IS.csv');
         const rows = parseCsv(text);
         if (!rows.length) return;
         const header = rows[0].map((c) => String(c ?? '').trim());
@@ -615,10 +636,10 @@ export default function FnFQ4Dashboard() {
     async function loadConsolidatedOverrides() {
       try {
         const [is25, is26, bs25, bs26] = await Promise.all([
-          fetch('/2025_IS.csv').then((r) => r.text()),
-          fetch('/2026_IS.csv').then((r) => r.text()),
-          fetch('/2025_BS.csv').then((r) => r.text()),
-          fetch('/2026_BS.csv').then((r) => r.text()),
+          fetchCsvTextWithFallback('/2025_IS.csv'),
+          fetchCsvTextWithFallback('/2026_IS.csv'),
+          fetchCsvTextWithFallback('/2025_BS.csv'),
+          fetchCsvTextWithFallback('/2026_BS.csv'),
         ]);
         const income = {
           ...buildConsolidatedISLookup(parseCsvText(is25), '2025'),
@@ -644,10 +665,10 @@ export default function FnFQ4Dashboard() {
     async function loadEntityCsvLookup() {
       try {
         const [is25, is26, bs25, bs26] = await Promise.all([
-          fetch('/2025_분기IS_법인별.csv').then((r) => r.text()),
-          fetch('/2026_분기IS_법인별.csv').then((r) => r.text()),
-          fetch('/2025_BS.csv').then((r) => r.text()),
-          fetch('/2026_BS.csv').then((r) => r.text()),
+          fetchCsvTextWithFallback('/2025_분기IS_법인별.csv'),
+          fetchCsvTextWithFallback('/2026_분기IS_법인별.csv'),
+          fetchCsvTextWithFallback('/2025_BS.csv'),
+          fetchCsvTextWithFallback('/2026_BS.csv'),
         ]);
         const isLookup = {
           ...buildEntityQuarterLookup(parseCsvText(is25), '2025'),
