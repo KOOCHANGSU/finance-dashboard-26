@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, ComposedChart, Area } from 'recharts';
 
 // ============================================
@@ -99,7 +99,16 @@ const deepClone = (value) => {
 // 2025 데이터를 기준으로 2024/2026 기간 키를 동일값으로 맞춘다.
 // - 2024: 비교 기준(전년)도 2025 값으로 표시
 // - 2026: 마감 전 임시값으로 2025와 동일 표시
-const normalizeYearDataset = (source, baseYear = '2025', targetYears = ['2024', '2026']) => {
+const shouldClonePeriodForYear = (suffix, rule) => {
+  if (!rule) return true;
+  if (suffix === '_Year') return !!rule.includeYear;
+  const m = suffix.match(/^_([1-4])Q(?:_Year)?$/);
+  if (!m) return true;
+  const q = Number(m[1]);
+  return Array.isArray(rule.quarters) ? rule.quarters.includes(q) : true;
+};
+
+const normalizeYearDataset = (source, baseYear = '2025', targetRules = { '2024': {}, '2026': {} }) => {
   const walk = (node) => {
     if (Array.isArray(node)) return node.map(walk);
     if (!node || typeof node !== 'object') return node;
@@ -116,7 +125,8 @@ const normalizeYearDataset = (source, baseYear = '2025', targetYears = ['2024', 
     keys.forEach((k) => {
       if (!k.startsWith(`${baseYear}_`)) return;
       const suffix = k.slice(baseYear.length);
-      targetYears.forEach((targetYear) => {
+      Object.entries(targetRules).forEach(([targetYear, rule]) => {
+        if (!shouldClonePeriodForYear(suffix, rule)) return;
         result[`${targetYear}${suffix}`] = deepClone(result[k]);
       });
     });
@@ -167,6 +177,76 @@ export default function FnFQ4Dashboard() {
   const [serverSaveStatus, setServerSaveStatus] = useState(''); // 전체 설정 저장 상태
   const fileInputRef = React.useRef(null); // 파일 업로드용 ref
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
+  const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [];
+      let field = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const c = text[i];
+        if (inQuotes) {
+          if (c === '"') {
+            if (text[i + 1] === '"') {
+              field += '"';
+              i += 1;
+            } else {
+              inQuotes = false;
+            }
+          } else {
+            field += c;
+          }
+          continue;
+        }
+        if (c === '"') { inQuotes = true; continue; }
+        if (c === ',') { row.push(field); field = ''; continue; }
+        if (c === '\r') continue;
+        if (c === '\n') {
+          row.push(field); field = '';
+          if (row.some((v) => String(v ?? '').trim() !== '')) rows.push(row);
+          row = [];
+          continue;
+        }
+        field += c;
+      }
+      row.push(field);
+      if (row.some((v) => String(v ?? '').trim() !== '')) rows.push(row);
+      return rows;
+    };
+
+    const hasValue = (v) => {
+      const s = String(v ?? '').trim();
+      return s !== '' && s !== '-' && s !== '0';
+    };
+
+    async function detect2026Quarters() {
+      try {
+        const text = await fetch('/2026_IS.csv').then((r) => r.text());
+        const rows = parseCsv(text);
+        if (!rows.length) return;
+        const header = rows[0].map((c) => String(c ?? '').trim());
+        const saleRow = rows.find((r) => String(r[0] ?? '').includes('Ⅰ.매출액') || String(r[0] ?? '').trim() === '매출액');
+        if (!saleRow) return;
+
+        const quarters = [];
+        for (let i = 0; i < header.length; i += 1) {
+          const m = header[i].match(/^\d{2}\.([1-4])Q$/);
+          if (!m) continue;
+          const q = Number(m[1]);
+          const qtrCol = i + 13;
+          if (qtrCol < saleRow.length && hasValue(saleRow[qtrCol])) quarters.push(q);
+        }
+        if (!cancelled && quarters.length) setAvailableQuarters2026(Array.from(new Set(quarters)).sort((a, b) => a - b));
+      } catch {
+        // CSV 감지 실패 시 기본 1Q 유지
+      }
+    }
+    detect2026Quarters();
+    return () => { cancelled = true; };
+  }, []);
 
   // 모든 설정 변경 시 localStorage 저장 + 서버 자동 저장 (debounce 2초)
   React.useEffect(() => {
@@ -757,6 +837,11 @@ export default function FnFQ4Dashboard() {
     // ============================================
   // 손익계산서 데이터 - 분기(3개월) + 누적(연간) 통합 (CSV 기반)
   // ============================================
+  const yearCloneRules = useMemo(() => ({
+    '2024': { quarters: [1, 2, 3, 4], includeYear: true },
+    '2026': { quarters: availableQuarters2026, includeYear: availableQuarters2026.includes(4) },
+  }), [availableQuarters2026]);
+
   const incomeStatementData = normalizeYearDataset({
     // 2024년 분기 (3개월)
     '2024_1Q': {
@@ -1178,7 +1263,7 @@ export default function FnFQ4Dashboard() {
       법인세비용: 139335,    // 법인세비용
       당기순이익: 402711,    // 연결 당기순이익
     },
-  });
+  }, '2025', yearCloneRules);
 
   // ============================================
   // 손익계산서 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
@@ -1202,7 +1287,7 @@ export default function FnFQ4Dashboard() {
     '2025_4Q_Year': { 매출액: 1933996, 제품매출: 610308, 상품매출: 15937, 수수료매출: 1160, 임대매출: 1731, 기타매출: 15333, 매출원가: 642187, 매출총이익: 1291809, 판매비와관리비: 823266, 급여: 80199, 퇴직급여: 4612, 복리후생비: 16516, 광고선전비: 109084, 운반비: 24855, 지급수수료: 434024, 감가상각비: 77445, 무형자산상각비: 14402, 영업이익: 468543 },
     '2025_4Q': { 매출액: 575252, 제품매출: 169301, 상품매출: 6153, 수수료매출: 349, 임대매출: 718, 기타매출: 5385, 매출원가: 181038, 매출총이익: 394214, 판매비와관리비: 261337, 급여: 20948, 퇴직급여: 1083, 복리후생비: 4423, 광고선전비: 39905, 운반비: 8094, 지급수수료: 146928, 감가상각비: 19312, 무형자산상각비: 3650, 영업이익: 132877 },
     '2025_Year': { 매출액: 1933996, 제품매출: 610308, 상품매출: 15937, 수수료매출: 1160, 임대매출: 1731, 기타매출: 15333, 매출원가: 642187, 매출총이익: 1291809, 판매비와관리비: 823266, 급여: 80199, 퇴직급여: 4612, 복리후생비: 16516, 광고선전비: 109084, 운반비: 24855, 지급수수료: 434024, 감가상각비: 77445, 무형자산상각비: 14402, 영업이익: 468543 },
-  });
+  }, '2025', yearCloneRules);
 
   // ============================================
   // 법인별 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
@@ -1276,7 +1361,7 @@ export default function FnFQ4Dashboard() {
       '2025_1Q': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '베트남': 12, '빅텐츠': 0, '엔터테인먼트': -1538, 'ST미국': 996 },
       '2025_Year': { 'OC(국내)': 524452, '중국': 40209, '홍콩': 1617, '베트남': 18, '빅텐츠': 0, '엔터테인먼트': -8707, 'ST미국': -1368 },
     },
-  });
+  }, '2025', yearCloneRules);
 
   // ============================================
   // 문장형 증감 분석 생성 함수
@@ -1598,7 +1683,7 @@ export default function FnFQ4Dashboard() {
       '2024_4Q': { 'OC(국내)': 1222495, '중국': 61851, '홍콩': 3146, 'ST미국': -11153, '기타': 7016, 연결: 1283355 },
       '2025_4Q': { 'OC(국내)': 1558525, '중국': 88199, '홍콩': 4188, 'ST미국': -19074, '기타': -12023, 연결: 1619815 }
     },
-  });
+  }, '2025', yearCloneRules);
 
   // 카테고리별 상세 계정 매핑
   const categoryDetailAccounts = {
@@ -2003,7 +2088,7 @@ export default function FnFQ4Dashboard() {
       비지배지분: 0,
       자본총계: 1879575,
     },
-  });
+  }, '2025', yearCloneRules);
 
   // ============================================
   // 금융상품평가 데이터
@@ -2021,7 +2106,7 @@ export default function FnFQ4Dashboard() {
       FVOCI평가손익: 0,
       파생상품평가손익: 0,
     },
-  });
+  }, '2025', yearCloneRules);
 
   // ============================================
   // 유틸리티 함수
@@ -2456,7 +2541,7 @@ export default function FnFQ4Dashboard() {
       '2025_4Q': { 'OC(국내)': 104502, '중국': 2426, '홍콩': 2129, 'ST미국': -1412, '기타': 49163 },
       '2025_Year': { 'OC(국내)': 399488, '중국': 26345, '홍콩': 1040, 'ST미국': -4226, '기타': -19937 },
     },
-  });
+  }, '2025', yearCloneRules);
 
   // ============================================
   // 법인별 재무상태표 데이터 (컴포넌트 상위 레벨)
@@ -2646,7 +2731,7 @@ export default function FnFQ4Dashboard() {
       리스부채: { 'OC(국내)': 139007, 중국: 35073, 홍콩: 18568, ST미국: 1022 },
       기타부채: { 'OC(국내)': 101219, 중국: 63936, 홍콩: 4558, ST미국: 2004 },
     },
-  });
+  }, '2025', yearCloneRules);
   // ============================================
   // AI 분석 함수
   // ============================================
