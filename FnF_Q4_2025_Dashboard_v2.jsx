@@ -8239,11 +8239,15 @@ export default function FnFQ4Dashboard() {
       베트남: ['베트남', 'F&F 베트남', 'F&F 베트남 '],
     };
     const entityCandidates = entityKeyAliases[selectedEntityKey] || [selectedEntityKey];
+    const getPrevYearSameQuarter = (period) =>
+      typeof period === 'string' && period.startsWith('2026_')
+        ? period.replace(/^2026_/, '2025_')
+        : null;
 
     const formatCell = (value, isRate = false) => {
       if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
       if (isRate) return `${Number(value).toFixed(1)}%`;
-      return new Intl.NumberFormat('ko-KR').format(Number(value));
+      return new Intl.NumberFormat('ko-KR').format(Math.round(Number(value)));
     };
 
     const calcRate = (numerator, denominator) => {
@@ -8262,8 +8266,13 @@ export default function FnFQ4Dashboard() {
       return ((Number(v26) - Number(v25)) / Math.abs(Number(v25))) * 100;
     };
 
-    const getAnalysis = (delta, rate) => {
+    const getAnalysis = (delta, rate, isRateRow = false) => {
       if (delta === undefined) return '';
+      if (isRateRow) {
+        if (delta > 0) return `전년 대비 증가 (${delta.toFixed(1)}%p)`;
+        if (delta < 0) return `전년 대비 감소 (${Math.abs(delta).toFixed(1)}%p)`;
+        return '전년 대비 동일';
+      }
       if (delta > 0) return `전년 대비 증가 (${rate === undefined ? '' : `${rate.toFixed(1)}%`})`;
       if (delta < 0) return `전년 대비 감소 (${rate === undefined ? '' : `${Math.abs(rate).toFixed(1)}%`})`;
       return '전년 대비 동일';
@@ -8386,6 +8395,9 @@ export default function FnFQ4Dashboard() {
         const tax = getISRaw('법인세비용', period);
         if (ebt !== undefined || tax !== undefined) return Number(ebt || 0) - Number(tax || 0);
       }
+      // 2026 법인별 CSV가 미입력인 경우 2025 동분기 값으로 폴백
+      const prevYearPeriod = getPrevYearSameQuarter(period);
+      if (prevYearPeriod) return getISRaw(account, prevYearPeriod);
       return undefined;
     };
     const getBSRaw = (account, period) => {
@@ -8471,6 +8483,9 @@ export default function FnFQ4Dashboard() {
         const v = sumFromDetail(['사용권자산']);
         if (v !== 0) return v;
       }
+      // 2026 법인별 CSV가 미입력인 경우 2025 동분기 값으로 폴백
+      const prevYearPeriod = getPrevYearSameQuarter(period);
+      if (prevYearPeriod) return getBSRaw(account, prevYearPeriod);
       return undefined;
     };
 
@@ -8486,8 +8501,8 @@ export default function FnFQ4Dashboard() {
         v26 = getter(item.key, period26);
       }
       const delta = getDelta(v25, v26);
-      const rate = getRateDelta(v25, v26);
-      return { ...item, v25, v26, delta, rate, analysis: getAnalysis(delta, rate) };
+      const rate = item.isRateRow ? undefined : getRateDelta(v25, v26);
+      return { ...item, v25, v26, delta, rate, analysis: getAnalysis(delta, rate, !!item.isRateRow) };
     });
 
     const isRows = buildRows(operatingItems, getISRaw);
@@ -8532,25 +8547,25 @@ export default function FnFQ4Dashboard() {
             <p className="text-xs text-zinc-500">{q}Q 기준 (단위: 백만원)</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
               <thead className="bg-zinc-50">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-zinc-600">과목</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">25년</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">26년</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
-                  <th className="px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
+                  <th className="w-[26%] px-3 py-2 text-left font-medium text-zinc-600">과목</th>
+                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">25년</th>
+                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">26년</th>
+                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
+                  <th className="w-[10%] px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
+                  <th className="w-[28%] px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
                 </tr>
               </thead>
               <tbody>
                 {isRows.map((r) => (
                   <tr key={`is-${r.key}`} className="border-t border-zinc-100">
-                    <td className={`px-3 py-2 text-zinc-800 ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25, !!r.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26, !!r.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta == null ? '' : formatCell(r.delta)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className={`px-3 py-2 text-zinc-800 whitespace-nowrap ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v25, !!r.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v26, !!r.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.delta == null ? '' : (r.isRateRow ? `${r.delta.toFixed(1)}%p` : formatCell(r.delta))}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.rate == null ? (r.isRateRow ? '-' : '') : `${r.rate.toFixed(1)}%`}</td>
                     <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
                   </tr>
                 ))}
@@ -8559,8 +8574,8 @@ export default function FnFQ4Dashboard() {
                     <td className="px-3 py-2 font-semibold text-zinc-900">{isSubtotal.label}</td>
                     <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(isSubtotal.v25, !!isSubtotal.isRateRow)}</td>
                     <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(isSubtotal.v26, !!isSubtotal.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{isSubtotal.delta == null ? '' : formatCell(isSubtotal.delta)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{isSubtotal.rate == null ? '' : `${isSubtotal.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums">{isSubtotal.delta == null ? '' : formatCell(isSubtotal.delta)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums">{isSubtotal.rate == null ? '' : `${isSubtotal.rate.toFixed(1)}%`}</td>
                     <td className="px-3 py-2 text-zinc-700">{isSubtotal.analysis}</td>
                   </tr>
                 )}
@@ -8575,25 +8590,25 @@ export default function FnFQ4Dashboard() {
             <p className="text-xs text-zinc-500">{q}Q 기준 (단위: 백만원)</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
               <thead className="bg-zinc-50">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium text-zinc-600">과목</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">25년</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">26년</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
-                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
-                  <th className="px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
+                  <th className="w-[26%] px-3 py-2 text-left font-medium text-zinc-600">과목</th>
+                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">25년</th>
+                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">26년</th>
+                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
+                  <th className="w-[10%] px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
+                  <th className="w-[28%] px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
                 </tr>
               </thead>
               <tbody>
                 {bsRows.map((r) => (
                   <tr key={`bs-${r.key}`} className="border-t border-zinc-100">
-                    <td className={`px-3 py-2 text-zinc-800 ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta == null ? '' : formatCell(r.delta)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className={`px-3 py-2 text-zinc-800 whitespace-nowrap ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v25)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v26)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.delta == null ? '' : formatCell(r.delta)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
                     <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
                   </tr>
                 ))}
