@@ -125,6 +125,9 @@ const parseCsvText = (text) => {
   }
   row.push(field);
   if (row.some((v) => String(v ?? '').trim() !== '')) rows.push(row);
+  if (rows.length && rows[0].length) {
+    rows[0][0] = String(rows[0][0] ?? '').replace(/^\uFEFF/, '');
+  }
   return rows;
 };
 
@@ -142,7 +145,7 @@ const parseCsvNumber = (raw) => {
 const normalizeAccount = (v) =>
   String(v ?? '')
     .replace(/\s+/g, '')
-    .replace(/[.,]/g, '')
+    .replace(/[.,\-_:·]/g, '')
     .replace(/[()]/g, '')
     .replace(/Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ/g, '')
     .trim();
@@ -150,7 +153,7 @@ const normalizeAccount = (v) =>
 const buildEntityQuarterLookup = (rows, year) => {
   const lookup = {};
   if (!rows?.length) return lookup;
-  const header = rows[0].map((c) => String(c ?? '').trim());
+  const header = rows[0].map((c) => String(c ?? '').replace(/^\uFEFF/, '').trim());
   const quarterOffsets = [];
   for (let i = 0; i < header.length; i += 1) {
     if (/^\d{2}\.[1-4]Q$/.test(header[i])) quarterOffsets.push(i);
@@ -480,7 +483,7 @@ const normalizeYearDataset = (source, baseYear = '2025', targetRules = { '2024':
 
 export default function FnFQ4Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
-  const [selectedEntityTab, setSelectedEntityTab] = useState('중국');
+  const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
   const [selectedAccount, setSelectedAccount] = useState('매출액');  // 영업 섹션용
   const [selectedNonOpAccount, setSelectedNonOpAccount] = useState('영업외손익');  // 영업외 섹션용
   const [selectedBSAccount, setSelectedBSAccount] = useState('자산총계');
@@ -558,6 +561,9 @@ export default function FnFQ4Dashboard() {
       }
       row.push(field);
       if (row.some((v) => String(v ?? '').trim() !== '')) rows.push(row);
+      if (rows.length && rows[0].length) {
+        rows[0][0] = String(rows[0][0] ?? '').replace(/^\uFEFF/, '');
+      }
       return rows;
     };
 
@@ -8239,10 +8245,6 @@ export default function FnFQ4Dashboard() {
       베트남: ['베트남', 'F&F 베트남', 'F&F 베트남 '],
     };
     const entityCandidates = entityKeyAliases[selectedEntityKey] || [selectedEntityKey];
-    const getPrevYearSameQuarter = (period) =>
-      typeof period === 'string' && period.startsWith('2026_')
-        ? period.replace(/^2026_/, '2025_')
-        : null;
 
     const formatCell = (value, isRate = false) => {
       if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
@@ -8364,10 +8366,6 @@ export default function FnFQ4Dashboard() {
           const csvKey = normalizeAccount(k);
           const fromCsv = entityCsvLookup?.is?.[period]?.[csvKey]?.[ek];
           if (fromCsv !== undefined) return fromCsv;
-          const fromDetail = entityDetailData?.[k]?.[period]?.[ek];
-          if (fromDetail !== undefined) return fromDetail;
-          const fromEntity = entityData?.[k]?.[period]?.[ek];
-          if (fromEntity !== undefined) return fromEntity;
         }
       }
 
@@ -8395,15 +8393,12 @@ export default function FnFQ4Dashboard() {
         const tax = getISRaw('법인세비용', period);
         if (ebt !== undefined || tax !== undefined) return Number(ebt || 0) - Number(tax || 0);
       }
-      // 2026 법인별 CSV가 미입력인 경우 2025 동분기 값으로 폴백
-      const prevYearPeriod = getPrevYearSameQuarter(period);
-      if (prevYearPeriod) return getISRaw(account, prevYearPeriod);
       return undefined;
     };
     const getBSRaw = (account, period) => {
       const bsAliasMap = {
         현금성자산: ['현금및현금성자산', '현금성자산'],
-        금융자산: ['기타유동금융자산', '유동금융자산', '당기손익공정가치측정금융자산'],
+        금융자산: ['기타유동금융자산', '유동금융자산', '당기손익공정가치측정금융자산', '유동당기손익공정가치측정금융자산'],
         매출채권: ['매출채권'],
         대여금: ['단기대여금', '대여금'],
         재고자산: ['재고자산', '상품', '제품', '원재료', '재공품', '미착품'],
@@ -8431,61 +8426,45 @@ export default function FnFQ4Dashboard() {
         }
       }
 
-      // CSV에 값이 없을 때만 기존 내장 데이터로 폴백
-      const p = entityBSData?.[period];
-      if (p && p[account]) {
-        for (const ek of entityCandidates) {
-          if (p[account][ek] !== undefined) return p[account][ek];
-        }
-      }
-      const d = bsDetailData?.[account]?.[period];
-      if (d) {
-        for (const ek of entityCandidates) {
-          if (d[ek] !== undefined) return d[ek];
-        }
-      }
-      // BS 파생/별칭 보정 (매핑 누락 대응)
-      const sumFromDetail = (keys) =>
+      // BS 파생/별칭 보정 (CSV 매핑 누락 대응)
+      const sumFromCsv = (keys) =>
         keys.reduce((sum, k) => {
-          const dv = bsDetailData?.[k]?.[period];
-          if (!dv) return sum;
+          const csvKey = normalizeAccount(k);
           for (const ek of entityCandidates) {
-            if (dv[ek] !== undefined) return sum + Number(dv[ek] || 0);
+            const v = entityCsvLookup?.bs?.[period]?.[csvKey]?.[ek];
+            if (v !== undefined) return sum + Number(v || 0);
           }
           return sum;
         }, 0);
 
       if (account === '재고자산') {
-        const v = sumFromDetail(['상품', '상품(충당금)', '제품', '재공품', '원재료', '미착품']);
+        const v = sumFromCsv(['상품', '상품평가손실충당금', '제품', '제품평가손실충당금', '재공품', '원재료', '미착품']);
         if (v !== 0) return v;
       }
       if (account === '유무형자산') {
-        const v = sumFromDetail(['토지', '건물', '토지(투자부동산)', '건물(투자부동산)', '임차시설물', '공기구비품', '건설중인자산', '라이선스', '브랜드', '소프트웨어', '영업권']);
+        const v = sumFromCsv(['토지', '건물', '토지투자부동산', '건물투자부동산', '임차시설물', '공기구비품', '건설중인자산유형', '라이선스', '브랜드', '소프트웨어', '영업권']);
         if (v !== 0) return v;
       }
       if (account === '투자자산') {
-        const v = sumFromDetail(['관계기업투자']);
+        const v = sumFromCsv(['관계기업및종속기업투자', '당기손익공정가치측정금융자산']);
         if (v !== 0) return v;
       }
       if (account === '차입금') {
-        const v = sumFromDetail(['단기차입금', '장기차입금']);
+        const v = sumFromCsv(['단기차입금', '장기차입금']);
         if (v !== 0) return v;
       }
       if (account === '현금성자산') {
-        const v = sumFromDetail(['현금및현금성자산']);
+        const v = sumFromCsv(['현금및현금성자산']);
         if (v !== 0) return v;
       }
       if (account === '금융자산') {
-        const v = sumFromDetail(['기타유동금융자산', '당기손익-공정가치금융자산']);
+        const v = sumFromCsv(['기타유동금융자산', '유동당기손익공정가치측정금융자산', '통화선도']);
         if (v !== 0) return v;
       }
       if (account === '사용권자산') {
-        const v = sumFromDetail(['사용권자산']);
+        const v = sumFromCsv(['사용권자산']);
         if (v !== 0) return v;
       }
-      // 2026 법인별 CSV가 미입력인 경우 2025 동분기 값으로 폴백
-      const prevYearPeriod = getPrevYearSameQuarter(period);
-      if (prevYearPeriod) return getBSRaw(account, prevYearPeriod);
       return undefined;
     };
 
