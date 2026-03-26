@@ -133,7 +133,14 @@ const parseCsvText = (text) => {
 
 const decodeCsvBuffer = (buffer) => {
   const utf8 = new TextDecoder('utf-8').decode(buffer);
-  const eucKr = new TextDecoder('euc-kr').decode(buffer);
+  let eucKr = '';
+  try {
+    eucKr = new TextDecoder('euc-kr').decode(buffer);
+  } catch {
+    // 일부 런타임/브라우저에서는 euc-kr 디코더가 없을 수 있음
+    // 이 경우 UTF-8 결과를 사용한다.
+    return utf8;
+  }
 
   const score = (text) => {
     const replacementCount = (text.match(/�/g) || []).length;
