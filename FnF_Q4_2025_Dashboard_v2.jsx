@@ -89,6 +89,44 @@ const saveToStorage = (key, data) => {
   }
 };
 
+const PERIOD_KEY_REGEX = /^(20\d{2})_(?:[1-4]Q(?:_Year)?|Year)$/;
+
+const deepClone = (value) => {
+  if (value == null || typeof value !== 'object') return value;
+  return JSON.parse(JSON.stringify(value));
+};
+
+// 2025 데이터를 기준으로 2024/2026 기간 키를 동일값으로 맞춘다.
+// - 2024: 비교 기준(전년)도 2025 값으로 표시
+// - 2026: 마감 전 임시값으로 2025와 동일 표시
+const normalizeYearDataset = (source, baseYear = '2025', targetYears = ['2024', '2026']) => {
+  const walk = (node) => {
+    if (Array.isArray(node)) return node.map(walk);
+    if (!node || typeof node !== 'object') return node;
+
+    const result = {};
+    Object.entries(node).forEach(([k, v]) => {
+      result[k] = walk(v);
+    });
+
+    const keys = Object.keys(result);
+    const hasPeriodKeys = keys.some((k) => PERIOD_KEY_REGEX.test(k));
+    if (!hasPeriodKeys) return result;
+
+    keys.forEach((k) => {
+      if (!k.startsWith(`${baseYear}_`)) return;
+      const suffix = k.slice(baseYear.length);
+      targetYears.forEach((targetYear) => {
+        result[`${targetYear}${suffix}`] = deepClone(result[k]);
+      });
+    });
+
+    return result;
+  };
+
+  return walk(source);
+};
+
 export default function FnFQ4Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
   const [selectedAccount, setSelectedAccount] = useState('매출액');  // 영업 섹션용
@@ -98,7 +136,7 @@ export default function FnFQ4Dashboard() {
   const [operatingSectionExpanded, setOperatingSectionExpanded] = useState(true); // 영업 실적 섹션 접기/펼치기
   const [nonOpSectionExpanded, setNonOpSectionExpanded] = useState(true); // 영업외 손익 섹션 접기/펼치기
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
-  const [selectedPeriod, setSelectedPeriod] = useState('2025_Q4'); // 선택된 조회기간 ('2025_Q1' ~ '2025_Q4')
+  const [selectedPeriod, setSelectedPeriod] = useState('2026_Q1'); // 선택된 조회기간 ('2026_Q1' ~ '2026_Q4')
   const [summaryKpiMode, setSummaryKpiMode] = useState('quarter'); // 'quarter' | 'cumulative' - 손익 요약 카드 보기 모드
   const [balanceKpiMode, setBalanceKpiMode] = useState('yearEnd'); // 'sameQuarter' | 'yearEnd' - 재무상태 요약 카드 보기 모드
   const [incomeEditMode, setIncomeEditMode] = useState(false); // 영업 섹션 증감 분석 편집 모드
@@ -695,10 +733,7 @@ export default function FnFQ4Dashboard() {
     return `${year}_4Q`; // 기본값
   };
 
-  const getPeriodLabel = (selectedPeriod) => {
-    // '2025_Q4' -> 'FY2025 Q4'
-    return selectedPeriod.replace('_', ' ');
-  };
+  const getPeriodLabel = (selectedPeriod) => selectedPeriod.replace('_', ' ');
 
   // ============================================
   // 재무상태표 조회 기준(컴포넌트 전역)
@@ -707,9 +742,10 @@ export default function FnFQ4Dashboard() {
   // ============================================
   const bsCurrentPeriod = getPeriodKey(selectedPeriod, 'quarter'); // 선택된 분기 기말
   // bsCompareMode에 따라 비교 기간 결정
+  const prevYear = String(Number(selectedPeriod?.split('_')?.[0] || '2026') - 1);
   const bsPrevPeriod = bsCompareMode === 'sameQuarter' 
     ? getPeriodKey(selectedPeriod, 'prev_quarter') // 전년 동분기 (예: 2024_3Q)
-    : '2024_4Q'; // 전기말 (고정)
+    : `${prevYear}_4Q`; // 전기말 (선택년도 기준 전년 기말)
   
   // 비교 기간 라벨 생성 (UI 표시용)
   const getBsPeriodLabel = (period) => {
@@ -721,7 +757,7 @@ export default function FnFQ4Dashboard() {
     // ============================================
   // 손익계산서 데이터 - 분기(3개월) + 누적(연간) 통합 (CSV 기반)
   // ============================================
-  const incomeStatementData = {
+  const incomeStatementData = normalizeYearDataset({
     // 2024년 분기 (3개월)
     '2024_1Q': {
       매출액: 507029,
@@ -1142,12 +1178,12 @@ export default function FnFQ4Dashboard() {
       법인세비용: 139335,    // 법인세비용
       당기순이익: 402711,    // 연결 당기순이익
     },
-  };
+  });
 
   // ============================================
   // 손익계산서 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
   // ============================================
-  const incomeDetailData = {
+  const incomeDetailData = normalizeYearDataset({
     '2024_1Q_Year': { 매출액: 507029, 제품매출: 165016, 상품매출: 5934, 수수료매출: 360, 임대매출: 68, 기타매출: 3595, 매출원가: 174545, 매출총이익: 332484, 판매비와관리비: 202273, 급여: 18472, 퇴직급여: 1186, 복리후생비: 3796, 광고선전비: 24097, 운반비: 6120, 지급수수료: 112650, 감가상각비: 18718, 무형자산상각비: 1847, 영업이익: 130211 },
     '2024_1Q': { 매출액: 507029, 제품매출: 165016, 상품매출: 5934, 수수료매출: 360, 임대매출: 68, 기타매출: 3595, 매출원가: 174545, 매출총이익: 332484, 판매비와관리비: 202273, 급여: 18472, 퇴직급여: 1186, 복리후생비: 3796, 광고선전비: 24097, 운반비: 6120, 지급수수료: 112650, 감가상각비: 18718, 무형자산상각비: 1847, 영업이익: 130211 },
     '2024_2Q_Year': { 매출액: 898502, 제품매출: 278476, 상품매출: 8382, 수수료매출: 716, 임대매출: 138, 기타매출: 7862, 매출원가: 294719, 매출총이익: 603782, 판매비와관리비: 381770, 급여: 39262, 퇴직급여: 2398, 복리후생비: 7263, 광고선전비: 41052, 운반비: 9961, 지급수수료: 211146, 감가상각비: 38092, 무형자산상각비: 4011, 영업이익: 222012 },
@@ -1166,12 +1202,12 @@ export default function FnFQ4Dashboard() {
     '2025_4Q_Year': { 매출액: 1933996, 제품매출: 610308, 상품매출: 15937, 수수료매출: 1160, 임대매출: 1731, 기타매출: 15333, 매출원가: 642187, 매출총이익: 1291809, 판매비와관리비: 823266, 급여: 80199, 퇴직급여: 4612, 복리후생비: 16516, 광고선전비: 109084, 운반비: 24855, 지급수수료: 434024, 감가상각비: 77445, 무형자산상각비: 14402, 영업이익: 468543 },
     '2025_4Q': { 매출액: 575252, 제품매출: 169301, 상품매출: 6153, 수수료매출: 349, 임대매출: 718, 기타매출: 5385, 매출원가: 181038, 매출총이익: 394214, 판매비와관리비: 261337, 급여: 20948, 퇴직급여: 1083, 복리후생비: 4423, 광고선전비: 39905, 운반비: 8094, 지급수수료: 146928, 감가상각비: 19312, 무형자산상각비: 3650, 영업이익: 132877 },
     '2025_Year': { 매출액: 1933996, 제품매출: 610308, 상품매출: 15937, 수수료매출: 1160, 임대매출: 1731, 기타매출: 15333, 매출원가: 642187, 매출총이익: 1291809, 판매비와관리비: 823266, 급여: 80199, 퇴직급여: 4612, 복리후생비: 16516, 광고선전비: 109084, 운반비: 24855, 지급수수료: 434024, 감가상각비: 77445, 무형자산상각비: 14402, 영업이익: 468543 },
-  };
+  });
 
   // ============================================
   // 법인별 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
   // ============================================
-  const entityDetailData = {
+  const entityDetailData = normalizeYearDataset({
     '매출액': {
       '2024_1Q': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '베트남': 66, '빅텐츠': 212, '엔터테인먼트': 416, 'ST미국': 9208 },
       '2024_1Q_Year': { 'OC(국내)': 388852, '중국': 238976, '홍콩': 22211, '베트남': 66, '빅텐츠': 212, '엔터테인먼트': 416, 'ST미국': 9208 },
@@ -1240,7 +1276,7 @@ export default function FnFQ4Dashboard() {
       '2025_1Q': { 'OC(국내)': 111978, '중국': 6110, '홍콩': 3, '베트남': 12, '빅텐츠': 0, '엔터테인먼트': -1538, 'ST미국': 996 },
       '2025_Year': { 'OC(국내)': 524452, '중국': 40209, '홍콩': 1617, '베트남': 18, '빅텐츠': 0, '엔터테인먼트': -8707, 'ST미국': -1368 },
     },
-  };
+  });
 
   // ============================================
   // 문장형 증감 분석 생성 함수
@@ -1422,7 +1458,7 @@ export default function FnFQ4Dashboard() {
   // ============================================
   // 상세 계정 데이터 (bsDetailData) - 법인별 데이터 포함
   // ============================================
-  const bsDetailData = {
+  const bsDetailData = normalizeYearDataset({
     // 현금성자산 하위 계정
     '현금및현금성자산': { 
       category: '현금성자산', 
@@ -1562,7 +1598,7 @@ export default function FnFQ4Dashboard() {
       '2024_4Q': { 'OC(국내)': 1222495, '중국': 61851, '홍콩': 3146, 'ST미국': -11153, '기타': 7016, 연결: 1283355 },
       '2025_4Q': { 'OC(국내)': 1558525, '중국': 88199, '홍콩': 4188, 'ST미국': -19074, '기타': -12023, 연결: 1619815 }
     },
-  };
+  });
 
   // 카테고리별 상세 계정 매핑
   const categoryDetailAccounts = {
@@ -1749,7 +1785,7 @@ export default function FnFQ4Dashboard() {
   // 재무상태표 데이터 - 전년기말 vs 당기말
   // ============================================
   // 재무상태표 데이터 (성격별 분류 - 유동/비유동 통합)
-  const balanceSheetData = {
+  const balanceSheetData = normalizeYearDataset({
     // 2024년 연결 BS (2024_BS.csv 기반, 단위: 백만원)
     '2024_1Q': {
       현금성자산: 334707,
@@ -1967,12 +2003,12 @@ export default function FnFQ4Dashboard() {
       비지배지분: 0,
       자본총계: 1879575,
     },
-  };
+  });
 
   // ============================================
   // 금융상품평가 데이터
   // ============================================
-  const financialInstrumentsData = {
+  const financialInstrumentsData = normalizeYearDataset({
     '2024_4Q': {
       FVPL금융자산: 0,
       FVOCI금융자산: 0,
@@ -1985,7 +2021,7 @@ export default function FnFQ4Dashboard() {
       FVOCI평가손익: 0,
       파생상품평가손익: 0,
     },
-  };
+  });
 
   // ============================================
   // 유틸리티 함수
@@ -2022,7 +2058,7 @@ export default function FnFQ4Dashboard() {
   // 주의: 법인별 데이터는 연결조정 전 법인별 합산 기준
   // entity_is_data.json에서 자동 생성 (5개 법인: OC(국내), 중국, 홍콩, ST미국, 기타(연결조정))
   // 연결운전자본(24~25).csv 기반 법인별 매출 데이터 (연결조정 완료)
-  const entityData = {
+  const entityData = normalizeYearDataset({
     '매출액': {
       '2024_1Q': { 'OC(국내)': 236031, '중국': 238976, '홍콩': 22211, 'ST미국': 9182, '기타': 629 },
       '2024_1Q_Year': { 'OC(국내)': 236031, '중국': 238976, '홍콩': 22211, 'ST미국': 9182, '기타': 629 },
@@ -2420,13 +2456,13 @@ export default function FnFQ4Dashboard() {
       '2025_4Q': { 'OC(국내)': 104502, '중국': 2426, '홍콩': 2129, 'ST미국': -1412, '기타': 49163 },
       '2025_Year': { 'OC(국내)': 399488, '중국': 26345, '홍콩': 1040, 'ST미국': -4226, '기타': -19937 },
     },
-  };
+  });
 
   // ============================================
   // 법인별 재무상태표 데이터 (컴포넌트 상위 레벨)
   // entity_bs_data.json 기반 업데이트 (단위: 백만원)
   // ============================================
-  const entityBSData = {
+  const entityBSData = normalizeYearDataset({
     '2024_1Q': {
       현금성자산: { 'OC(국내)': 291693, 중국: 12162, 홍콩: 4132, ST미국: 22754, 기타: 3966 },
       매출채권: { 'OC(국내)': 109224, 중국: 7225, 홍콩: 3399, ST미국: 3441, 기타: -40920 },
@@ -2610,7 +2646,7 @@ export default function FnFQ4Dashboard() {
       리스부채: { 'OC(국내)': 139007, 중국: 35073, 홍콩: 18568, ST미국: 1022 },
       기타부채: { 'OC(국내)': 101219, 중국: 63936, 홍콩: 4558, ST미국: 2004 },
     },
-  };
+  });
   // ============================================
   // AI 분석 함수
   // ============================================
@@ -2630,7 +2666,8 @@ export default function FnFQ4Dashboard() {
       };
     }
     const selectedYearKey = getPeriodKey(selectedPeriod, 'year');
-    const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
+    const selectedYear = selectedPeriod ? Number(selectedPeriod.split('_')[0]) : 2026;
+    const prevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || `${selectedYear - 1}_Year`;
     // 재무상태표는 분기별 데이터이므로 quarter 키 사용 (bsCurrentPeriod와 동일하게)
     const currentPeriod = bsCurrentPeriod; // 전역 변수 사용으로 일관성 확보
     const prevPeriod = bsPrevPeriod; // 전역 변수 사용으로 일관성 확보
@@ -3424,7 +3461,7 @@ export default function FnFQ4Dashboard() {
       : getPeriodKey(selectedPeriod, 'year');     // 누적: 2025_4Q_Year
     const incomePrevKey = isQuarterMode 
       ? getPeriodKey(selectedPeriod, 'prev_quarter')  // 분기: 2024_4Q
-      : (getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year');  // 누적: 2024_4Q_Year
+      : (getPeriodKey(selectedPeriod, 'prev_year') || `${Number(selectedPeriod.split('_')[0]) - 1}_Year`);
     
     // 재무상태표 비교 기간 키 결정 (별도의 balanceKpiMode 사용)
     // 동분기 모드: 동분기 비교 (예: 2025.4Q vs 2024.4Q)
@@ -3829,7 +3866,7 @@ export default function FnFQ4Dashboard() {
                       <span className="text-white text-xs font-bold">AI</span>
                     </div>
                     <div>
-                      <div className="text-sm font-semibold">F&F {selectedPeriod ? selectedPeriod.split('_')[0] : '2025'}년 재무 종합 분석</div>
+                      <div className="text-sm font-semibold">F&F {selectedPeriod ? selectedPeriod.split('_')[0] : '2026'}년 재무 종합 분석</div>
                       <div className="text-xs text-zinc-400">수익성 · 안정성 · 리스크 · 액션플랜</div>
                     </div>
                     {aiEditMode && (
@@ -4319,7 +4356,7 @@ export default function FnFQ4Dashboard() {
     const currPeriod = getCurrentPeriodKey();
     const prevPeriod = getPrevPeriodKey();
     const periodLabel = incomeViewMode === 'quarter' 
-      ? selectedPeriod.replace('2025_', '').replace('Q', '') + '분기'
+      ? selectedPeriod.split('_')[1].replace('Q', '') + '분기'
       : '연간';
 
     // 법인 색상
@@ -4553,7 +4590,7 @@ export default function FnFQ4Dashboard() {
 
     // 요약 카드는 조회 시점 기준 누적(연간) 데이터 사용
     const incomeSummaryYearKey = getPeriodKey(selectedPeriod, 'year');
-    const incomeSummaryPrevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || '2024_Year';
+    const incomeSummaryPrevYearKey = getPeriodKey(selectedPeriod, 'prev_year') || `${Number(selectedPeriod.split('_')[0]) - 1}_Year`;
 
     // 테이블 행 렌더링 함수
     const renderTableRow = (item, idx, items, selectedKey, setSelectedKey, showToggle = false) => {
@@ -7725,10 +7762,10 @@ export default function FnFQ4Dashboard() {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-lg border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
               >
-                <option value="2025_Q1">FY2025 1Q</option>
-                <option value="2025_Q2">FY2025 2Q</option>
-                <option value="2025_Q3">FY2025 3Q</option>
-                <option value="2025_Q4">FY2025 4Q</option>
+                <option value="2026_Q1">FY2026 1Q</option>
+                <option value="2026_Q2">FY2026 2Q</option>
+                <option value="2026_Q3">FY2026 3Q</option>
+                <option value="2026_Q4">FY2026 4Q</option>
               </select>
             </div>
           </div>
