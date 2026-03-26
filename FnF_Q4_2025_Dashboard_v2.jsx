@@ -184,6 +184,182 @@ const buildEntityQuarterLookup = (rows, year) => {
   return lookup;
 };
 
+const mergePeriodMetrics = (baseData, overrideData) => {
+  const merged = { ...baseData };
+  Object.entries(overrideData || {}).forEach(([period, metrics]) => {
+    merged[period] = { ...(baseData?.[period] || {}), ...(metrics || {}) };
+  });
+  return merged;
+};
+
+const addMetric = (obj, period, key, value) => {
+  if (value === undefined || value === null || Number.isNaN(Number(value))) return;
+  if (!obj[period]) obj[period] = {};
+  obj[period][key] = Math.round(Number(value));
+};
+
+const buildConsolidatedISLookup = (rows, year) => {
+  const lookup = {};
+  if (!rows?.length) return lookup;
+  const header = rows[0].map((c) => String(c ?? '').trim());
+  const quarterOffsets = [];
+  for (let i = 0; i < header.length; i += 1) {
+    if (/^\d{2}\.[1-4]Q$/.test(header[i])) quarterOffsets.push(i);
+  }
+
+  const accountMap = {
+    매출액: '매출액',
+    매출원가: '매출원가',
+    매출총이익: '매출총이익',
+    판매비와관리비: '판매비와관리비',
+    영업이익: '영업이익',
+    영업외손익: '영업외손익',
+    지분법손익: '지분법손익',
+    법인세비용차감전순이익: '법인세비용차감전순이익',
+    법인세비용: '법인세비용',
+    당기순이익: '당기순이익',
+    급여: '급여',
+    퇴직급여: '퇴직급여',
+    광고선전비: '광고선전비',
+    지급수수료: '수수료',
+    감가상각비: '감가상각비',
+    외환손익: '외환손익',
+    선물환손익: '선물환손익',
+    금융상품손익: '금융상품손익',
+    이자손익: '이자손익',
+    배당수익: '배당수익',
+    기부금: '기부금',
+    기타손익: '기타손익',
+  };
+
+  quarterOffsets.forEach((offset) => {
+    const m = header[offset].match(/^\d{2}\.([1-4])Q$/);
+    if (!m) return;
+    const q = Number(m[1]);
+    const qKey = `${year}_${q}Q`;
+    const yKey = q === 4 ? `${year}_Year` : `${year}_${q}Q_Year`;
+    const qCol = offset + 13;
+    const yCol = offset + 11;
+
+    for (let r = 1; r < rows.length; r += 1) {
+      const row = rows[r];
+      const account = accountMap[normalizeAccount(row[offset])];
+      if (!account) continue;
+      addMetric(lookup, qKey, account, parseCsvNumber(row[qCol]));
+      addMetric(lookup, yKey, account, parseCsvNumber(row[yCol]));
+    }
+  });
+
+  Object.keys(lookup).forEach((period) => {
+    const salary = lookup[period]?.급여;
+    const retirement = lookup[period]?.퇴직급여;
+    if (salary !== undefined || retirement !== undefined) {
+      lookup[period].인건비 = Math.round(Number(salary || 0) + Number(retirement || 0));
+    }
+    const sga = lookup[period]?.판매비와관리비;
+    const labor = lookup[period]?.인건비;
+    const ad = lookup[period]?.광고선전비;
+    const fee = lookup[period]?.수수료;
+    const dep = lookup[period]?.감가상각비;
+    if (sga !== undefined) {
+      lookup[period].기타판관비 = Math.round(Number(sga || 0) - Number(labor || 0) - Number(ad || 0) - Number(fee || 0) - Number(dep || 0));
+    }
+  });
+
+  return lookup;
+};
+
+const buildConsolidatedBSLookup = (rows, year) => {
+  const lookup = {};
+  if (!rows?.length) return lookup;
+  const header = rows[0].map((c) => String(c ?? '').trim());
+  const quarterOffsets = [];
+  for (let i = 0; i < header.length; i += 1) {
+    if (/^\d{2}\.[1-4]Q$/.test(header[i])) quarterOffsets.push(i);
+  }
+
+  const addSum = (obj, period, key, value) => {
+    if (value === undefined || value === null || Number.isNaN(Number(value))) return;
+    if (!obj[period]) obj[period] = {};
+    obj[period][key] = Math.round(Number(obj[period][key] || 0) + Number(value));
+  };
+
+  const accountMap = {
+    현금및현금성자산: '현금성자산',
+    기타유동금융자산: '금융자산',
+    통화선도: '금융자산',
+    유동당기손익공정가치측정금융자산: '금융자산',
+    매출채권: '매출채권',
+    재고자산: '재고자산',
+    투자자산: '투자자산',
+    관계기업및종속기업투자: '투자자산',
+    유형자산: '유무형자산',
+    무형자산: '유무형자산',
+    투자부동산: '유무형자산',
+    사용권자산: '사용권자산',
+    기타비유동자산: '기타자산',
+    기타유동자산: '기타자산',
+    자산총계: '자산총계',
+    매입채무: '매입채무',
+    미지급금: '미지급금',
+    유동성보증금: '보증금',
+    단기차입금: '차입금',
+    장기차입금: '차입금',
+    유동리스부채: '리스부채',
+    리스부채: '리스부채',
+    금융부채: '금융부채',
+    부채총계: '부채총계',
+    자본금: '자본금',
+    자본잉여금: '자본잉여금',
+    이익잉여금: '이익잉여금',
+    기타포괄손익누계액: '기타자본',
+    자본총계: '자본총계',
+  };
+
+  quarterOffsets.forEach((offset) => {
+    const m = header[offset].match(/^\d{2}\.([1-4])Q$/);
+    if (!m) return;
+    const q = Number(m[1]);
+    const qKey = `${year}_${q}Q`;
+    const qCol = offset + 13;
+    for (let r = 1; r < rows.length; r += 1) {
+      const row = rows[r];
+      const mapped = accountMap[normalizeAccount(row[offset])];
+      if (!mapped) continue;
+      addSum(lookup, qKey, mapped, parseCsvNumber(row[qCol]));
+    }
+  });
+
+  // 기타자산/기타부채는 CSV 계정 분류 변동에 따라 중복 집계가 발생할 수 있어
+  // 총계 기준 잔차로 보정해 과대계상 이슈를 방지한다.
+  Object.keys(lookup).forEach((period) => {
+    const item = lookup[period];
+    if (!item) return;
+
+    if (item.자산총계 !== undefined) {
+      const otherAssets = Number(item.현금성자산 || 0)
+        + Number(item.금융자산 || 0)
+        + Number(item.매출채권 || 0)
+        + Number(item.재고자산 || 0)
+        + Number(item.투자자산 || 0)
+        + Number(item.유무형자산 || 0)
+        + Number(item.사용권자산 || 0);
+      item.기타자산 = Math.round(Number(item.자산총계 || 0) - otherAssets);
+    }
+
+    if (item.부채총계 !== undefined) {
+      const otherLiabilities = Number(item.매입채무 || 0)
+        + Number(item.미지급금 || 0)
+        + Number(item.보증금 || 0)
+        + Number(item.차입금 || 0)
+        + Number(item.리스부채 || 0)
+        + Number(item.금융부채 || 0);
+      item.기타부채 = Math.round(Number(item.부채총계 || 0) - otherLiabilities);
+    }
+  });
+  return lookup;
+};
+
 const deepClone = (value) => {
   if (value == null || typeof value !== 'object') return value;
   return JSON.parse(JSON.stringify(value));
@@ -273,6 +449,7 @@ export default function FnFQ4Dashboard() {
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
+  const [consolidatedCsvOverride, setConsolidatedCsvOverride] = useState({ income: {}, balance: {} });
 
   useEffect(() => {
     let cancelled = false;
@@ -341,6 +518,35 @@ export default function FnFQ4Dashboard() {
     }
     detect2026Quarters();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadConsolidatedOverrides() {
+      try {
+        const [is25, is26, bs25, bs26] = await Promise.all([
+          fetch('/2025_IS.csv').then((r) => r.text()),
+          fetch('/2026_IS.csv').then((r) => r.text()),
+          fetch('/2025_BS.csv').then((r) => r.text()),
+          fetch('/2026_BS.csv').then((r) => r.text()),
+        ]);
+        const income = {
+          ...buildConsolidatedISLookup(parseCsvText(is25), '2025'),
+          ...buildConsolidatedISLookup(parseCsvText(is26), '2026'),
+        };
+        const balance = {
+          ...buildConsolidatedBSLookup(parseCsvText(bs25), '2025'),
+          ...buildConsolidatedBSLookup(parseCsvText(bs26), '2026'),
+        };
+        if (!cancelled) setConsolidatedCsvOverride({ income, balance });
+      } catch {
+        // consolidated csv 로드 실패 시 기본 하드코딩 사용
+      }
+    }
+    loadConsolidatedOverrides();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -966,7 +1172,7 @@ export default function FnFQ4Dashboard() {
     '2026': { quarters: availableQuarters2026, includeYear: availableQuarters2026.includes(4) },
   }), [availableQuarters2026]);
 
-  const incomeStatementData = normalizeYearDataset({
+  const incomeStatementDataBase = normalizeYearDataset({
     // 2024년 분기 (3개월)
     '2024_1Q': {
       매출액: 507029,
@@ -1388,6 +1594,10 @@ export default function FnFQ4Dashboard() {
       당기순이익: 402711,    // 연결 당기순이익
     },
   }, '2025', yearCloneRules);
+  const incomeStatementData = useMemo(
+    () => mergePeriodMetrics(incomeStatementDataBase, consolidatedCsvOverride.income),
+    [consolidatedCsvOverride.income]
+  );
 
   // ============================================
   // 손익계산서 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
@@ -1994,7 +2204,7 @@ export default function FnFQ4Dashboard() {
   // 재무상태표 데이터 - 전년기말 vs 당기말
   // ============================================
   // 재무상태표 데이터 (성격별 분류 - 유동/비유동 통합)
-  const balanceSheetData = normalizeYearDataset({
+  const balanceSheetDataBase = normalizeYearDataset({
     // 2024년 연결 BS (2024_BS.csv 기반, 단위: 백만원)
     '2024_1Q': {
       현금성자산: 334707,
@@ -2213,6 +2423,10 @@ export default function FnFQ4Dashboard() {
       자본총계: 1879575,
     },
   }, '2025', yearCloneRules);
+  const balanceSheetData = useMemo(
+    () => mergePeriodMetrics(balanceSheetDataBase, consolidatedCsvOverride.balance),
+    [consolidatedCsvOverride.balance]
+  );
 
   // ============================================
   // 금융상품평가 데이터
