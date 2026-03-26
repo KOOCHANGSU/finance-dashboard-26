@@ -7734,7 +7734,7 @@ export default function FnFQ4Dashboard() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
-                <p className="text-sm text-zinc-500">2025 4Q 연결 재무제표</p>
+                <p className="text-sm text-zinc-500">2026 1Q 연결 재무제표</p>
               </div>
             </div>
           </div>
