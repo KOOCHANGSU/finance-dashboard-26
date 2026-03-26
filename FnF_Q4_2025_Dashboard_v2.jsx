@@ -268,8 +268,20 @@ const buildConsolidatedISLookup = (rows, year) => {
       const row = rows[r];
       const account = accountMap[normalizeAccount(row[offset])];
       if (!account) continue;
-      addMetric(lookup, qKey, account, parseCsvNumber(row[qCol]));
-      addMetric(lookup, yKey, account, parseCsvNumber(row[yCol]));
+      const quarterValue = parseCsvNumber(row[qCol]);
+      let yearValue = parseCsvNumber(row[yCol]);
+
+      // 1Q 누적은 당분기와 동일해야 하므로, 특정 핵심 계정은 1원 차이도 없도록 동일 컬럼으로 고정한다.
+      if (
+        q === 1 &&
+        (account === '법인세비용차감전순이익' || account === '당기순이익') &&
+        quarterValue !== undefined
+      ) {
+        yearValue = quarterValue;
+      }
+
+      addMetric(lookup, qKey, account, quarterValue);
+      addMetric(lookup, yKey, account, yearValue);
     }
   });
 
@@ -8245,6 +8257,10 @@ export default function FnFQ4Dashboard() {
       베트남: ['베트남', 'F&F 베트남', 'F&F 베트남 '],
     };
     const entityCandidates = entityKeyAliases[selectedEntityKey] || [selectedEntityKey];
+    const getPrevYearSameQuarter = (period) =>
+      typeof period === 'string' && period.startsWith('2026_')
+        ? period.replace(/^2026_/, '2025_')
+        : null;
 
     const formatCell = (value, isRate = false) => {
       if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
@@ -8354,17 +8370,28 @@ export default function FnFQ4Dashboard() {
       기부금: ['기부금'],
       기타손익: ['기타손익'],
       지분법손익: ['지분법손익'],
+      지분법이익: ['지분법이익'],
+      지분법손실: ['지분법손실'],
+      영업외수익: ['영업외수익'],
+      영업외비용: ['영업외비용'],
       법인세비용: ['법인세비용'],
       당기순이익: ['당기순이익'],
     };
 
+    const normalizeEntityPeriod = (period) => {
+      if (typeof period !== 'string') return period;
+      if (/_1Q_Year$/.test(period)) return period.replace('_1Q_Year', '_1Q');
+      return period;
+    };
+
     const getISRaw = (account, period) => {
+      const resolvedPeriod = normalizeEntityPeriod(period);
       const keys = isAliasMap[account] || [account];
       for (const k of keys) {
         for (const ek of entityCandidates) {
           // CSV 최신값을 최우선으로 사용해 파일 업데이트를 즉시 반영
           const csvKey = normalizeAccount(k);
-          const fromCsv = entityCsvLookup?.is?.[period]?.[csvKey]?.[ek];
+          const fromCsv = entityCsvLookup?.is?.[resolvedPeriod]?.[csvKey]?.[ek];
           if (fromCsv !== undefined) return fromCsv;
         }
       }
@@ -8372,30 +8399,43 @@ export default function FnFQ4Dashboard() {
       // 파생 계정 보정 (매핑 누락 대응)
       if (account === '판매비와관리비') {
         const parts = ['인건비', '광고선전비', '수수료', '감가상각비', '기타판관비'];
-        const vals = parts.map((k) => getISRaw(k, period));
+        const vals = parts.map((k) => getISRaw(k, resolvedPeriod));
         if (vals.some((v) => v !== undefined)) return vals.reduce((s, v) => s + Number(v || 0), 0);
       }
       if (account === '영업외손익') {
+        const nonOpIncome = getISRaw('영업외수익', resolvedPeriod);
+        const nonOpExpense = getISRaw('영업외비용', resolvedPeriod);
+        if (nonOpIncome !== undefined || nonOpExpense !== undefined) {
+          return Number(nonOpIncome || 0) - Number(nonOpExpense || 0);
+        }
         const parts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
-        const vals = parts.map((k) => getISRaw(k, period));
+        const vals = parts.map((k) => getISRaw(k, resolvedPeriod));
         if (vals.some((v) => v !== undefined)) return vals.reduce((s, v) => s + Number(v || 0), 0);
       }
+      if (account === '지분법손익') {
+        const gain = getISRaw('지분법이익', resolvedPeriod);
+        const loss = getISRaw('지분법손실', resolvedPeriod);
+        if (gain !== undefined || loss !== undefined) return Number(gain || 0) - Number(loss || 0);
+      }
       if (account === '법인세비용차감전순이익') {
-        const op = getISRaw('영업이익', period);
-        const nonOp = getISRaw('영업외손익', period);
-        const equity = getISRaw('지분법손익', period);
+        const op = getISRaw('영업이익', resolvedPeriod);
+        const nonOp = getISRaw('영업외손익', resolvedPeriod);
+        const equity = getISRaw('지분법손익', resolvedPeriod);
         if (op !== undefined || nonOp !== undefined || equity !== undefined) {
           return Number(op || 0) + Number(nonOp || 0) + Number(equity || 0);
         }
       }
       if (account === '당기순이익') {
-        const ebt = getISRaw('법인세비용차감전순이익', period);
-        const tax = getISRaw('법인세비용', period);
+        const ebt = getISRaw('법인세비용차감전순이익', resolvedPeriod);
+        const tax = getISRaw('법인세비용', resolvedPeriod);
         if (ebt !== undefined || tax !== undefined) return Number(ebt || 0) - Number(tax || 0);
       }
+      const prevYearPeriod = getPrevYearSameQuarter(resolvedPeriod);
+      if (prevYearPeriod) return getISRaw(account, prevYearPeriod);
       return undefined;
     };
     const getBSRaw = (account, period) => {
+      const resolvedPeriod = normalizeEntityPeriod(period);
       const bsAliasMap = {
         현금성자산: ['현금및현금성자산', '현금성자산'],
         금융자산: ['기타유동금융자산', '유동금융자산', '당기손익공정가치측정금융자산', '유동당기손익공정가치측정금융자산'],
@@ -8421,50 +8461,66 @@ export default function FnFQ4Dashboard() {
       for (const c of candidates) {
         const csvKey = normalizeAccount(c);
         for (const ek of entityCandidates) {
-          const fromCsv = entityCsvLookup?.bs?.[period]?.[csvKey]?.[ek];
+          const fromCsv = entityCsvLookup?.bs?.[resolvedPeriod]?.[csvKey]?.[ek];
           if (fromCsv !== undefined) return fromCsv;
         }
       }
 
-      // BS 파생/별칭 보정 (CSV 매핑 누락 대응)
-      const sumFromCsv = (keys) =>
+      // CSV에 값이 없을 때만 기존 내장 데이터로 폴백
+      const p = entityBSData?.[resolvedPeriod];
+      if (p && p[account]) {
+        for (const ek of entityCandidates) {
+          if (p[account][ek] !== undefined) return p[account][ek];
+        }
+      }
+      const d = bsDetailData?.[account]?.[resolvedPeriod];
+      if (d) {
+        for (const ek of entityCandidates) {
+          if (d[ek] !== undefined) return d[ek];
+        }
+      }
+
+      // BS 파생/별칭 보정 (매핑 누락 대응)
+      const sumFromDetail = (keys) =>
         keys.reduce((sum, k) => {
-          const csvKey = normalizeAccount(k);
+          const dv = bsDetailData?.[k]?.[resolvedPeriod];
+          if (!dv) return sum;
           for (const ek of entityCandidates) {
-            const v = entityCsvLookup?.bs?.[period]?.[csvKey]?.[ek];
-            if (v !== undefined) return sum + Number(v || 0);
+            if (dv[ek] !== undefined) return sum + Number(dv[ek] || 0);
           }
           return sum;
         }, 0);
 
       if (account === '재고자산') {
-        const v = sumFromCsv(['상품', '상품평가손실충당금', '제품', '제품평가손실충당금', '재공품', '원재료', '미착품']);
+        const v = sumFromDetail(['상품', '상품(충당금)', '제품', '재공품', '원재료', '미착품']);
         if (v !== 0) return v;
       }
       if (account === '유무형자산') {
-        const v = sumFromCsv(['토지', '건물', '토지투자부동산', '건물투자부동산', '임차시설물', '공기구비품', '건설중인자산유형', '라이선스', '브랜드', '소프트웨어', '영업권']);
+        const v = sumFromDetail(['토지', '건물', '토지(투자부동산)', '건물(투자부동산)', '임차시설물', '공기구비품', '건설중인자산', '라이선스', '브랜드', '소프트웨어', '영업권']);
         if (v !== 0) return v;
       }
       if (account === '투자자산') {
-        const v = sumFromCsv(['관계기업및종속기업투자', '당기손익공정가치측정금융자산']);
+        const v = sumFromDetail(['관계기업투자']);
         if (v !== 0) return v;
       }
       if (account === '차입금') {
-        const v = sumFromCsv(['단기차입금', '장기차입금']);
+        const v = sumFromDetail(['단기차입금', '장기차입금']);
         if (v !== 0) return v;
       }
       if (account === '현금성자산') {
-        const v = sumFromCsv(['현금및현금성자산']);
+        const v = sumFromDetail(['현금및현금성자산']);
         if (v !== 0) return v;
       }
       if (account === '금융자산') {
-        const v = sumFromCsv(['기타유동금융자산', '유동당기손익공정가치측정금융자산', '통화선도']);
+        const v = sumFromDetail(['기타유동금융자산', '당기손익-공정가치금융자산']);
         if (v !== 0) return v;
       }
       if (account === '사용권자산') {
-        const v = sumFromCsv(['사용권자산']);
+        const v = sumFromDetail(['사용권자산']);
         if (v !== 0) return v;
       }
+      const prevYearPeriod = getPrevYearSameQuarter(resolvedPeriod);
+      if (prevYearPeriod) return getBSRaw(account, prevYearPeriod);
       return undefined;
     };
 
