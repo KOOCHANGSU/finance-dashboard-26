@@ -139,7 +139,7 @@ const normalizeYearDataset = (source, baseYear = '2025', targetRules = { '2024':
 
 export default function FnFQ4Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
-  const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
+  const [selectedEntityTab, setSelectedEntityTab] = useState('중국');
   const [selectedAccount, setSelectedAccount] = useState('매출액');  // 영업 섹션용
   const [selectedNonOpAccount, setSelectedNonOpAccount] = useState('영업외손익');  // 영업외 섹션용
   const [selectedBSAccount, setSelectedBSAccount] = useState('자산총계');
@@ -7812,72 +7812,140 @@ export default function FnFQ4Dashboard() {
     const q = Number((selectedPeriod?.split('_')?.[1] || 'Q1').replace('Q', '')) || 1;
     const period25 = `2025_${q}Q`;
     const period26 = `2026_${q}Q`;
+    const entityTabs = [
+      { label: '중국', key: '중국' },
+      { label: '홍콩', key: '홍콩' },
+      { label: 'ST', key: 'ST미국' },
+      { label: '엔터테인먼트', key: '엔터테인먼트' },
+      { label: '베트남', key: '베트남' },
+    ];
+    const selectedEntityKey = entityTabs.find((t) => t.label === selectedEntityTab)?.key || '중국';
 
-    const entityKey = selectedEntityTab === '기타(연결조정)' ? '기타' : selectedEntityTab;
-
-    const isAccounts = ['매출액', '매출원가', '매출총이익', '판매비와관리비', '영업이익', '당기순이익'];
-    const bsAccounts = ['현금성자산', '매출채권', '재고자산', '유무형자산', '자산총계', '매입채무', '부채총계', '자본총계'];
-
-    const getISValue = (account, period) => entityData?.[account]?.[period]?.[entityKey];
-    const getBSValue = (account, period) => entityBSData?.[period]?.[account]?.[entityKey];
-
-    const formatCell = (value) => {
+    const formatCell = (value, isRate = false) => {
       if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
+      if (isRate) return `${Number(value).toFixed(1)}%`;
       return new Intl.NumberFormat('ko-KR').format(Number(value));
     };
 
+    const calcRate = (numerator, denominator) => {
+      if (numerator === undefined || denominator === undefined || denominator === 0) return undefined;
+      return (Number(numerator) / Number(denominator)) * 100;
+    };
+
     const getDelta = (v25, v26) => {
-      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return '';
+      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return undefined;
       return Number(v26) - Number(v25);
     };
 
-    const getRate = (v25, v26) => {
-      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return '';
-      if (Number(v25) === 0) return '';
+    const getRateDelta = (v25, v26) => {
+      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return undefined;
+      if (Number(v25) === 0) return undefined;
       return ((Number(v26) - Number(v25)) / Math.abs(Number(v25))) * 100;
     };
 
     const getAnalysis = (delta, rate) => {
-      if (delta === '') return '';
-      if (delta > 0) return `전년 대비 증가 (${rate === '' ? '' : `${rate.toFixed(1)}%`})`;
-      if (delta < 0) return `전년 대비 감소 (${rate === '' ? '' : `${Math.abs(rate).toFixed(1)}%`})`;
+      if (delta === undefined) return '';
+      if (delta > 0) return `전년 대비 증가 (${rate === undefined ? '' : `${rate.toFixed(1)}%`})`;
+      if (delta < 0) return `전년 대비 감소 (${rate === undefined ? '' : `${Math.abs(rate).toFixed(1)}%`})`;
       return '전년 대비 동일';
     };
 
-    const renderRows = (accounts, getter) =>
-      accounts.map((account) => {
-        const v25 = getter(account, period25);
-        const v26 = getter(account, period26);
-        const delta = getDelta(v25, v26);
-        const rate = getRate(v25, v26);
-        return {
-          account,
-          v25,
-          v26,
-          delta,
-          rate,
-          analysis: getAnalysis(delta, rate),
-        };
-      });
+    // 기존 손익계산서 탭과 동일 과목 레벨
+    const operatingItems = [
+      { key: '매출액', label: 'I. 매출액', depth: 0 },
+      { key: '매출원가', label: 'II. 매출원가', depth: 0 },
+      { key: '매출총이익', label: 'III. 매출총이익', depth: 0 },
+      { key: '매출총이익률', label: '매출총이익률', depth: 0, isRateRow: true, rateOf: ['매출총이익', '매출액'] },
+      { key: '판매비와관리비', label: 'IV. 판매비와관리비', depth: 0 },
+      { key: '인건비', label: '(1)인건비', depth: 1 },
+      { key: '광고선전비', label: '(2)광고선전비', depth: 1 },
+      { key: '수수료', label: '(3)수수료', depth: 1 },
+      { key: '감가상각비', label: '(4)감가상각비', depth: 1 },
+      { key: '기타판관비', label: '(5)기타', depth: 1 },
+      { key: '영업이익', label: 'V. 영업이익', depth: 0 },
+      { key: '영업이익률', label: '영업이익률', depth: 0, isRateRow: true, rateOf: ['영업이익', '매출액'] },
+      { key: '영업외손익', label: 'VI. 영업외손익', depth: 0 },
+      { key: '외환손익', label: '(1)외환손익', depth: 1 },
+      { key: '선물환손익', label: '(2)선물환손익', depth: 1 },
+      { key: '금융상품손익', label: '(3)금융상품손익', depth: 1 },
+      { key: '이자손익', label: '(4)이자손익', depth: 1 },
+      { key: '배당수익', label: '(5)배당수익', depth: 1 },
+      { key: '기부금', label: '(6)기부금', depth: 1 },
+      { key: '기타손익', label: '(7)기타손익', depth: 1 },
+      { key: '지분법손익', label: 'VII. 지분법손익', depth: 0 },
+      { key: '법인세비용차감전순이익', label: 'VIII. 법인세비용차감전순이익', depth: 0 },
+      { key: '법인세비용', label: 'IX. 법인세비용', depth: 0 },
+      { key: '법인세율', label: '법인세율', depth: 0, isRateRow: true, rateOf: ['법인세비용', '법인세비용차감전순이익'] },
+      { key: '당기순이익', label: 'X. 당기순이익', depth: 0 },
+      { key: '당기순이익률', label: '당기순이익률', depth: 0, isRateRow: true, rateOf: ['당기순이익', '매출액'] },
+    ];
 
-    const isRows = renderRows(isAccounts, getISValue);
-    const bsRows = renderRows(bsAccounts, getBSValue);
+    // 기존 재무상태표 탭과 동일 과목 레벨
+    const balanceItems = [
+      { key: '현금성자산', label: '현금성자산', depth: 1 },
+      { key: '금융자산', label: '금융자산', depth: 1 },
+      { key: '매출채권', label: '매출채권', depth: 1 },
+      { key: '대여금', label: '대여금', depth: 1 },
+      { key: '재고자산', label: '재고자산', depth: 1 },
+      { key: '투자자산', label: '투자자산', depth: 1 },
+      { key: '유무형자산', label: '유·무형자산', depth: 1 },
+      { key: '사용권자산', label: '사용권자산', depth: 1 },
+      { key: '기타자산', label: '기타자산', depth: 1 },
+      { key: '자산총계', label: '자산총계', depth: 0 },
+      { key: '매입채무', label: '매입채무', depth: 1 },
+      { key: '미지급금', label: '미지급금', depth: 1 },
+      { key: '보증금', label: '보증금', depth: 1 },
+      { key: '차입금', label: '차입금', depth: 1 },
+      { key: '리스부채', label: '리스부채', depth: 1 },
+      { key: '금융부채', label: '금융부채', depth: 1 },
+      { key: '기타부채', label: '기타부채', depth: 1 },
+      { key: '부채총계', label: '부채총계', depth: 0 },
+      { key: '자본총계', label: '자본총계', depth: 0 },
+    ];
+
+    const getISRaw = (account, period) => entityDetailData?.[account]?.[period]?.[selectedEntityKey];
+    const getBSRaw = (account, period) => {
+      const p = entityBSData?.[period];
+      if (p && p[account] && p[account][selectedEntityKey] !== undefined) return p[account][selectedEntityKey];
+      const d = bsDetailData?.[account]?.[period];
+      if (d && d[selectedEntityKey] !== undefined) return d[selectedEntityKey];
+      return undefined;
+    };
+
+    const buildRows = (items, getter) => items.map((item) => {
+      let v25;
+      let v26;
+      if (item.isRateRow) {
+        const [num, den] = item.rateOf;
+        v25 = calcRate(getter(num, period25), getter(den, period25));
+        v26 = calcRate(getter(num, period26), getter(den, period26));
+      } else {
+        v25 = getter(item.key, period25);
+        v26 = getter(item.key, period26);
+      }
+      const delta = getDelta(v25, v26);
+      const rate = getRateDelta(v25, v26);
+      return { ...item, v25, v26, delta, rate, analysis: getAnalysis(delta, rate) };
+    });
+
+    const isRows = buildRows(operatingItems, getISRaw);
+    const bsRows = buildRows(balanceItems, getBSRaw);
 
     return (
       <div className="space-y-4">
         <div className="bg-white rounded-xl border border-zinc-200 p-3">
           <div className="flex flex-wrap items-center gap-2">
-            {ENTITY_ORDER.map((name) => (
+            {entityTabs.map((tab) => (
               <button
-                key={name}
-                onClick={() => setSelectedEntityTab(name)}
+                key={tab.label}
+                onClick={() => setSelectedEntityTab(tab.label)}
                 className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
-                  selectedEntityTab === name
+                  selectedEntityTab === tab.label
                     ? 'bg-zinc-900 text-white border-zinc-900'
                     : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
                 }`}
               >
-                {name}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -7903,11 +7971,11 @@ export default function FnFQ4Dashboard() {
               <tbody>
                 {isRows.map((r) => (
                   <tr key={`is-${r.account}`} className="border-t border-zinc-100">
-                    <td className="px-3 py-2 text-zinc-800">{r.account}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta === '' ? '' : formatCell(r.delta)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate === '' ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className={`px-3 py-2 text-zinc-800 ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25, !!r.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26, !!r.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta == null ? '' : formatCell(r.delta)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
                     <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
                   </tr>
                 ))}
@@ -7936,11 +8004,11 @@ export default function FnFQ4Dashboard() {
               <tbody>
                 {bsRows.map((r) => (
                   <tr key={`bs-${r.account}`} className="border-t border-zinc-100">
-                    <td className="px-3 py-2 text-zinc-800">{r.account}</td>
+                    <td className={`px-3 py-2 text-zinc-800 ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
                     <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25)}</td>
                     <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta === '' ? '' : formatCell(r.delta)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate === '' ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta == null ? '' : formatCell(r.delta)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
                     <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
                   </tr>
                 ))}
