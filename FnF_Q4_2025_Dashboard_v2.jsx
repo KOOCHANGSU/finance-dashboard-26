@@ -7813,13 +7813,23 @@ export default function FnFQ4Dashboard() {
     const period25 = `2025_${q}Q`;
     const period26 = `2026_${q}Q`;
     const entityTabs = [
+      { label: 'OC(국내)', key: 'OC(국내)' },
       { label: '중국', key: '중국' },
       { label: '홍콩', key: '홍콩' },
       { label: 'ST', key: 'ST미국' },
       { label: '엔터테인먼트', key: '엔터테인먼트' },
       { label: '베트남', key: '베트남' },
     ];
-    const selectedEntityKey = entityTabs.find((t) => t.label === selectedEntityTab)?.key || '중국';
+    const selectedEntityKey = entityTabs.find((t) => t.label === selectedEntityTab)?.key || 'OC(국내)';
+    const entityKeyAliases = {
+      'OC(국내)': ['OC(국내)', 'F&F', 'F&F '],
+      중국: ['중국', 'F&F Shanghai', 'F&F Shanghai '],
+      홍콩: ['홍콩', 'FnF HONGKONG', 'FnF HONGKONG '],
+      ST미국: ['ST미국', '세르지오'],
+      엔터테인먼트: ['엔터테인먼트', '엔터테인머트'],
+      베트남: ['베트남', 'F&F 베트남', 'F&F 베트남 '],
+    };
+    const entityCandidates = entityKeyAliases[selectedEntityKey] || [selectedEntityKey];
 
     const formatCell = (value, isRate = false) => {
       if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
@@ -7903,12 +7913,56 @@ export default function FnFQ4Dashboard() {
       { key: '자본총계', label: '자본총계', depth: 0 },
     ];
 
-    const getISRaw = (account, period) => entityDetailData?.[account]?.[period]?.[selectedEntityKey];
+    const isAliasMap = {
+      판매비와관리비: ['판매비와관리비', '판관비'],
+      법인세비용차감전순이익: ['법인세비용차감전순이익', '세전이익'],
+      수수료: ['수수료', '지급수수료'],
+      기타판관비: ['기타판관비'],
+      매출액: ['매출액'],
+      매출원가: ['매출원가'],
+      매출총이익: ['매출총이익'],
+      인건비: ['인건비'],
+      광고선전비: ['광고선전비'],
+      감가상각비: ['감가상각비'],
+      영업이익: ['영업이익'],
+      영업외손익: ['영업외손익'],
+      외환손익: ['외환손익'],
+      선물환손익: ['선물환손익'],
+      금융상품손익: ['금융상품손익'],
+      이자손익: ['이자손익'],
+      배당수익: ['배당수익'],
+      기부금: ['기부금'],
+      기타손익: ['기타손익'],
+      지분법손익: ['지분법손익'],
+      법인세비용: ['법인세비용'],
+      당기순이익: ['당기순이익'],
+    };
+
+    const getISRaw = (account, period) => {
+      const keys = isAliasMap[account] || [account];
+      for (const k of keys) {
+        for (const ek of entityCandidates) {
+          const fromDetail = entityDetailData?.[k]?.[period]?.[ek];
+          if (fromDetail !== undefined) return fromDetail;
+          const fromEntity = entityData?.[k]?.[period]?.[ek];
+          if (fromEntity !== undefined) return fromEntity;
+        }
+      }
+      return undefined;
+    };
     const getBSRaw = (account, period) => {
       const p = entityBSData?.[period];
-      if (p && p[account] && p[account][selectedEntityKey] !== undefined) return p[account][selectedEntityKey];
+      if (p && p[account]) {
+        for (const ek of entityCandidates) {
+          if (p[account][ek] !== undefined) return p[account][ek];
+        }
+      }
       const d = bsDetailData?.[account]?.[period];
-      if (d && d[selectedEntityKey] !== undefined) return d[selectedEntityKey];
+      if (d) {
+        for (const ek of entityCandidates) {
+          if (d[ek] !== undefined) return d[ek];
+        }
+      }
       return undefined;
     };
 
