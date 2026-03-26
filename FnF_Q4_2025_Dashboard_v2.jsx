@@ -214,7 +214,11 @@ const buildConsolidatedISLookup = (rows, year) => {
     판매비와관리비: '판매비와관리비',
     영업이익: '영업이익',
     영업외손익: '영업외손익',
+    영업외수익: '__영업외수익',
+    영업외비용: '__영업외비용',
     지분법손익: '지분법손익',
+    지분법이익: '__지분법이익',
+    지분법손실: '__지분법손실',
     법인세비용차감전순이익: '법인세비용차감전순이익',
     법인세비용: '법인세비용',
     당기순이익: '당기순이익',
@@ -224,12 +228,28 @@ const buildConsolidatedISLookup = (rows, year) => {
     지급수수료: '수수료',
     감가상각비: '감가상각비',
     외환손익: '외환손익',
+    외환차익: '__외환차익',
+    외환차손: '__외환차손',
+    외화환산이익: '__외화환산이익',
+    외화환산손실: '__외화환산손실',
     선물환손익: '선물환손익',
     금융상품손익: '금융상품손익',
+    파생상품평가이익: '__파생평가이익',
+    파생상품평가손실: '__파생평가손실',
+    파생상품거래이익: '__파생거래이익',
+    파생상품거래손실: '__파생거래손실',
+    당기손익인식금융자산처분이익: '__당손금융자산처분이익',
+    당기손익인식금융자산처분손실: '__당손금융자산처분손실',
+    당기손익공정가치측정금융자산평가이익: '__당손금융자산평가이익',
+    당기손익공정가치측정금융자산평가손실: '__당손금융자산평가손실',
     이자손익: '이자손익',
+    이자수익: '__이자수익',
+    이자비용: '__이자비용',
     배당수익: '배당수익',
     기부금: '기부금',
     기타손익: '기타손익',
+    잡이익: '__잡이익',
+    잡손실: '__잡손실',
   };
 
   quarterOffsets.forEach((offset) => {
@@ -263,6 +283,58 @@ const buildConsolidatedISLookup = (rows, year) => {
     const dep = lookup[period]?.감가상각비;
     if (sga !== undefined) {
       lookup[period].기타판관비 = Math.round(Number(sga || 0) - Number(labor || 0) - Number(ad || 0) - Number(fee || 0) - Number(dep || 0));
+    }
+
+    // CSV가 분리 계정으로 제공되는 항목은 파생 계산으로 맞춘다.
+    if (lookup[period].영업외손익 === undefined) {
+      const nonOpIncome = Number(lookup[period].__영업외수익 || 0);
+      const nonOpExpense = Number(lookup[period].__영업외비용 || 0);
+      if (nonOpIncome !== 0 || nonOpExpense !== 0) {
+        lookup[period].영업외손익 = Math.round(nonOpIncome - nonOpExpense);
+      }
+    }
+    if (lookup[period].지분법손익 === undefined) {
+      const equityGain = Number(lookup[period].__지분법이익 || 0);
+      const equityLoss = Number(lookup[period].__지분법손실 || 0);
+      if (equityGain !== 0 || equityLoss !== 0) {
+        lookup[period].지분법손익 = Math.round(equityGain - equityLoss);
+      }
+    }
+    if (lookup[period].외환손익 === undefined) {
+      const fxGain = Number(lookup[period].__외환차익 || 0) + Number(lookup[period].__외화환산이익 || 0);
+      const fxLoss = Number(lookup[period].__외환차손 || 0) + Number(lookup[period].__외화환산손실 || 0);
+      if (fxGain !== 0 || fxLoss !== 0) {
+        lookup[period].외환손익 = Math.round(fxGain - fxLoss);
+      }
+    }
+    if (lookup[period].금융상품손익 === undefined) {
+      const finGain =
+        Number(lookup[period].__파생평가이익 || 0) +
+        Number(lookup[period].__파생거래이익 || 0) +
+        Number(lookup[period].__당손금융자산처분이익 || 0) +
+        Number(lookup[period].__당손금융자산평가이익 || 0);
+      const finLoss =
+        Number(lookup[period].__파생평가손실 || 0) +
+        Number(lookup[period].__파생거래손실 || 0) +
+        Number(lookup[period].__당손금융자산처분손실 || 0) +
+        Number(lookup[period].__당손금융자산평가손실 || 0);
+      if (finGain !== 0 || finLoss !== 0) {
+        lookup[period].금융상품손익 = Math.round(finGain - finLoss);
+      }
+    }
+    if (lookup[period].이자손익 === undefined) {
+      const interestIncome = Number(lookup[period].__이자수익 || 0);
+      const interestExpense = Number(lookup[period].__이자비용 || 0);
+      if (interestIncome !== 0 || interestExpense !== 0) {
+        lookup[period].이자손익 = Math.round(interestIncome - interestExpense);
+      }
+    }
+    if (lookup[period].기타손익 === undefined) {
+      const miscGain = Number(lookup[period].__잡이익 || 0);
+      const miscLoss = Number(lookup[period].__잡손실 || 0);
+      if (miscGain !== 0 || miscLoss !== 0) {
+        lookup[period].기타손익 = Math.round(miscGain - miscLoss);
+      }
     }
   });
 
