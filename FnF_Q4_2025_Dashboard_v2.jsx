@@ -139,6 +139,7 @@ const normalizeYearDataset = (source, baseYear = '2025', targetRules = { '2024':
 
 export default function FnFQ4Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
+  const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
   const [selectedAccount, setSelectedAccount] = useState('매출액');  // 영업 섹션용
   const [selectedNonOpAccount, setSelectedNonOpAccount] = useState('영업외손익');  // 영업외 섹션용
   const [selectedBSAccount, setSelectedBSAccount] = useState('자산총계');
@@ -2134,6 +2135,7 @@ export default function FnFQ4Dashboard() {
     { id: 'summary', label: '전체요약', icon: '📊' },
     { id: 'income', label: '손익계산서', icon: '📈' },
     { id: 'balance', label: '재무상태표', icon: '💰' },
+    { id: 'entity', label: '법인별', icon: '🏢' },
   ];
 
   // ============================================
@@ -7804,6 +7806,153 @@ export default function FnFQ4Dashboard() {
   };
 
   // ============================================
+  // 법인별 손익/재무상태표 탭
+  // ============================================
+  const renderEntityStatementsTab = () => {
+    const q = Number((selectedPeriod?.split('_')?.[1] || 'Q1').replace('Q', '')) || 1;
+    const period25 = `2025_${q}Q`;
+    const period26 = `2026_${q}Q`;
+
+    const entityKey = selectedEntityTab === '기타(연결조정)' ? '기타' : selectedEntityTab;
+
+    const isAccounts = ['매출액', '매출원가', '매출총이익', '판매비와관리비', '영업이익', '당기순이익'];
+    const bsAccounts = ['현금성자산', '매출채권', '재고자산', '유무형자산', '자산총계', '매입채무', '부채총계', '자본총계'];
+
+    const getISValue = (account, period) => entityData?.[account]?.[period]?.[entityKey];
+    const getBSValue = (account, period) => entityBSData?.[period]?.[account]?.[entityKey];
+
+    const formatCell = (value) => {
+      if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
+      return new Intl.NumberFormat('ko-KR').format(Number(value));
+    };
+
+    const getDelta = (v25, v26) => {
+      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return '';
+      return Number(v26) - Number(v25);
+    };
+
+    const getRate = (v25, v26) => {
+      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return '';
+      if (Number(v25) === 0) return '';
+      return ((Number(v26) - Number(v25)) / Math.abs(Number(v25))) * 100;
+    };
+
+    const getAnalysis = (delta, rate) => {
+      if (delta === '') return '';
+      if (delta > 0) return `전년 대비 증가 (${rate === '' ? '' : `${rate.toFixed(1)}%`})`;
+      if (delta < 0) return `전년 대비 감소 (${rate === '' ? '' : `${Math.abs(rate).toFixed(1)}%`})`;
+      return '전년 대비 동일';
+    };
+
+    const renderRows = (accounts, getter) =>
+      accounts.map((account) => {
+        const v25 = getter(account, period25);
+        const v26 = getter(account, period26);
+        const delta = getDelta(v25, v26);
+        const rate = getRate(v25, v26);
+        return {
+          account,
+          v25,
+          v26,
+          delta,
+          rate,
+          analysis: getAnalysis(delta, rate),
+        };
+      });
+
+    const isRows = renderRows(isAccounts, getISValue);
+    const bsRows = renderRows(bsAccounts, getBSValue);
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-white rounded-xl border border-zinc-200 p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {ENTITY_ORDER.map((name) => (
+              <button
+                key={name}
+                onClick={() => setSelectedEntityTab(name)}
+                className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                  selectedEntityTab === name
+                    ? 'bg-zinc-900 text-white border-zinc-900'
+                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-zinc-200">
+            <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 손익계산서</h3>
+            <p className="text-xs text-zinc-500">{q}Q 기준 (단위: 백만원)</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-zinc-50">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium text-zinc-600">과목</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">25년</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">26년</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
+                  <th className="px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isRows.map((r) => (
+                  <tr key={`is-${r.account}`} className="border-t border-zinc-100">
+                    <td className="px-3 py-2 text-zinc-800">{r.account}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta === '' ? '' : formatCell(r.delta)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate === '' ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-zinc-200">
+            <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 재무상태표</h3>
+            <p className="text-xs text-zinc-500">{q}Q 기준 (단위: 백만원)</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-zinc-50">
+                <tr>
+                  <th className="px-3 py-2 text-left font-medium text-zinc-600">과목</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">25년</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">26년</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
+                  <th className="px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
+                  <th className="px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bsRows.map((r) => (
+                  <tr key={`bs-${r.account}`} className="border-t border-zinc-100">
+                    <td className="px-3 py-2 text-zinc-800">{r.account}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v25)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{formatCell(r.v26)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.delta === '' ? '' : formatCell(r.delta)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700">{r.rate === '' ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ============================================
   // 메인 렌더링
   // ============================================
   return (
@@ -7864,6 +8013,7 @@ export default function FnFQ4Dashboard() {
           {activeTab === 'summary' && renderSummaryTab()}
           {activeTab === 'income' && renderIncomeTab()}
           {activeTab === 'balance' && renderBalanceSheetTab()}
+          {activeTab === 'entity' && renderEntityStatementsTab()}
         </div>
 
         {/* 푸터 */}
