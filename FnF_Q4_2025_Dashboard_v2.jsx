@@ -524,6 +524,8 @@ const normalizeYearDataset = (source, baseYear = '2025', targetRules = { '2024':
 export default function FnFQ4Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
   const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
+  const [entityStmtOpExpanded, setEntityStmtOpExpanded] = useState(true);
+  const [entityStmtNonOpExpanded, setEntityStmtNonOpExpanded] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState('매출액');  // 영업 섹션용
   const [selectedNonOpAccount, setSelectedNonOpAccount] = useState('영업외손익');  // 영업외 섹션용
   const [selectedBSAccount, setSelectedBSAccount] = useState('자산총계');
@@ -8589,91 +8591,60 @@ export default function FnFQ4Dashboard() {
         ? period.replace(/^2026_/, '2025_')
         : null;
 
-    const formatCell = (value, isRate = false) => {
-      if (value === undefined || value === null || Number.isNaN(Number(value))) return '';
-      if (isRate) return `${Number(value).toFixed(1)}%`;
-      return new Intl.NumberFormat('ko-KR').format(Math.round(Number(value)));
-    };
-
-    const calcRate = (numerator, denominator) => {
-      if (numerator === undefined || denominator === undefined || denominator === 0) return undefined;
-      return (Number(numerator) / Number(denominator)) * 100;
-    };
-
-    const getDelta = (v25, v26) => {
-      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return undefined;
-      return Number(v26) - Number(v25);
-    };
-
-    const getRateDelta = (v25, v26) => {
-      if (v25 === undefined || v25 === null || v26 === undefined || v26 === null) return undefined;
-      if (Number(v25) === 0) return undefined;
-      return ((Number(v26) - Number(v25)) / Math.abs(Number(v25))) * 100;
-    };
-
-    const getAnalysis = (delta, rate, isRateRow = false) => {
-      if (delta === undefined) return '';
-      if (isRateRow) {
-        if (delta > 0) return `전년 대비 증가 (${delta.toFixed(1)}%p)`;
-        if (delta < 0) return `전년 대비 감소 (${Math.abs(delta).toFixed(1)}%p)`;
-        return '전년 대비 동일';
-      }
-      if (delta > 0) return `전년 대비 증가 (${rate === undefined ? '' : `${rate.toFixed(1)}%`})`;
-      if (delta < 0) return `전년 대비 감소 (${rate === undefined ? '' : `${Math.abs(rate).toFixed(1)}%`})`;
-      return '전년 대비 동일';
-    };
-
-    // 기존 손익계산서 탭과 동일 과목 레벨
-    const operatingItems = [
-      { key: '매출액', label: 'I. 매출액', depth: 0 },
-      { key: '매출원가', label: 'II. 매출원가', depth: 0 },
-      { key: '매출총이익', label: 'III. 매출총이익', depth: 0 },
-      { key: '매출총이익률', label: '매출총이익률', depth: 0, isRateRow: true, rateOf: ['매출총이익', '매출액'] },
-      { key: '판매비와관리비', label: 'IV. 판매비와관리비', depth: 0 },
-      { key: '인건비', label: '(1)인건비', depth: 1 },
-      { key: '광고선전비', label: '(2)광고선전비', depth: 1 },
-      { key: '수수료', label: '(3)수수료', depth: 1 },
-      { key: '감가상각비', label: '(4)감가상각비', depth: 1 },
-      { key: '기타판관비', label: '(5)기타', depth: 1 },
-      { key: '영업이익', label: 'V. 영업이익', depth: 0 },
-      { key: '영업이익률', label: '영업이익률', depth: 0, isRateRow: true, rateOf: ['영업이익', '매출액'] },
-      { key: '영업외손익', label: 'VI. 영업외손익', depth: 0 },
-      { key: '외환손익', label: '(1)외환손익', depth: 1 },
-      { key: '선물환손익', label: '(2)선물환손익', depth: 1 },
-      { key: '금융상품손익', label: '(3)금융상품손익', depth: 1 },
-      { key: '이자손익', label: '(4)이자손익', depth: 1 },
-      { key: '배당수익', label: '(5)배당수익', depth: 1 },
-      { key: '기부금', label: '(6)기부금', depth: 1 },
-      { key: '기타손익', label: '(7)기타손익', depth: 1 },
-      { key: '지분법손익', label: 'VII. 지분법손익', depth: 0 },
-      { key: '법인세비용차감전순이익', label: 'VIII. 법인세비용차감전순이익', depth: 0 },
-      { key: '법인세비용', label: 'IX. 법인세비용', depth: 0 },
-      { key: '법인세율', label: '법인세율', depth: 0, isRateRow: true, rateOf: ['법인세비용', '법인세비용차감전순이익'] },
-      { key: '당기순이익', label: 'X. 당기순이익', depth: 0 },
-      { key: '당기순이익률', label: '당기순이익률', depth: 0, isRateRow: true, rateOf: ['당기순이익', '매출액'] },
+    // 손익계산서 탭과 동일 과목·강조 (법인별 금액은 getISRaw)
+    const entityOperatingItems = [
+      { key: '매출액', label: 'I. 매출액', depth: 0, bold: true, selectable: true },
+      { key: '매출원가', label: 'II. 매출원가', depth: 0, bold: true, selectable: true },
+      { key: '매출총이익', label: 'III. 매출총이익', depth: 0, bold: true, selectable: true },
+      { key: '매출총이익률', label: '매출총이익률', depth: 0, isRate: true, rateOf: ['매출총이익', '매출액'], highlight: 'blue' },
+      { key: '판매비와관리비', label: 'IV. 판매비와관리비', depth: 0, bold: true },
+      { key: '인건비', label: '(1)인건비', depth: 1, selectable: true },
+      { key: '광고선전비', label: '(2)광고선전비', depth: 1, selectable: true },
+      { key: '수수료', label: '(3)수수료', depth: 1, selectable: true },
+      { key: '감가상각비', label: '(4)감가상각비', depth: 1, selectable: true },
+      { key: '기타판관비', label: '(5)기타', depth: 1, selectable: true },
+      { key: '영업이익', label: 'V. 영업이익', depth: 0, bold: true, highlight: 'green', selectable: true },
+      { key: '영업이익률', label: '영업이익률', depth: 0, isRate: true, rateOf: ['영업이익', '매출액'], highlight: 'blue' },
     ];
 
-    // 기존 재무상태표 탭과 동일 과목 레벨
-    const balanceItems = [
-      { key: '현금성자산', label: '현금성자산', depth: 1 },
-      { key: '금융자산', label: '금융자산', depth: 1 },
-      { key: '매출채권', label: '매출채권', depth: 1 },
+    const entityNonOperatingItems = [
+      { key: '영업외손익', label: 'VI. 영업외손익', depth: 0, bold: true, selectable: true },
+      { key: '외환손익', label: '(1)외환손익', depth: 1, selectable: true },
+      { key: '선물환손익', label: '(2)선물환손익', depth: 1, selectable: true },
+      { key: '금융상품손익', label: '(3)금융상품손익', depth: 1, selectable: true },
+      { key: '이자손익', label: '(4)이자손익', depth: 1, selectable: true },
+      { key: '배당수익', label: '(5)배당수익', depth: 1, selectable: true },
+      { key: '기부금', label: '(6)기부금', depth: 1, selectable: true },
+      { key: '기타손익', label: '(7)기타손익', depth: 1, selectable: true },
+      { key: '지분법손익', label: 'VII. 지분법손익', depth: 0, bold: true, selectable: true },
+      { key: '법인세비용차감전순이익', label: 'VIII. 법인세비용차감전순이익', depth: 0, bold: true, selectable: true },
+      { key: '법인세비용', label: 'IX. 법인세비용', depth: 0, bold: true, selectable: true },
+      { key: '법인세율', label: '법인세율', depth: 0, isRate: true, rateOf: ['법인세비용', '법인세비용차감전순이익'], highlight: 'blue' },
+      { key: '당기순이익', label: 'X. 당기순이익', depth: 0, bold: true, highlight: 'green', selectable: true },
+      { key: '당기순이익률', label: '당기순이익률', depth: 0, isRate: true, rateOf: ['당기순이익', '매출액'], highlight: 'blue' },
+    ];
+
+    // 재무상태표 탭과 동일 과목·강조
+    const entityBalanceItems = [
+      { key: '현금성자산', label: '현금성자산', depth: 1, selectable: true },
+      { key: '금융자산', label: '금융자산', depth: 1, selectable: true },
+      { key: '매출채권', label: '매출채권', depth: 1, selectable: true },
       { key: '대여금', label: '대여금', depth: 1 },
-      { key: '재고자산', label: '재고자산', depth: 1 },
-      { key: '투자자산', label: '투자자산', depth: 1 },
-      { key: '유무형자산', label: '유·무형자산', depth: 1 },
-      { key: '사용권자산', label: '사용권자산', depth: 1 },
-      { key: '기타자산', label: '기타자산', depth: 1 },
-      { key: '자산총계', label: '자산총계', depth: 0 },
-      { key: '매입채무', label: '매입채무', depth: 1 },
-      { key: '미지급금', label: '미지급금', depth: 1 },
-      { key: '보증금', label: '보증금', depth: 1 },
-      { key: '차입금', label: '차입금', depth: 1 },
-      { key: '리스부채', label: '리스부채', depth: 1 },
+      { key: '재고자산', label: '재고자산', depth: 1, selectable: true },
+      { key: '투자자산', label: '투자자산', depth: 1, selectable: true },
+      { key: '유무형자산', label: '유·무형자산', depth: 1, selectable: true },
+      { key: '사용권자산', label: '사용권자산', depth: 1, selectable: true },
+      { key: '기타자산', label: '기타자산', depth: 1, selectable: true },
+      { key: '자산총계', label: '자산총계', bold: true, highlight: 'blue', selectable: true },
+      { key: '매입채무', label: '매입채무', depth: 1, selectable: true },
+      { key: '미지급금', label: '미지급금', depth: 1, selectable: true },
+      { key: '보증금', label: '보증금', depth: 1, selectable: true },
+      { key: '차입금', label: '차입금', depth: 1, selectable: true },
+      { key: '리스부채', label: '리스부채', depth: 1, selectable: true },
       { key: '금융부채', label: '금융부채', depth: 1 },
-      { key: '기타부채', label: '기타부채', depth: 1 },
-      { key: '부채총계', label: '부채총계', depth: 0 },
-      { key: '자본총계', label: '자본총계', depth: 0 },
+      { key: '기타부채', label: '기타부채', depth: 1, selectable: true },
+      { key: '부채총계', label: '부채총계', bold: true, highlight: 'red', selectable: true },
+      { key: '자본총계', label: '자본총계', bold: true, highlight: 'green', selectable: true },
     ];
 
     const isAliasMap = {
@@ -8851,45 +8822,95 @@ export default function FnFQ4Dashboard() {
       return undefined;
     };
 
-    const buildRows = (items, getter) => items.map((item) => {
-      let v25;
-      let v26;
-      if (item.isRateRow) {
-        const [num, den] = item.rateOf;
-        v25 = calcRate(getter(num, period25), getter(den, period25));
-        v26 = calcRate(getter(num, period26), getter(den, period26));
-      } else {
-        v25 = getter(item.key, period25);
-        v26 = getter(item.key, period26);
-      }
-      const delta = getDelta(v25, v26);
-      const rate = item.isRateRow ? undefined : getRateDelta(v25, v26);
-      return { ...item, v25, v26, delta, rate, analysis: getAnalysis(delta, rate, !!item.isRateRow) };
-    });
+    const valIS = (key, period) => Number(getISRaw(key, period) ?? 0);
+    const valBS = (key, period) => Number(getBSRaw(key, period) ?? 0);
 
-    const isRows = buildRows(operatingItems, getISRaw);
-    const bsRows = buildRows(balanceItems, getBSRaw);
-    const buildSubtotalRow = (rows, baseKey, label = '소계') => {
-      const base = rows.find((r) => r.key === baseKey);
-      if (!base) return null;
-      return {
-        ...base,
-        key: `${base.key}_subtotal`,
-        label,
-        depth: 0,
-        analysis: base.analysis,
-      };
+    const calcRateDisplay = (numerator, denominator) => {
+      if (!denominator || denominator === 0) return '-';
+      return ((Number(numerator) / Number(denominator)) * 100).toFixed(1) + '%';
     };
-    const isSubtotal = buildSubtotalRow(isRows, '당기순이익', '소계');
-    const bsSubtotal = buildSubtotalRow(bsRows, '자본총계', '소계');
+
+    const calcRateDiffDisplay = (current, prev) => {
+      if (current === '-' || prev === '-') return '-';
+      const currNum = parseFloat(current);
+      const prevNum = parseFloat(prev);
+      if (Number.isNaN(currNum) || Number.isNaN(prevNum)) return '-';
+      const diff = currNum - prevNum;
+      return (diff >= 0 ? '+' : '') + diff.toFixed(1) + '%p';
+    };
+
+    const renderEntityIncomeRow = (item, idx) => {
+      if (item.isRate) {
+        const [num, denom] = item.rateOf;
+        const ratePrev = calcRateDisplay(valIS(num, period25), valIS(denom, period25));
+        const rateCurr = calcRateDisplay(valIS(num, period26), valIS(denom, period26));
+        const rateDiff = calcRateDiffDisplay(rateCurr, ratePrev);
+        return (
+          <tr key={`eis-r-${idx}`} className="border-b border-zinc-100 bg-zinc-50/50">
+            <td className="px-3 py-2 text-blue-600 italic border-r border-zinc-200">{item.label}</td>
+            <td className="text-center px-3 py-2 text-blue-600 border-r border-zinc-200">{ratePrev}</td>
+            <td className="text-center px-3 py-2 font-medium text-blue-600 border-r border-zinc-200 bg-zinc-50">{rateCurr}</td>
+            <td
+              colSpan={2}
+              className={`text-center px-3 py-2 font-medium ${
+                rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') && rateDiff !== '-' ? 'text-rose-600' : 'text-blue-600'
+              }`}
+            >
+              {rateDiff}
+            </td>
+          </tr>
+        );
+      }
+
+      const v25 = valIS(item.key, period25);
+      const v26 = valIS(item.key, period26);
+      const diff = v26 - v25;
+      const changeRate = calculateYoY(v26, v25);
+      const highlightClass = item.highlight === 'green' ? 'bg-emerald-50/50' : '';
+
+      return (
+        <tr key={`eis-${item.key}-${idx}`} className={`border-b border-zinc-100 ${highlightClass}`}>
+          <td
+            className={`px-3 py-2 border-r border-zinc-200 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-600'} ${item.depth === 1 ? 'pl-6' : ''}`}
+          >
+            {item.label}
+          </td>
+          <td className="text-right px-3 py-2 text-zinc-500 border-r border-zinc-200 tabular-nums">{formatNumber(v25)}</td>
+          <td
+            className={`text-right px-3 py-2 border-r border-zinc-200 tabular-nums bg-zinc-50/50 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-700'}`}
+          >
+            {formatNumber(v26)}
+          </td>
+          <td className={`text-right px-3 py-2 font-medium border-r border-zinc-200 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {diff !== 0 ? formatNumber(diff) : '-'}
+          </td>
+          <td className={`text-right px-3 py-2 font-medium tabular-nums ${parseFloat(changeRate) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {changeRate !== '-' ? `${changeRate}%` : '-'}
+          </td>
+        </tr>
+      );
+    };
+
+    const entityIsThead = (
+      <thead>
+        <tr className="bg-zinc-50 border-b border-zinc-200">
+          <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
+        </tr>
+      </thead>
+    );
 
     return (
-      <div className="space-y-4">
-        <div className="bg-white rounded-xl border border-zinc-200 p-3">
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3">
           <div className="flex flex-wrap items-center gap-2">
             {entityTabs.map((tab) => (
               <button
                 key={tab.label}
+                type="button"
                 onClick={() => setSelectedEntityTab(tab.label)}
                 className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                   selectedEntityTab === tab.label
@@ -8903,87 +8924,127 @@ export default function FnFQ4Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-200">
-            <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 손익계산서</h3>
-            <p className="text-xs text-zinc-500">{q}Q 기준 (단위: 백만원)</p>
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              type="button"
+              onClick={() => setEntityStmtOpExpanded(!entityStmtOpExpanded)}
+              className="flex items-center justify-center w-6 h-6 rounded hover:bg-zinc-200 transition-colors"
+              title={entityStmtOpExpanded ? '섹션 접기' : '섹션 펼치기'}
+            >
+              <span className={`text-zinc-500 text-sm transition-transform duration-200 ${entityStmtOpExpanded ? 'rotate-90' : ''}`}>▶</span>
+            </button>
+            <h2
+              className="text-sm font-semibold text-zinc-700 cursor-pointer"
+              onClick={() => setEntityStmtOpExpanded(!entityStmtOpExpanded)}
+            >
+              영업 실적
+            </h2>
+            <div className="h-px flex-1 bg-zinc-200" />
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm table-fixed">
-              <thead className="bg-zinc-50">
-                <tr>
-                  <th className="w-[26%] px-3 py-2 text-left font-medium text-zinc-600">과목</th>
-                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">25년</th>
-                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">26년</th>
-                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
-                  <th className="w-[10%] px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
-                  <th className="w-[28%] px-3 py-2 text-center font-medium text-zinc-600 align-middle">비고</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isRows.map((r) => (
-                  <tr key={`is-${r.key}`} className="border-t border-zinc-100">
-                    <td className={`px-3 py-2 text-zinc-800 whitespace-nowrap ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v25, !!r.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v26, !!r.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.delta == null ? '' : (r.isRateRow ? `${r.delta.toFixed(1)}%p` : formatCell(r.delta))}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.rate == null ? (r.isRateRow ? '-' : '') : `${r.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-600 text-center align-middle leading-snug">{r.analysis}</td>
-                  </tr>
-                ))}
-                {isSubtotal && (
-                  <tr className="border-t-2 border-zinc-300 bg-zinc-50">
-                    <td className="px-3 py-2 font-semibold text-zinc-900">{isSubtotal.label}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(isSubtotal.v25, !!isSubtotal.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(isSubtotal.v26, !!isSubtotal.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums align-middle">{isSubtotal.delta == null ? '' : formatCell(isSubtotal.delta)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums align-middle">{isSubtotal.rate == null ? '' : `${isSubtotal.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-700 text-center align-middle leading-snug">{isSubtotal.analysis}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {entityStmtOpExpanded && (
+            <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+                <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 손익계산서 (영업)</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  {entityIsThead}
+                  <tbody>{entityOperatingItems.map((item, idx) => renderEntityIncomeRow(item, idx))}</tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-200">
+        <div className="flex items-center gap-3 py-2">
+          <div className="h-px flex-1 bg-zinc-300" />
+        </div>
+
+        <div>
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              type="button"
+              onClick={() => setEntityStmtNonOpExpanded(!entityStmtNonOpExpanded)}
+              className="flex items-center justify-center w-6 h-6 rounded hover:bg-zinc-200 transition-colors"
+              title={entityStmtNonOpExpanded ? '섹션 접기' : '섹션 펼치기'}
+            >
+              <span className={`text-zinc-500 text-sm transition-transform duration-200 ${entityStmtNonOpExpanded ? 'rotate-90' : ''}`}>▶</span>
+            </button>
+            <h2
+              className="text-sm font-semibold text-zinc-700 cursor-pointer"
+              onClick={() => setEntityStmtNonOpExpanded(!entityStmtNonOpExpanded)}
+            >
+              영업 외 실적
+            </h2>
+            <div className="h-px flex-1 bg-zinc-200" />
+          </div>
+          {entityStmtNonOpExpanded && (
+            <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+                <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 손익계산서 (영업외)</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  {entityIsThead}
+                  <tbody>{entityNonOperatingItems.map((item, idx) => renderEntityIncomeRow(item, idx))}</tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
             <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 재무상태표</h3>
-            <p className="text-xs text-zinc-500">{q}Q 기준 (단위: 백만원)</p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm table-fixed">
-              <thead className="bg-zinc-50">
-                <tr>
-                  <th className="w-[26%] px-3 py-2 text-left font-medium text-zinc-600">과목</th>
-                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">25년</th>
-                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">26년</th>
-                  <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
-                  <th className="w-[10%] px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
-                  <th className="w-[28%] px-3 py-2 text-center font-medium text-zinc-600 align-middle">비고</th>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-zinc-50 border-b border-zinc-200">
+                  <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
                 </tr>
               </thead>
               <tbody>
-                {bsRows.map((r) => (
-                  <tr key={`bs-${r.key}`} className="border-t border-zinc-100">
-                    <td className={`px-3 py-2 text-zinc-800 whitespace-nowrap ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v25)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v26)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.delta == null ? '' : formatCell(r.delta)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-600 text-center align-middle leading-snug">{r.analysis}</td>
-                  </tr>
-                ))}
-                {bsSubtotal && (
-                  <tr className="border-t-2 border-zinc-300 bg-zinc-50">
-                    <td className="px-3 py-2 font-semibold text-zinc-900">{bsSubtotal.label}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(bsSubtotal.v25)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(bsSubtotal.v26)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{bsSubtotal.delta == null ? '' : formatCell(bsSubtotal.delta)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{bsSubtotal.rate == null ? '' : `${bsSubtotal.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-700 text-center align-middle leading-snug">{bsSubtotal.analysis}</td>
-                  </tr>
-                )}
+                {entityBalanceItems.map((item, idx) => {
+                  const val25 = valBS(item.key, period25);
+                  const val26 = valBS(item.key, period26);
+                  const isTotalItem = item.key.includes('총계');
+                  if (!isTotalItem && val25 === 0 && val26 === 0) return null;
+                  const diff = val26 - val25;
+                  const change = calculateYoY(val26, val25);
+                  const highlightClass =
+                    item.highlight === 'blue'
+                      ? 'bg-blue-50/50'
+                      : item.highlight === 'green'
+                        ? 'bg-emerald-50/50'
+                        : item.highlight === 'red'
+                          ? 'bg-rose-50/50'
+                          : '';
+                  return (
+                    <tr key={`ebs-${item.key}-${idx}`} className={`border-b border-zinc-100 ${highlightClass}`}>
+                      <td
+                        className={`px-3 py-2 border-r border-zinc-200 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-600'} ${item.depth === 1 ? 'pl-6' : ''}`}
+                      >
+                        {item.label}
+                      </td>
+                      <td className="text-right px-3 py-2 text-zinc-500 border-r border-zinc-200 tabular-nums">{formatNumber(val25)}</td>
+                      <td className={`text-right px-3 py-2 border-r border-zinc-200 tabular-nums ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-700'}`}>
+                        {formatNumber(val26)}
+                      </td>
+                      <td className={`text-right px-3 py-2 font-medium border-r border-zinc-200 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {diff !== 0 ? formatNumber(diff) : '-'}
+                      </td>
+                      <td className={`text-right px-3 py-2 font-medium tabular-nums ${parseFloat(change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {change !== '-' ? `${change}%` : '-'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
