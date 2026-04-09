@@ -569,6 +569,7 @@ export default function FnFQ1_2026Dashboard() {
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
   const [consolidatedCsvOverride, setConsolidatedCsvOverride] = useState({ income: {}, balance: {} });
+  const [plTrendData, setPlTrendData] = useState({ quarterly: [], yearly: [] });
 
   useEffect(() => {
     let cancelled = false;
@@ -639,6 +640,54 @@ export default function FnFQ1_2026Dashboard() {
       }
     }
     detect2026Quarters();
+    return () => { cancelled = true; };
+  }, []);
+
+  // 매출·영업이익 추이 CSV 로드
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPlTrend() {
+      try {
+        const text = await fetchCsvTextWithFallback('/매출,영업이익 추이.csv');
+        const rows = parseCsvText(text);
+        if (!rows || rows.length < 3) return;
+        // rows[0] = 빈 헤더, rows[1] = [구분, 매출액, 영업이익, 영업이익률], rows[2+] = data
+        const quarterly = [];
+        for (let i = 2; i < rows.length; i++) {
+          const label = String(rows[i][0] ?? '').trim();
+          if (!label) continue;
+          const revenue = Number(String(rows[i][1] ?? '0').replace(/[,\s]/g, '')) || 0;
+          const opIncome = Number(String(rows[i][2] ?? '0').replace(/[,\s]/g, '')) || 0;
+          const opMarginStr = String(rows[i][3] ?? '').replace('%', '').trim();
+          const opMargin = Number(opMarginStr) || 0;
+          quarterly.push({ name: label, 매출액: revenue, 영업이익: opIncome, 영업이익률: opMargin });
+        }
+        // 연도별 합산
+        const yearMap = {};
+        quarterly.forEach((d) => {
+          const m = d.name.match(/^(\d{2})\.[1-4]Q$/);
+          if (!m) return;
+          const year = '20' + m[1];
+          if (!yearMap[year]) yearMap[year] = { 매출액: 0, 영업이익: 0, count: 0 };
+          yearMap[year].매출액 += d.매출액;
+          yearMap[year].영업이익 += d.영업이익;
+          yearMap[year].count += 1;
+        });
+        const yearly = Object.entries(yearMap)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([year, v]) => ({
+            name: year + '년',
+            매출액: v.매출액,
+            영업이익: v.영업이익,
+            영업이익률: v.매출액 > 0 ? Math.round(v.영업이익 / v.매출액 * 100) : 0,
+            quarters: v.count,
+          }));
+        if (!cancelled) setPlTrendData({ quarterly, yearly });
+      } catch {
+        // CSV 로드 실패 시 기존 방식 유지
+      }
+    }
+    loadPlTrend();
     return () => { cancelled = true; };
   }, []);
 
@@ -4454,38 +4503,51 @@ export default function FnFQ1_2026Dashboard() {
                 <h4 className="text-xs font-semibold text-indigo-900">PL(성과분석)</h4>
               </div>
               <div className="p-4 space-y-4">
+                {/* ① 분기별 실적추이 (22.1Q~26.1Q 전체) */}
                 <div>
                   <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ① 실적추이 — 매출 vs 영업이익 (분기별, {summaryYear}년)
+                    ① 실적추이 — 매출 vs 영업이익 (분기별, 단위: 억원)
                   </p>
-                  <div className="h-56 w-full">
-                    {plQuarterTrend.length > 0 ? (
+                  <div className="h-64 w-full">
+                    {plTrendData.quarterly.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={plQuarterTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                        <ComposedChart data={plTrendData.quarterly} margin={{ top: 8, right: 40, left: 0, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                          <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
+                          <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" interval={0} angle={-35} textAnchor="end" height={40} />
                           <YAxis
                             yAxisId="left"
                             tick={{ fontSize: 10 }}
                             stroke="#71717a"
-                            tickFormatter={(v) => `${v}`}
+                            tickFormatter={(v) => `${formatNumber(v)}`}
+                          />
+                          <YAxis
+                            yAxisId="right"
+                            orientation="right"
+                            tick={{ fontSize: 10 }}
+                            stroke="#f59e0b"
+                            tickFormatter={(v) => `${v}%`}
+                            domain={[0, 40]}
                           />
                           <Tooltip
-                            formatter={(value) => [`${formatNumber(value)}억`, '']}
-                            labelFormatter={(l) => `${l}`}
-                            contentStyle={{ fontSize: 12 }}
+                            content={<CustomChartTooltip />}
+                            formatter={(value, name) => name === '영업이익률' ? [`${value}%`, name] : [`${formatNumber(value)}억`, name]}
                           />
                           <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={28} />
+                          <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 2.5 }} />
+                          <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 2 }} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : plQuarterTrend.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={plQuarterTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                          <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
+                          <YAxis yAxisId="left" tick={{ fontSize: 10 }} stroke="#71717a" />
+                          <Tooltip formatter={(value) => [`${formatNumber(value)}억`, '']} contentStyle={{ fontSize: 12 }} />
+                          <Legend wrapperStyle={{ fontSize: 11 }} />
                           <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={36} />
-                          <Line
-                            yAxisId="left"
-                            type="monotone"
-                            dataKey="영업이익"
-                            name="영업이익"
-                            stroke="#0d9488"
-                            strokeWidth={2}
-                            dot={{ r: 3 }}
-                          />
+                          <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
                         </ComposedChart>
                       </ResponsiveContainer>
                     ) : (
@@ -4495,9 +4557,51 @@ export default function FnFQ1_2026Dashboard() {
                     )}
                   </div>
                 </div>
+                {/* ② 연도별 실적추이 (1Q~4Q 합산) */}
+                {plTrendData.yearly.length > 0 && (
                 <div>
                   <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ② 비용구조 — 인건비 · 광고비 · 기타비용 (당분기)
+                    ② 연도별 실적추이 — 1Q~4Q 합산 (단위: 억원){plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 일부 연도 미완분기 포함</span>}
+                  </p>
+                  <div className="h-56 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={plTrendData.yearly} margin={{ top: 8, right: 40, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
+                        <YAxis
+                          yAxisId="left"
+                          tick={{ fontSize: 10 }}
+                          stroke="#71717a"
+                          tickFormatter={(v) => `${formatNumber(v)}`}
+                        />
+                        <YAxis
+                          yAxisId="right"
+                          orientation="right"
+                          tick={{ fontSize: 10 }}
+                          stroke="#f59e0b"
+                          tickFormatter={(v) => `${v}%`}
+                          domain={[0, 40]}
+                        />
+                        <Tooltip
+                          content={<CustomChartTooltip />}
+                          formatter={(value, name) => name === '영업이익률' ? [`${value}%`, name] : [`${formatNumber(value)}억`, name]}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#818cf8" radius={[4, 4, 0, 0]} maxBarSize={48}>
+                          {plTrendData.yearly.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.quarters < 4 ? '#c7d2fe' : '#818cf8'} />
+                          ))}
+                        </Bar>
+                        <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2.5} dot={{ r: 4 }} />
+                        <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 3 }} />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                )}
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
+                    ③ 비용구조 — 인건비 · 광고비 · 기타비용 (당분기)
                   </p>
                   <div className="h-48 w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -4515,7 +4619,7 @@ export default function FnFQ1_2026Dashboard() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-1.5">③ 핵심포인트</p>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-1.5">④ 핵심포인트</p>
                   <ul className="text-xs text-zinc-600 space-y-1.5 list-disc pl-4 leading-relaxed">
                     {plHighlights.map((t, i) => (
                       <li key={i}>{t}</li>
