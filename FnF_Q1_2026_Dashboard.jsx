@@ -4512,7 +4512,7 @@ export default function FnFQ1_2026Dashboard() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="space-y-4">
             {/* PL(성과분석) */}
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-2.5 border-b border-zinc-100 bg-indigo-50/60">
@@ -4533,11 +4533,11 @@ export default function FnFQ1_2026Dashboard() {
                       return (
                         <div key={qLabel} className="border border-zinc-100 rounded-lg p-2 bg-zinc-50/50">
                           <p className="text-[10px] font-semibold text-zinc-500 mb-1 text-center">{qLabel} 비교</p>
-                          <div className="h-40 w-full">
+                          <div className="h-48 w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                              <ComposedChart data={data} margin={{ top: 4, right: 30, left: -10, bottom: 0 }}>
+                              <ComposedChart data={data} margin={{ top: 4, right: 30, left: -10, bottom: 4 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                                <XAxis dataKey="year" tick={{ fontSize: 9 }} stroke="#a1a1aa" />
+                                <XAxis dataKey="year" tick={{ fontSize: 10 }} stroke="#a1a1aa" tickMargin={4} />
                                 <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#a1a1aa" tickFormatter={(v) => `${formatNumber(v)}`} />
                                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#f59e0b" tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
                                 <Tooltip content={<CustomChartTooltip />} />
