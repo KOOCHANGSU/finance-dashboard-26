@@ -8586,6 +8586,7 @@ export default function FnFQ1_2026Dashboard() {
     const q = Number((selectedPeriod?.split('_')?.[1] || 'Q1').replace('Q', '')) || 1;
     const period25 = `2025_${q}Q`;
     const period26 = `2026_${q}Q`;
+    const bsPeriod25 = '2025_4Q'; // 법인별 BS는 전기말(2025.4Q) 비교
     const entityTabs = [
       { label: 'OC(국내)', key: 'OC(국내)' },
       { label: '중국', key: '중국' },
@@ -9051,7 +9052,7 @@ export default function FnFQ1_2026Dashboard() {
               <thead>
                 <tr className="bg-zinc-50 border-b border-zinc-200">
                   <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(bsPeriod25)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
@@ -9060,7 +9061,7 @@ export default function FnFQ1_2026Dashboard() {
               </thead>
               <tbody>
                 {entityBalanceItems.map((item, idx) => {
-                  const val25 = valBS(item.key, period25);
+                  const val25 = valBS(item.key, bsPeriod25);
                   const val26 = valBS(item.key, period26);
                   const isTotalItem = item.key.includes('총계');
                   if (!isTotalItem && val25 === 0 && val26 === 0) return null;
