@@ -8685,14 +8685,30 @@ export default function FnFQ1_2026Dashboard() {
       선물환손익: ['선물환손익'],
       금융상품손익: ['금융상품손익'],
       이자손익: ['이자손익'],
-      배당수익: ['배당수익'],
+      배당수익: ['배당수익', '배당금수익'],
       기부금: ['기부금'],
       기타손익: ['기타손익'],
+      잡이익: ['잡이익'],
+      잡손실: ['잡손실'],
       지분법손익: ['지분법손익'],
       지분법이익: ['지분법이익'],
       지분법손실: ['지분법손실'],
       영업외수익: ['영업외수익'],
       영업외비용: ['영업외비용'],
+      이자수익: ['이자수익'],
+      이자비용: ['이자비용'],
+      외환차익: ['외환차익'],
+      외환차손: ['외환차손'],
+      외화환산이익: ['외화환산이익'],
+      외화환산손실: ['외화환산손실'],
+      파생상품평가이익: ['파생상품평가이익'],
+      파생상품평가손실: ['파생상품평가손실'],
+      파생상품거래이익: ['파생상품거래이익'],
+      파생상품거래손실: ['파생상품거래손실'],
+      당기손익인식금융자산처분이익: ['당기손익인식금융자산처분이익'],
+      당기손익인식금융자산처분손실: ['당기손익인식금융자산처분손실'],
+      당기손익공정가치측정금융자산평가이익: ['당기손익공정가치측정금융자산평가이익', '당기손익공정가치측정금융자산 평가이익'],
+      당기손익공정가치측정금융자산평가손실: ['당기손익공정가치측정금융자산평가손실', '당기손익공정가치측정금융자산 평가손실'],
       법인세비용: ['법인세비용'],
       당기순이익: ['당기순이익'],
     };
@@ -8734,11 +8750,39 @@ export default function FnFQ1_2026Dashboard() {
         const vals = parts.map((k) => getISRaw(k, resolvedPeriod));
         if (vals.some((v) => v !== undefined)) return vals.reduce((s, v) => s + Number(v || 0), 0);
       }
+      if (account === '외환손익') {
+        const g1 = getISRaw('외환차익', resolvedPeriod);
+        const g2 = getISRaw('외화환산이익', resolvedPeriod);
+        const l1 = getISRaw('외환차손', resolvedPeriod);
+        const l2 = getISRaw('외화환산손실', resolvedPeriod);
+        if (g1 !== undefined || g2 !== undefined || l1 !== undefined || l2 !== undefined) {
+          return Math.round(Number(g1 || 0) + Number(g2 || 0) - Number(l1 || 0) - Number(l2 || 0));
+        }
+      }
+      if (account === '이자손익') {
+        const income = getISRaw('이자수익', resolvedPeriod);
+        const expense = getISRaw('이자비용', resolvedPeriod);
+        if (income !== undefined || expense !== undefined) return Math.round(Number(income || 0) - Number(expense || 0));
+      }
+      if (account === '금융상품손익') {
+        const parts = ['파생상품평가이익', '파생상품거래이익', '당기손익인식금융자산처분이익', '당기손익공정가치측정금융자산평가이익'];
+        const lparts = ['파생상품평가손실', '파생상품거래손실', '당기손익인식금융자산처분손실', '당기손익공정가치측정금융자산평가손실'];
+        const gains = parts.map(k => getISRaw(k, resolvedPeriod));
+        const losses = lparts.map(k => getISRaw(k, resolvedPeriod));
+        if (gains.some(v => v !== undefined) || losses.some(v => v !== undefined)) {
+          return Math.round(gains.reduce((s, v) => s + Number(v || 0), 0) - losses.reduce((s, v) => s + Number(v || 0), 0));
+        }
+      }
+      if (account === '기타손익') {
+        const gain = getISRaw('잡이익', resolvedPeriod);
+        const loss = getISRaw('잡손실', resolvedPeriod);
+        if (gain !== undefined || loss !== undefined) return Math.round(Number(gain || 0) - Number(loss || 0));
+      }
       if (account === '영업외손익') {
         const nonOpIncome = getISRaw('영업외수익', resolvedPeriod);
         const nonOpExpense = getISRaw('영업외비용', resolvedPeriod);
         if (nonOpIncome !== undefined || nonOpExpense !== undefined) {
-          return Number(nonOpIncome || 0) - Number(nonOpExpense || 0);
+          return Math.round(Number(nonOpIncome || 0) - Number(nonOpExpense || 0));
         }
         const parts = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'];
         const vals = parts.map((k) => getISRaw(k, resolvedPeriod));
