@@ -9066,12 +9066,19 @@ export default function FnFQ4Dashboard() {
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
+                title="현재 FY2026 1Q만 선택 가능합니다."
                 className="px-4 py-2 bg-[#1e3a5f] text-white text-sm font-medium rounded-lg border border-white/10 outline-none cursor-pointer hover:bg-[#254a75] transition-colors"
               >
                 <option value="2026_Q1">FY2026 1Q</option>
-                <option value="2026_Q2">FY2026 2Q</option>
-                <option value="2026_Q3">FY2026 3Q</option>
-                <option value="2026_Q4">FY2026 4Q</option>
+                <option value="2026_Q2" disabled>
+                  FY2026 2Q (미제공)
+                </option>
+                <option value="2026_Q3" disabled>
+                  FY2026 3Q (미제공)
+                </option>
+                <option value="2026_Q4" disabled>
+                  FY2026 4Q (미제공)
+                </option>
               </select>
             </div>
           </div>
