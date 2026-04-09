@@ -209,7 +209,7 @@ const buildEntityQuarterLookup = (rows, year) => {
       if (!lookup[period][accountKey]) lookup[period][accountKey] = {};
       Object.entries(entityCols).forEach(([entity, rel]) => {
         const v = parseCsvNumber(row[offset + rel]);
-        if (v !== undefined) lookup[period][accountKey][entity] = v;
+        if (v !== undefined) lookup[period][accountKey][entity] = Math.round(v);
       });
     }
   });
@@ -8675,6 +8675,8 @@ export default function FnFQ1_2026Dashboard() {
       매출원가: ['매출원가'],
       매출총이익: ['매출총이익'],
       인건비: ['인건비'],
+      급여: ['급여'],
+      퇴직급여: ['퇴직급여'],
       광고선전비: ['광고선전비'],
       감가상각비: ['감가상각비'],
       영업이익: ['영업이익'],
@@ -8714,6 +8716,19 @@ export default function FnFQ1_2026Dashboard() {
       }
 
       // 파생 계정 보정 (매핑 누락 대응)
+      if (account === '인건비') {
+        const salary = getISRaw('급여', resolvedPeriod);
+        const retirement = getISRaw('퇴직급여', resolvedPeriod);
+        if (salary !== undefined || retirement !== undefined) return Math.round(Number(salary || 0) + Number(retirement || 0));
+      }
+      if (account === '기타판관비') {
+        const sga = getISRaw('판매비와관리비', resolvedPeriod);
+        const labor = getISRaw('인건비', resolvedPeriod);
+        const ad = getISRaw('광고선전비', resolvedPeriod);
+        const fee = getISRaw('수수료', resolvedPeriod);
+        const dep = getISRaw('감가상각비', resolvedPeriod);
+        if (sga !== undefined) return Math.round(Number(sga || 0) - Number(labor || 0) - Number(ad || 0) - Number(fee || 0) - Number(dep || 0));
+      }
       if (account === '판매비와관리비') {
         const parts = ['인건비', '광고선전비', '수수료', '감가상각비', '기타판관비'];
         const vals = parts.map((k) => getISRaw(k, resolvedPeriod));
