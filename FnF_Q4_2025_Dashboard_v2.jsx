@@ -4243,6 +4243,106 @@ export default function FnFQ4Dashboard() {
       );
     };
 
+    // —— PL·BS 성과분석(요약 탭 전용) ——
+    const summaryYear = Number(selectedPeriod?.split('_')?.[0] || '2026');
+    const plQuarterTrend = [1, 2, 3, 4]
+      .map((qq) => {
+        const key = `${summaryYear}_${qq}Q`;
+        const rev = incomeStatementData[key]?.매출액;
+        const op = incomeStatementData[key]?.영업이익;
+        if ((rev === undefined || rev === null) && (op === undefined || op === null)) return null;
+        return {
+          name: `${qq}Q`,
+          매출액: Math.round(Number(rev || 0) / 100),
+          영업이익: Math.round(Number(op || 0) / 100),
+        };
+      })
+      .filter(Boolean);
+
+    const qKeyPerf = getPeriodKey(selectedPeriod, 'quarter');
+    const laborM = incomeStatementData[qKeyPerf]?.인건비 || 0;
+    const adM = incomeStatementData[qKeyPerf]?.광고선전비 || 0;
+    const otherSgaM =
+      (incomeStatementData[qKeyPerf]?.기타판관비 || 0) +
+      (incomeStatementData[qKeyPerf]?.수수료 || 0) +
+      (incomeStatementData[qKeyPerf]?.감가상각비 || 0);
+    const costBarData = [
+      { name: '인건비', value: Math.max(0, Math.round(laborM / 100)) },
+      { name: '광고비', value: Math.max(0, Math.round(adM / 100)) },
+      { name: '기타비용', value: Math.max(0, Math.round(otherSgaM / 100)) },
+    ];
+
+    const bsP = bsSummaryCurrentPeriod;
+    const bsRow = balanceSheetData[bsP] || {};
+    const caApprox =
+      (bsRow.현금성자산 || 0) +
+      (bsRow.금융자산 || 0) +
+      (bsRow.매출채권 || 0) +
+      (bsRow.재고자산 || 0) +
+      (bsRow.대여금 || 0);
+    const clApprox =
+      (bsRow.매입채무 || 0) + (bsRow.미지급금 || 0) + (bsRow.보증금 || 0);
+    const wcApprox = caApprox - clApprox;
+
+    const qSalesM = incomeStatementData[qKeyPerf]?.매출액 || 0;
+    const qCogsM = incomeStatementData[qKeyPerf]?.매출원가 || 0;
+    const dsoDays =
+      bsRow.매출채권 > 0 && qSalesM > 0 ? (bsRow.매출채권 / qSalesM) * 90 : null;
+    const dioDays =
+      bsRow.재고자산 > 0 && qCogsM > 0 ? (bsRow.재고자산 / qCogsM) * 90 : null;
+
+    const qSalesPrevM = incomeStatementData[getPeriodKey(selectedPeriod, 'prev_quarter')]?.매출액 || 0;
+    const dsoDaysPrev =
+      balanceSheetData[bsSummaryPrevPeriod]?.매출채권 > 0 && qSalesPrevM > 0
+        ? (balanceSheetData[bsSummaryPrevPeriod].매출채권 / qSalesPrevM) * 90
+        : null;
+
+    const plHighlights = [];
+    if (plQuarterTrend.length > 0) {
+      const last = plQuarterTrend[plQuarterTrend.length - 1];
+      plHighlights.push(
+        `선택 연도(${summaryYear}년) 분기별 매출·영업이익 추이를 확인할 수 있습니다. 최근 분기 매출 약 ${formatNumber(last.매출액)}억원, 영업이익 약 ${formatNumber(last.영업이익)}억원(백만원 기준 억원 환산).`
+      );
+    }
+    if (salesCurr > 0 && operatingIncomeCurr !== undefined) {
+      plHighlights.push(
+        `영업이익률 ${operatingMarginCurr.toFixed(1)}% (${incomeCompareLabel} 대비 ${operatingMarginCurr >= operatingMarginPrev ? '개선 또는 유지' : '하락'} 구간).`
+      );
+    }
+    const costTotal = costBarData.reduce((s, x) => s + x.value, 0);
+    if (costTotal > 0) {
+      const topCost = [...costBarData].sort((a, b) => b.value - a.value)[0];
+      plHighlights.push(
+        `당분기(${qKeyPerf}) 판관 성격 비용 중 ${topCost.name} 비중이 상대적으로 큽니다(막대 기준 억원).`
+      );
+    }
+    if (plHighlights.length === 0) {
+      plHighlights.push('손익 요약 카드 및 조회 기간을 확인해 주세요. CSV·기간 데이터가 채워지면 추이가 표시됩니다.');
+    }
+
+    const bsHighlights = [];
+    bsHighlights.push(
+      `간이 운전자본(유동성 자산·부채 주요 항목 기준) 약 ${formatNumber(Math.round(wcApprox / 100))}억원 수준입니다. 공식 유동자산·유동부채와 다를 수 있습니다.`
+    );
+    if (dsoDays != null) {
+      bsHighlights.push(
+        `DSO(매출채권회수일, 당분기 매출 90일 환산) 약 ${Math.round(dsoDays)}일${
+          dsoDaysPrev != null ? ` (전년 동분기 대비 ${dsoDays >= dsoDaysPrev ? '+' : ''}${Math.round(dsoDays - dsoDaysPrev)}일)` : ''
+        }.`
+      );
+    }
+    if (dioDays != null) {
+      bsHighlights.push(`DIO(재고회전일, 당분기 매출원가 90일 환산) 약 ${Math.round(dioDays)}일.`);
+    }
+
+    const performanceAi = generateAIAnalysis();
+    const riskItems = performanceAi.risks?.slice(0, 4) || [];
+    const actionItems = performanceAi.actions?.slice(0, 4) || [];
+    const insightOneOff =
+      performanceAi.insights?.find(
+        (x) => /일시|일회|소송|특수|비정기/i.test(x.title + x.desc)
+      ) || performanceAi.insights?.[0];
+
     return (
       <div className="space-y-4 mt-4">
         {/* 손익 요약 섹션 */}
@@ -4314,6 +4414,205 @@ export default function FnFQ4Dashboard() {
           </div>
           <div className="grid grid-cols-4 gap-3">
             {balanceCards.map((card, idx) => renderCard(card, idx))}
+          </div>
+        </div>
+
+        {/* PL·BS 성과분석 & 기타 (재무상태 요약 ↔ AI 분석) */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-1 h-4 bg-indigo-500 rounded" />
+            <h3 className="text-sm font-semibold text-zinc-800">성과분석 · 재무구조</h3>
+            <span className="text-[10px] text-zinc-400">
+              {qKeyPerf} · {balanceCompareLabel} BS · 단위 차트 억원
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {/* PL(성과분석) */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-zinc-100 bg-indigo-50/60">
+                <h4 className="text-xs font-semibold text-indigo-900">PL(성과분석)</h4>
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
+                    ① 실적추이 — 매출 vs 영업이익 (분기별, {summaryYear}년)
+                  </p>
+                  <div className="h-56 w-full">
+                    {plQuarterTrend.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={plQuarterTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                          <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
+                          <YAxis
+                            yAxisId="left"
+                            tick={{ fontSize: 10 }}
+                            stroke="#71717a"
+                            tickFormatter={(v) => `${v}`}
+                          />
+                          <Tooltip
+                            formatter={(value) => [`${formatNumber(value)}억`, '']}
+                            labelFormatter={(l) => `${l}`}
+                            contentStyle={{ fontSize: 12 }}
+                          />
+                          <Legend wrapperStyle={{ fontSize: 11 }} />
+                          <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={36} />
+                          <Line
+                            yAxisId="left"
+                            type="monotone"
+                            dataKey="영업이익"
+                            name="영업이익"
+                            stroke="#0d9488"
+                            strokeWidth={2}
+                            dot={{ r: 3 }}
+                          />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-xs text-zinc-400">
+                        해당 연도 분기 데이터가 없습니다.
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
+                    ② 비용구조 — 인건비 · 광고비 · 기타비용 (당분기)
+                  </p>
+                  <div className="h-48 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={costBarData} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal stroke="#e4e4e7" />
+                        <XAxis type="number" tick={{ fontSize: 10 }} stroke="#71717a" />
+                        <YAxis type="category" dataKey="name" width={56} tick={{ fontSize: 11 }} stroke="#71717a" />
+                        <Tooltip formatter={(v) => [`${formatNumber(v)}억`, '']} contentStyle={{ fontSize: 12 }} />
+                        <Bar dataKey="value" name="억원" fill="#8b5cf6" radius={[0, 4, 4, 0]} maxBarSize={22} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    기타비용 = 기타판관비+수수료+감가상각비(당분기, 백만원→억)
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-1.5">③ 핵심포인트</p>
+                  <ul className="text-xs text-zinc-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                    {plHighlights.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* BS(재무상태) */}
+            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-zinc-100 bg-teal-50/60">
+                <h4 className="text-xs font-semibold text-teal-900">BS(재무상태)</h4>
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-2">① 운전자본 (간이)</p>
+                  <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-3 text-sm">
+                    <div className="flex justify-between gap-2 text-zinc-700">
+                      <span className="text-xs text-zinc-500">유동성 자산 합(근사)</span>
+                      <span className="font-semibold tabular-nums">{formatNumber(Math.round(caApprox / 100))}억</span>
+                    </div>
+                    <div className="flex justify-between gap-2 text-zinc-700 mt-1">
+                      <span className="text-xs text-zinc-500">유동성 부채 합(근사)</span>
+                      <span className="font-semibold tabular-nums">{formatNumber(Math.round(clApprox / 100))}억</span>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-zinc-200 flex justify-between items-center">
+                      <span className="text-xs font-semibold text-teal-800">간이 운전자본</span>
+                      <span className="text-lg font-bold text-teal-700 tabular-nums">
+                        {formatNumber(Math.round(wcApprox / 100))}억
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
+                    ② 회전지표 (당분기 매출·원가 90일 환산)
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg border border-zinc-100 bg-white px-3 py-2.5">
+                      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">DSO</div>
+                      <div className="text-sm font-semibold text-zinc-900 tabular-nums">
+                        {dsoDays != null ? `${Math.round(dsoDays)}일` : '—'}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">매출채권 회수일</div>
+                    </div>
+                    <div className="rounded-lg border border-zinc-100 bg-white px-3 py-2.5">
+                      <div className="text-[10px] text-zinc-500 uppercase tracking-wide">DIO</div>
+                      <div className="text-sm font-semibold text-zinc-900 tabular-nums">
+                        {dioDays != null ? `${Math.round(dioDays)}일` : '—'}
+                      </div>
+                      <div className="text-[10px] text-zinc-400 mt-0.5">재고 회전일</div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-zinc-600 mb-1.5">③ 핵심포인트</p>
+                  <ul className="text-xs text-zinc-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                    {bsHighlights.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 기타 */}
+          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-zinc-100 bg-amber-50/60">
+              <h4 className="text-xs font-semibold text-amber-900">기타</h4>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div>
+                <p className="text-[11px] font-semibold text-zinc-700 mb-2">① 이슈 및 리스크</p>
+                <ul className="space-y-2 text-zinc-600">
+                  {riskItems.length > 0 ? (
+                    riskItems.map((r, i) => (
+                      <li key={i} className="leading-relaxed border-l-2 border-rose-200 pl-2">
+                        <span className="font-medium text-zinc-800">{r.title}</span>
+                        <span className="block text-zinc-500 mt-0.5">{r.desc}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-zinc-400">등록된 리스크 요약이 없습니다.</li>
+                  )}
+                </ul>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-zinc-700 mb-2">② 일회성 이슈</p>
+                {insightOneOff ? (
+                  <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3 leading-relaxed text-zinc-600">
+                    <span className="font-medium text-zinc-800 block mb-1">{insightOneOff.title}</span>
+                    {insightOneOff.desc}
+                  </div>
+                ) : (
+                  <p className="text-zinc-400 leading-relaxed">
+                    자동 탐지된 일회성 항목이 없습니다. 소송·구조조정·대규모 일시 비용 등은 별도 공시·내부 메모로 보완하세요.
+                  </p>
+                )}
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-zinc-700 mb-2">③ 대응방안</p>
+                <ul className="space-y-2 text-zinc-600">
+                  {actionItems.length > 0 ? (
+                    actionItems.map((a, i) => (
+                      <li key={i} className="leading-relaxed border-l-2 border-emerald-200 pl-2">
+                        <span className="font-medium text-zinc-800">{a.title}</span>
+                        <span className="block text-zinc-500 mt-0.5">{a.desc}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-zinc-400">제안된 대응 과제가 없습니다.</li>
+                  )}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -8618,28 +8917,28 @@ export default function FnFQ4Dashboard() {
                   <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">26년</th>
                   <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
                   <th className="w-[10%] px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
-                  <th className="w-[28%] px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
+                  <th className="w-[28%] px-3 py-2 text-center font-medium text-zinc-600 align-middle">비고</th>
                 </tr>
               </thead>
               <tbody>
                 {isRows.map((r) => (
                   <tr key={`is-${r.key}`} className="border-t border-zinc-100">
                     <td className={`px-3 py-2 text-zinc-800 whitespace-nowrap ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v25, !!r.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v26, !!r.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.delta == null ? '' : (r.isRateRow ? `${r.delta.toFixed(1)}%p` : formatCell(r.delta))}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.rate == null ? (r.isRateRow ? '-' : '') : `${r.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v25, !!r.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v26, !!r.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.delta == null ? '' : (r.isRateRow ? `${r.delta.toFixed(1)}%p` : formatCell(r.delta))}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.rate == null ? (r.isRateRow ? '-' : '') : `${r.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-600 text-center align-middle leading-snug">{r.analysis}</td>
                   </tr>
                 ))}
                 {isSubtotal && (
                   <tr className="border-t-2 border-zinc-300 bg-zinc-50">
                     <td className="px-3 py-2 font-semibold text-zinc-900">{isSubtotal.label}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(isSubtotal.v25, !!isSubtotal.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(isSubtotal.v26, !!isSubtotal.isRateRow)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums">{isSubtotal.delta == null ? '' : formatCell(isSubtotal.delta)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums">{isSubtotal.rate == null ? '' : `${isSubtotal.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-700">{isSubtotal.analysis}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(isSubtotal.v25, !!isSubtotal.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(isSubtotal.v26, !!isSubtotal.isRateRow)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums align-middle">{isSubtotal.delta == null ? '' : formatCell(isSubtotal.delta)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 tabular-nums align-middle">{isSubtotal.rate == null ? '' : `${isSubtotal.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-700 text-center align-middle leading-snug">{isSubtotal.analysis}</td>
                   </tr>
                 )}
               </tbody>
@@ -8661,28 +8960,28 @@ export default function FnFQ4Dashboard() {
                   <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">26년</th>
                   <th className="w-[12%] px-3 py-2 text-right font-medium text-zinc-600">증감액</th>
                   <th className="w-[10%] px-3 py-2 text-right font-medium text-zinc-600">증감률</th>
-                  <th className="w-[28%] px-3 py-2 text-left font-medium text-zinc-600">증감분석</th>
+                  <th className="w-[28%] px-3 py-2 text-center font-medium text-zinc-600 align-middle">비고</th>
                 </tr>
               </thead>
               <tbody>
                 {bsRows.map((r) => (
                   <tr key={`bs-${r.key}`} className="border-t border-zinc-100">
                     <td className={`px-3 py-2 text-zinc-800 whitespace-nowrap ${r.depth ? 'pl-6' : ''}`}>{r.label}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v25)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{formatCell(r.v26)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.delta == null ? '' : formatCell(r.delta)}</td>
-                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-600">{r.analysis}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v25)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{formatCell(r.v26)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.delta == null ? '' : formatCell(r.delta)}</td>
+                    <td className="px-3 py-2 text-right text-zinc-700 tabular-nums align-middle">{r.rate == null ? '' : `${r.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-600 text-center align-middle leading-snug">{r.analysis}</td>
                   </tr>
                 ))}
                 {bsSubtotal && (
                   <tr className="border-t-2 border-zinc-300 bg-zinc-50">
                     <td className="px-3 py-2 font-semibold text-zinc-900">{bsSubtotal.label}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(bsSubtotal.v25)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{formatCell(bsSubtotal.v26)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{bsSubtotal.delta == null ? '' : formatCell(bsSubtotal.delta)}</td>
-                    <td className="px-3 py-2 text-right font-semibold text-zinc-900">{bsSubtotal.rate == null ? '' : `${bsSubtotal.rate.toFixed(1)}%`}</td>
-                    <td className="px-3 py-2 text-zinc-700">{bsSubtotal.analysis}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(bsSubtotal.v25)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{formatCell(bsSubtotal.v26)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{bsSubtotal.delta == null ? '' : formatCell(bsSubtotal.delta)}</td>
+                    <td className="px-3 py-2 text-right font-semibold text-zinc-900 align-middle">{bsSubtotal.rate == null ? '' : `${bsSubtotal.rate.toFixed(1)}%`}</td>
+                    <td className="px-3 py-2 text-zinc-700 text-center align-middle leading-snug">{bsSubtotal.analysis}</td>
                   </tr>
                 )}
               </tbody>
@@ -8698,33 +8997,64 @@ export default function FnFQ4Dashboard() {
   // ============================================
   return (
     <div className="min-h-screen bg-zinc-50">
-      {/* Sticky 헤더 영역 */}
-      <div className="sticky top-0 z-50 bg-zinc-50 border-b border-zinc-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4">
-          {/* 헤더 */}
-          <div className="pt-3 pb-3">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-zinc-900 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-base">F&F</span>
+      {/* Sticky 헤더 영역 — 보고서형 네이비 상단 */}
+      <div className="sticky top-0 z-50 shadow-md">
+        <div className="bg-[#1e3a5f] text-white relative overflow-hidden">
+          <div
+            className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2 h-40 w-40 rounded-full bg-white/5"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute right-16 top-4 h-24 w-24 rounded-full bg-sky-400/10"
+            aria-hidden
+          />
+          <div className="max-w-6xl mx-auto px-4 pt-4 pb-3 relative">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-white/15 rounded-lg flex items-center justify-center shrink-0 border border-white/20">
+                <span className="text-white font-bold text-base tracking-tight">F&F</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-serif font-semibold tracking-tight text-white leading-snug">
+                  F&F Corporation 연결 재무제표
+                </h1>
+                <p className="mt-1.5 text-sm text-white/90">
+                  {selectedPeriod?.split('_')?.[0] || '2026'}년 F&F 연결 재무 대시보드
+                </p>
+                <p className="mt-1 text-xs sm:text-sm text-white/85 leading-relaxed">
+                  <span className="text-white/90">(분기·누적 조회 가능 / </span>
+                  <span className="text-red-400 font-medium">단위: 백만원</span>
+                  <span className="text-white/90">)</span>
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 border-t border-white/25 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+              <div>
+                <span className="font-semibold text-white">보고단위</span>{' '}
+                <span className="text-white/90">연결(Consolidated)</span>
               </div>
               <div>
-                <h1 className="text-xl font-semibold tracking-tight text-zinc-900">F&F Corporation</h1>
-                <p className="text-sm text-zinc-500">2026 1Q 연결 재무제표</p>
+                <span className="font-semibold text-white">조회기간</span>{' '}
+                <span className="text-white/90">
+                  {selectedPeriod
+                    ? `${selectedPeriod.split('_')[0]}년 ${selectedPeriod.split('_')[1]?.replace('Q', '') || '1'}분기`
+                    : '2026년 1분기'}
+                </span>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* 탭 네비게이션 및 기간 선택 */}
-          <div className="pt-3 pb-3 flex items-center justify-between">
-            <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
+        <div className="bg-zinc-100 border-b border-zinc-200">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="inline-flex p-0.5 bg-white rounded-lg border border-zinc-200 shadow-sm">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 text-sm font-medium rounded transition-all duration-150 ${
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-150 ${
                     activeTab === tab.id
-                      ? 'bg-white text-zinc-900 border border-zinc-200'
-                      : 'text-zinc-500 hover:text-zinc-700'
+                      ? 'bg-[#1e3a5f] text-white shadow-sm'
+                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
                   }`}
                 >
                   {tab.label}
@@ -8732,10 +9062,11 @@ export default function FnFQ4Dashboard() {
               ))}
             </div>
             <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-500 hidden sm:inline">회계연도</span>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-lg border-none outline-none cursor-pointer hover:bg-zinc-800 transition-colors"
+                className="px-4 py-2 bg-[#1e3a5f] text-white text-sm font-medium rounded-lg border border-white/10 outline-none cursor-pointer hover:bg-[#254a75] transition-colors"
               >
                 <option value="2026_Q1">FY2026 1Q</option>
                 <option value="2026_Q2">FY2026 2Q</option>
