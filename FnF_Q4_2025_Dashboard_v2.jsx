@@ -62,6 +62,7 @@ const STORAGE_KEYS = {
   INCOME_EDIT: 'fnf_dashboard_income_edit',
   BS_EDIT: 'fnf_dashboard_bs_edit',
   AI_ANALYSIS: 'fnf_dashboard_ai_analysis',
+  ENTITY_STMT_REASONS: 'fnf_entity_stmt_reasons',
 };
 
 // API 엔드포인트 설정
@@ -556,6 +557,7 @@ export default function FnFQ4Dashboard() {
   }); // ['매출액', '영업이익', ...] - 숨긴 과목 키 배열
   const [incomeEditData, setIncomeEditData] = useState(() => loadFromStorage(STORAGE_KEYS.INCOME_EDIT)); // localStorage에서 초기값 로드
   const [bsEditData, setBsEditData] = useState(() => loadFromStorage(STORAGE_KEYS.BS_EDIT)); // localStorage에서 초기값 로드
+  const [entityStmtReasons, setEntityStmtReasons] = useState(() => loadFromStorage(STORAGE_KEYS.ENTITY_STMT_REASONS));
   const [aiEditMode, setAiEditMode] = useState(false); // AI 분석 편집 모드
   const [aiAnalysisData, setAiAnalysisData] = useState(() => loadFromStorage(STORAGE_KEYS.AI_ANALYSIS)); // AI 분석 편집 데이터
   const [aiAnalysisBackup, setAiAnalysisBackup] = useState(null); // 편집 시작 전 백업 데이터
@@ -710,6 +712,7 @@ export default function FnFQ4Dashboard() {
     if (Object.keys(aiAnalysisData).length > 0) {
       saveToStorage(STORAGE_KEYS.AI_ANALYSIS, aiAnalysisData);
     }
+    saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, entityStmtReasons);
     localStorage.setItem('fnf_hidden_entity_cards', JSON.stringify(hiddenEntityCards));
     localStorage.setItem('fnf_hidden_detail_sections', JSON.stringify(hiddenDetailSections));
     
@@ -723,7 +726,7 @@ export default function FnFQ4Dashboard() {
       saveAllSettingsToServer();
     }, 2000);
     return () => clearTimeout(timeoutId);
-  }, [incomeEditData, bsEditData, aiAnalysisData, hiddenEntityCards, hiddenDetailSections]);
+  }, [incomeEditData, bsEditData, aiAnalysisData, entityStmtReasons, hiddenEntityCards, hiddenDetailSections]);
 
   // 컴포넌트 마운트 시 서버에서 모든 설정 불러오기
   React.useEffect(() => {
@@ -755,6 +758,10 @@ export default function FnFQ4Dashboard() {
           if (data.bsEditData) {
             setBsEditData(data.bsEditData);
             saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
+          }
+          if (data.entityStmtReasons) {
+            setEntityStmtReasons(data.entityStmtReasons);
+            saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
           }
           if (data.hiddenEntityCards) {
             setHiddenEntityCards(data.hiddenEntityCards);
@@ -792,6 +799,7 @@ export default function FnFQ4Dashboard() {
         aiAnalysisData,
         incomeEditData,
         bsEditData,
+        entityStmtReasons,
         hiddenEntityCards,
         hiddenDetailSections,
       };
@@ -1053,6 +1061,10 @@ export default function FnFQ4Dashboard() {
           setBsEditData(data.bsEditData);
           saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
         }
+        if (data.entityStmtReasons) {
+          setEntityStmtReasons(data.entityStmtReasons);
+          saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
+        }
         if (data.hiddenEntityCards) {
           setHiddenEntityCards(data.hiddenEntityCards);
           localStorage.setItem('fnf_hidden_entity_cards', JSON.stringify(data.hiddenEntityCards));
@@ -1083,6 +1095,7 @@ export default function FnFQ4Dashboard() {
         version: '1.1',
         incomeEditData,
         bsEditData,
+        entityStmtReasons,
         hiddenEntityCards,
         hiddenDetailSections,
       };
@@ -1144,7 +1157,7 @@ export default function FnFQ4Dashboard() {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [incomeEditData, bsEditData, aiAnalysisData, hiddenEntityCards, hiddenDetailSections]);
+  }, [incomeEditData, bsEditData, aiAnalysisData, entityStmtReasons, hiddenEntityCards, hiddenDetailSections]);
 
   // JSON 내보내기 함수 (로컬 파일)
   const exportEditData = () => {
@@ -1153,6 +1166,7 @@ export default function FnFQ4Dashboard() {
       exportDate: new Date().toISOString(),
       incomeEditData,
       bsEditData,
+      entityStmtReasons,
       hiddenEntityCards,
       hiddenDetailSections,
     };
@@ -1183,6 +1197,10 @@ export default function FnFQ4Dashboard() {
         if (data.bsEditData) {
           setBsEditData(data.bsEditData);
           saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
+        }
+        if (data.entityStmtReasons) {
+          setEntityStmtReasons(data.entityStmtReasons);
+          saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
         }
         if (data.hiddenEntityCards) {
           setHiddenEntityCards(data.hiddenEntityCards);
@@ -8825,6 +8843,33 @@ export default function FnFQ4Dashboard() {
     const valIS = (key, period) => Number(getISRaw(key, period) ?? 0);
     const valBS = (key, period) => Number(getBSRaw(key, period) ?? 0);
 
+    const entityReasonKey = (stmt, rowKey) => `${selectedPeriod}::${selectedEntityTab}::${stmt}::${rowKey}`;
+
+    const setEntityReason = (stmt, rowKey, text) => {
+      const k = entityReasonKey(stmt, rowKey);
+      setEntityStmtReasons((prev) => {
+        const next = { ...prev };
+        const t = String(text ?? '').trim();
+        if (!t) delete next[k];
+        else next[k] = text;
+        return next;
+      });
+    };
+
+    const getEntityReason = (stmt, rowKey) => entityStmtReasons[entityReasonKey(stmt, rowKey)] || '';
+
+    const renderReasonCell = (stmt, rowKey) => (
+      <td className="align-top px-2 py-1.5 border-l border-zinc-200 min-w-[168px] max-w-[min(280px,36vw)]">
+        <textarea
+          value={getEntityReason(stmt, rowKey)}
+          onChange={(e) => setEntityReason(stmt, rowKey, e.target.value)}
+          rows={2}
+          placeholder="증감 사유 입력"
+          className="w-full text-xs text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1.5 resize-y min-h-[2.5rem] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 focus:bg-white"
+        />
+      </td>
+    );
+
     const calcRateDisplay = (numerator, denominator) => {
       if (!denominator || denominator === 0) return '-';
       return ((Number(numerator) / Number(denominator)) * 100).toFixed(1) + '%';
@@ -8852,12 +8897,13 @@ export default function FnFQ4Dashboard() {
             <td className="text-center px-3 py-2 font-medium text-blue-600 border-r border-zinc-200 bg-zinc-50">{rateCurr}</td>
             <td
               colSpan={2}
-              className={`text-center px-3 py-2 font-medium ${
+              className={`text-center px-3 py-2 font-medium border-r border-zinc-200 ${
                 rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') && rateDiff !== '-' ? 'text-rose-600' : 'text-blue-600'
               }`}
             >
               {rateDiff}
             </td>
+            {renderReasonCell('is', item.key)}
           </tr>
         );
       }
@@ -8884,9 +8930,10 @@ export default function FnFQ4Dashboard() {
           <td className={`text-right px-3 py-2 font-medium border-r border-zinc-200 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {diff !== 0 ? formatNumber(diff) : '-'}
           </td>
-          <td className={`text-right px-3 py-2 font-medium tabular-nums ${parseFloat(changeRate) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <td className={`text-right px-3 py-2 font-medium tabular-nums border-r border-zinc-200 ${parseFloat(changeRate) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {changeRate !== '-' ? `${changeRate}%` : '-'}
           </td>
+          {renderReasonCell('is', item.key)}
         </tr>
       );
     };
@@ -8898,7 +8945,8 @@ export default function FnFQ4Dashboard() {
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
-          <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
+          <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감 사유</th>
         </tr>
       </thead>
     );
@@ -9006,7 +9054,8 @@ export default function FnFQ4Dashboard() {
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[70px]">증감률</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
+                  <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감 사유</th>
                 </tr>
               </thead>
               <tbody>
@@ -9039,9 +9088,10 @@ export default function FnFQ4Dashboard() {
                       <td className={`text-right px-3 py-2 font-medium border-r border-zinc-200 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {diff !== 0 ? formatNumber(diff) : '-'}
                       </td>
-                      <td className={`text-right px-3 py-2 font-medium tabular-nums ${parseFloat(change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <td className={`text-right px-3 py-2 font-medium tabular-nums border-r border-zinc-200 ${parseFloat(change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {change !== '-' ? `${change}%` : '-'}
                       </td>
+                      {renderReasonCell('bs', item.key)}
                     </tr>
                   );
                 })}
