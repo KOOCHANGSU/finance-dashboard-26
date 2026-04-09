@@ -662,16 +662,30 @@ export default function FnFQ1_2026Dashboard() {
           const opMargin = Number(opMarginStr) || 0;
           quarterly.push({ name: label, 매출액: revenue, 영업이익: opIncome, 영업이익률: opMargin });
         }
-        // 연도별 합산
-        const yearMap = {};
+        // 동일 분기 비교 데이터 (1Q끼리, 2Q끼리 등)
+        const quarterGroupMap = { '1Q': [], '2Q': [], '3Q': [], '4Q': [] };
         quarterly.forEach((d) => {
-          const m = d.name.match(/^(\d{2})\.[1-4]Q$/);
+          const m = d.name.match(/^(\d{2})\.([1-4]Q)$/);
           if (!m) return;
           const year = '20' + m[1];
-          if (!yearMap[year]) yearMap[year] = { 매출액: 0, 영업이익: 0, count: 0 };
+          const qLabel = m[2];
+          if (quarterGroupMap[qLabel]) {
+            quarterGroupMap[qLabel].push({ year, 매출액: d.매출액, 영업이익: d.영업이익, 영업이익률: d.영업이익률 });
+          }
+        });
+        // 연도별 합산 + 분기별 분해
+        const yearMap = {};
+        quarterly.forEach((d) => {
+          const m = d.name.match(/^(\d{2})\.([1-4])Q$/);
+          if (!m) return;
+          const year = '20' + m[1];
+          const q = m[2];
+          if (!yearMap[year]) yearMap[year] = { 매출액: 0, 영업이익: 0, count: 0, q1: 0, q2: 0, q3: 0, q4: 0, op1: 0, op2: 0, op3: 0, op4: 0 };
           yearMap[year].매출액 += d.매출액;
           yearMap[year].영업이익 += d.영업이익;
           yearMap[year].count += 1;
+          yearMap[year]['q' + q] = d.매출액;
+          yearMap[year]['op' + q] = d.영업이익;
         });
         const yearly = Object.entries(yearMap)
           .sort(([a], [b]) => a.localeCompare(b))
@@ -681,8 +695,10 @@ export default function FnFQ1_2026Dashboard() {
             영업이익: v.영업이익,
             영업이익률: v.매출액 > 0 ? Math.round(v.영업이익 / v.매출액 * 100) : 0,
             quarters: v.count,
+            '1Q매출': v.q1, '2Q매출': v.q2, '3Q매출': v.q3, '4Q매출': v.q4,
+            '1Q영업이익': v.op1, '2Q영업이익': v.op2, '3Q영업이익': v.op3, '4Q영업이익': v.op4,
           }));
-        if (!cancelled) setPlTrendData({ quarterly, yearly });
+        if (!cancelled) setPlTrendData({ quarterly, yearly, quarterGroup: quarterGroupMap });
       } catch {
         // CSV 로드 실패 시 기존 방식 유지
       }
@@ -4503,67 +4519,46 @@ export default function FnFQ1_2026Dashboard() {
                 <h4 className="text-xs font-semibold text-indigo-900">PL(성과분석)</h4>
               </div>
               <div className="p-4 space-y-4">
-                {/* ① 분기별 실적추이 (22.1Q~26.1Q 전체) */}
+                {/* ① 동일 분기 비교 (1Q끼리, 2Q끼리 등) */}
+                {plTrendData.quarterGroup && (
                 <div>
                   <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ① 실적추이 — 매출 vs 영업이익 (분기별, 단위: 억원)
+                    ① 실적추이 — 동일 분기 비교 (단위: 억원)
                   </p>
-                  <div className="h-64 w-full">
-                    {plTrendData.quarterly.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={plTrendData.quarterly} margin={{ top: 8, right: 40, left: 0, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                          <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" interval={0} angle={-35} textAnchor="end" height={40} />
-                          <YAxis
-                            yAxisId="left"
-                            tick={{ fontSize: 10 }}
-                            stroke="#71717a"
-                            tickFormatter={(v) => `${formatNumber(v)}`}
-                          />
-                          <YAxis
-                            yAxisId="right"
-                            orientation="right"
-                            tick={{ fontSize: 10 }}
-                            stroke="#f59e0b"
-                            tickFormatter={(v) => `${v}%`}
-                            domain={[0, 40]}
-                          />
-                          <Tooltip
-                            content={<CustomChartTooltip />}
-                            formatter={(value, name) => name === '영업이익률' ? [`${value}%`, name] : [`${formatNumber(value)}억`, name]}
-                          />
-                          <Legend wrapperStyle={{ fontSize: 11 }} />
-                          <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={28} />
-                          <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 2.5 }} />
-                          <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 2 }} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : plQuarterTrend.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={plQuarterTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                          <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
-                          <YAxis yAxisId="left" tick={{ fontSize: 10 }} stroke="#71717a" />
-                          <Tooltip formatter={(value) => [`${formatNumber(value)}억`, '']} contentStyle={{ fontSize: 12 }} />
-                          <Legend wrapperStyle={{ fontSize: 11 }} />
-                          <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={36} />
-                          <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-xs text-zinc-400">
-                        해당 연도 분기 데이터가 없습니다.
-                      </div>
-                    )}
+                  <div className="grid grid-cols-2 gap-3">
+                    {['1Q', '2Q', '3Q', '4Q'].map((qLabel) => {
+                      const data = plTrendData.quarterGroup[qLabel] || [];
+                      if (data.length === 0) return null;
+                      return (
+                        <div key={qLabel} className="border border-zinc-100 rounded-lg p-2 bg-zinc-50/50">
+                          <p className="text-[10px] font-semibold text-zinc-500 mb-1 text-center">{qLabel} 비교</p>
+                          <div className="h-40 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <ComposedChart data={data} margin={{ top: 4, right: 30, left: -10, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                                <XAxis dataKey="year" tick={{ fontSize: 9 }} stroke="#a1a1aa" />
+                                <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#a1a1aa" tickFormatter={(v) => `${formatNumber(v)}`} />
+                                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#f59e0b" tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
+                                <Tooltip content={<CustomChartTooltip />} />
+                                <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#818cf8" radius={[3, 3, 0, 0]} maxBarSize={32} />
+                                <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
+                                <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 2 }} />
+                              </ComposedChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-                {/* ② 연도별 실적추이 (1Q~4Q 합산) */}
+                )}
+                {/* ② 연도별 실적추이 — 분기별 스택 */}
                 {plTrendData.yearly.length > 0 && (
                 <div>
                   <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ② 연도별 실적추이 — 1Q~4Q 합산 (단위: 억원){plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 일부 연도 미완분기 포함</span>}
+                    ② 연도별 실적추이 — 분기별 구성 (단위: 억원){plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 일부 연도 미완분기 포함</span>}
                   </p>
-                  <div className="h-56 w-full">
+                  <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={plTrendData.yearly} margin={{ top: 8, right: 40, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
@@ -4582,16 +4577,12 @@ export default function FnFQ1_2026Dashboard() {
                           tickFormatter={(v) => `${v}%`}
                           domain={[0, 40]}
                         />
-                        <Tooltip
-                          content={<CustomChartTooltip />}
-                          formatter={(value, name) => name === '영업이익률' ? [`${value}%`, name] : [`${formatNumber(value)}억`, name]}
-                        />
-                        <Legend wrapperStyle={{ fontSize: 11 }} />
-                        <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#818cf8" radius={[4, 4, 0, 0]} maxBarSize={48}>
-                          {plTrendData.yearly.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.quarters < 4 ? '#c7d2fe' : '#818cf8'} />
-                          ))}
-                        </Bar>
+                        <Tooltip content={<CustomChartTooltip />} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                        <Bar yAxisId="left" dataKey="1Q매출" name="1Q" fill="#c7d2fe" stackId="revenue" maxBarSize={48} />
+                        <Bar yAxisId="left" dataKey="2Q매출" name="2Q" fill="#a5b4fc" stackId="revenue" maxBarSize={48} />
+                        <Bar yAxisId="left" dataKey="3Q매출" name="3Q" fill="#818cf8" stackId="revenue" maxBarSize={48} />
+                        <Bar yAxisId="left" dataKey="4Q매출" name="4Q" fill="#6366f1" stackId="revenue" radius={[4, 4, 0, 0]} maxBarSize={48} />
                         <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2.5} dot={{ r: 4 }} />
                         <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 3 }} />
                       </ComposedChart>
