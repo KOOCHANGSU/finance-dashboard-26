@@ -4529,6 +4529,7 @@ export default function FnFQ1_2026Dashboard() {
                     {['1Q', '2Q', '3Q', '4Q'].map((qLabel) => {
                       const data = plTrendData.quarterGroup[qLabel] || [];
                       if (data.length === 0) return null;
+                      const maxRevenue = Math.max(...data.map(d => d.매출액));
                       return (
                         <div key={qLabel} className="border border-zinc-100 rounded-lg p-2 bg-zinc-50/50">
                           <p className="text-[10px] font-semibold text-zinc-500 mb-1 text-center">{qLabel} 비교</p>
@@ -4540,7 +4541,11 @@ export default function FnFQ1_2026Dashboard() {
                                 <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#a1a1aa" tickFormatter={(v) => `${formatNumber(v)}`} />
                                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#f59e0b" tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
                                 <Tooltip content={<CustomChartTooltip />} />
-                                <Bar yAxisId="left" dataKey="매출액" name="매출액" fill="#818cf8" radius={[3, 3, 0, 0]} maxBarSize={32} />
+                                <Bar yAxisId="left" dataKey="매출액" name="매출액" radius={[3, 3, 0, 0]} maxBarSize={32}>
+                                  {data.map((entry, idx) => (
+                                    <Cell key={`qc-${qLabel}-${idx}`} fill={entry.매출액 === maxRevenue ? '#ef4444' : '#818cf8'} />
+                                  ))}
+                                </Bar>
                                 <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
                                 <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 2 }} />
                               </ComposedChart>
