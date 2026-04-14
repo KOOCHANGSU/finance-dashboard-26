@@ -4393,25 +4393,26 @@ export default function FnFQ1_2026Dashboard() {
       }
     }
 
-    // Cost trend data for ③ chart (22.1Q~26.1Q, detailed from 24.1Q)
-    const costTrendData = plTrendData.quarterly.map(q => {
-      const m = q.name.match(/^(\d{2})\.([1-4]Q)$/);
-      if (!m) return { name: q.name, 영업이익률: q.영업이익률 };
-      const pk = `20${m[1]}_${m[2]}`;
+    // Cost trend data for ② chart (24.1Q~26.1Q, incomeStatementData 기반)
+    const costTrendPeriodKeys = ['2024_1Q','2024_2Q','2024_3Q','2024_4Q','2025_1Q','2025_2Q','2025_3Q','2025_4Q','2026_1Q'];
+    const costTrendData = costTrendPeriodKeys.map(pk => {
       const d = incomeStatementData[pk] || {};
       const revM = d.매출액 || 0;
-      const entry = { name: q.name, 영업이익률: q.영업이익률 };
-      if (revM > 0) {
-        const pct = (v) => +((v || 0) / revM * 100).toFixed(1);
-        entry.매출원가율 = pct(d.매출원가);
-        entry.인건비율 = pct(d.인건비);
-        entry.광고선전비율 = pct(d.광고선전비);
-        entry.수수료율 = pct(d.수수료);
-        entry.감가상각비율 = pct(d.감가상각비);
-        entry.기타판관비율 = pct(d.기타판관비);
-      }
-      return entry;
-    });
+      if (!revM) return null;
+      const name = pk.replace('20', '').replace('_', '.');
+      const pct = (v) => +((v || 0) / revM * 100).toFixed(1);
+      const qEntry = plTrendData.quarterly.find(q => q.name === name);
+      return {
+        name,
+        영업이익률: qEntry?.영업이익률 ?? (revM > 0 ? +((d.영업이익 || 0) / revM * 100).toFixed(1) : null),
+        매출원가율: pct(d.매출원가),
+        인건비율: pct(d.인건비),
+        광고선전비율: pct(d.광고선전비),
+        수수료율: pct(d.수수료),
+        감가상각비율: pct(d.감가상각비),
+        기타판관비율: pct(d.기타판관비),
+      };
+    }).filter(Boolean);
 
     // Cost insights for ③
     const detailedCostData = costTrendData.filter(d => d.수수료율 !== undefined);
@@ -4722,9 +4723,9 @@ export default function FnFQ1_2026Dashboard() {
                 {/* ② 비용구조 — 매출액 대비 비율 추이 */}
                 <div>
                   <p className="text-[11px] font-medium text-zinc-600 mb-1">
-                    ② 비용구조 — 매출액 대비 비율 추이 (22.1Q~26.1Q)
+                    ② 비용구조 — 매출액 대비 비율 추이 (24.1Q~26.1Q)
                   </p>
-                  <p className="text-[10px] text-zinc-400 mb-2">항목별 상세 데이터: 24.1Q~ / 영업이익률 선(주황)은 전 기간</p>
+                  <p className="text-[10px] text-zinc-400 mb-2">단위: % (매출액 대비) · 영업이익률 선(주황): 우측 축</p>
                   <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={costTrendData} margin={{ top: 4, right: 48, left: -8, bottom: 4 }}>
