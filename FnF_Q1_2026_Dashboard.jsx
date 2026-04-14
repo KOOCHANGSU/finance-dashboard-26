@@ -63,6 +63,7 @@ const STORAGE_KEYS = {
   BS_EDIT: 'fnf_q1_2026_bs_edit',
   AI_ANALYSIS: 'fnf_q1_2026_ai_analysis',
   ENTITY_STMT_REASONS: 'fnf_q1_2026_entity_stmt_reasons',
+  IMPAIRMENT: 'fnf_q1_2026_impairment',
 };
 
 // API 엔드포인트 설정
@@ -568,6 +569,10 @@ export default function FnFQ1_2026Dashboard() {
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
+  const [impairmentData, setImpairmentData] = useState(() => loadFromStorage(STORAGE_KEYS.IMPAIRMENT) || {
+    엔터테인먼트: { plan2025Sales: 0, plan2025OpInc: 0, positives: '', monitoring: '' },
+    ST미국: { plan2025Sales: 0, plan2025OpInc: 0, positives: '', monitoring: '' },
+  });
   const [consolidatedCsvOverride, setConsolidatedCsvOverride] = useState({ income: {}, balance: {} });
   const [plTrendData, setPlTrendData] = useState({ quarterly: [], yearly: [] });
 
@@ -740,17 +745,21 @@ export default function FnFQ1_2026Dashboard() {
     let cancelled = false;
     async function loadEntityCsvLookup() {
       try {
-        const [is25, is26, bs25, bs26] = await Promise.all([
+        const [is24, is25, is26, bs24, bs25, bs26] = await Promise.all([
+          fetchCsvTextWithFallback('/2024 분기IS_법인별.csv'),
           fetchCsvTextWithFallback('/2025_분기IS_법인별.csv'),
           fetchCsvTextWithFallback('/2026_분기IS_법인별.csv'),
+          fetchCsvTextWithFallback('/2024_BS.csv'),
           fetchCsvTextWithFallback('/2025_BS.csv'),
           fetchCsvTextWithFallback('/2026_BS.csv'),
         ]);
         const isLookup = {
+          ...buildEntityQuarterLookup(parseCsvText(is24), '2024'),
           ...buildEntityQuarterLookup(parseCsvText(is25), '2025'),
           ...buildEntityQuarterLookup(parseCsvText(is26), '2026'),
         };
         const bsLookup = {
+          ...buildEntityQuarterLookup(parseCsvText(bs24), '2024'),
           ...buildEntityQuarterLookup(parseCsvText(bs25), '2025'),
           ...buildEntityQuarterLookup(parseCsvText(bs26), '2026'),
         };
@@ -778,6 +787,7 @@ export default function FnFQ1_2026Dashboard() {
       saveToStorage(STORAGE_KEYS.AI_ANALYSIS, aiAnalysisData);
     }
     saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, entityStmtReasons);
+    saveToStorage(STORAGE_KEYS.IMPAIRMENT, impairmentData);
     localStorage.setItem('fnf_q1_2026_hidden_entity_cards', JSON.stringify(hiddenEntityCards));
     localStorage.setItem('fnf_q1_2026_hidden_detail_sections', JSON.stringify(hiddenDetailSections));
     
@@ -791,7 +801,7 @@ export default function FnFQ1_2026Dashboard() {
       saveAllSettingsToServer();
     }, 2000);
     return () => clearTimeout(timeoutId);
-  }, [incomeEditData, bsEditData, aiAnalysisData, entityStmtReasons, hiddenEntityCards, hiddenDetailSections]);
+  }, [incomeEditData, bsEditData, aiAnalysisData, entityStmtReasons, hiddenEntityCards, hiddenDetailSections, impairmentData]);
 
   // 컴포넌트 마운트 시 서버에서 모든 설정 불러오기
   React.useEffect(() => {
@@ -4496,6 +4506,60 @@ export default function FnFQ1_2026Dashboard() {
       };
     }).filter(Boolean);
 
+    // NWC 추세 분석 인사이트 (대표 보고용)
+    const nwcTrendInsights = (() => {
+      if (nwcTrendData.length < 2) return [];
+      const insights = [];
+      const first = nwcTrendData[0];
+      const last = nwcTrendData[nwcTrendData.length - 1];
+
+      // 1. NWC 규모 변화
+      const nwcChange = last.NWC - first.NWC;
+      const nwcChangePct = first.NWC > 0 ? Math.round(nwcChange / first.NWC * 100) : null;
+      if (nwcChangePct !== null) {
+        insights.push(`NWC 규모: ${first.name} ${formatNumber(first.NWC)}억 → ${last.name} ${formatNumber(last.NWC)}억 (${nwcChange >= 0 ? '+' : ''}${nwcChangePct}%). ${nwcChange > 0 ? '운전자본 집약도 확대 — 성장에 따른 자금 소요 증가로 현금흐름 관리 강화 필요' : '운전자본 효율 개선 추세 — 현금 창출 여력 향상'}.`);
+      }
+
+      // 2. DSO 추세
+      const dsoData = nwcTrendData.filter(d => d.DSO != null);
+      if (dsoData.length >= 2) {
+        const dsoVals = dsoData.map(d => d.DSO);
+        const dsoFirst = dsoVals[0]; const dsoLast = dsoVals[dsoVals.length - 1];
+        const dsoMax = Math.max(...dsoVals); const dsoMin = Math.min(...dsoVals);
+        const maxPtDso = dsoData.find(d => d.DSO === dsoMax);
+        insights.push(`DSO(매출채권 회수일): ${dsoFirst.toFixed(0)}일 → ${dsoLast.toFixed(0)}일 (구간 최대 ${dsoMax.toFixed(0)}일[${maxPtDso?.name}], 최소 ${dsoMin.toFixed(0)}일). ${dsoLast > dsoFirst + 5 ? '회수기일 장기화 추세 — 외상매출 관리 및 대손 리스크 모니터링 강화 필요' : dsoLast < dsoFirst - 5 ? '회수 효율 개선 추세 — 매출채권 관리 정책 효과' : '안정적 수준 유지 — 매출채권 회수 주기 정상 범위'}.`);
+      }
+
+      // 3. DIO 추세
+      const dioData = nwcTrendData.filter(d => d.DIO != null);
+      if (dioData.length >= 2) {
+        const dioVals = dioData.map(d => d.DIO);
+        const dioFirst = dioVals[0]; const dioLast = dioVals[dioVals.length - 1];
+        const dioMax = Math.max(...dioVals);
+        const maxPtDio = dioData.find(d => d.DIO === dioMax);
+        insights.push(`DIO(재고 회전일): ${dioFirst.toFixed(0)}일 → ${dioLast.toFixed(0)}일 (구간 최대 ${dioMax.toFixed(0)}일[${maxPtDio?.name}]). ${dioLast > dioFirst + 10 ? '재고 체화 심화 추세 — 시즌 재고 소진 전략 및 발주 최적화 시급' : dioLast < dioFirst - 10 ? '재고 관리 효율 대폭 개선 — 수요 예측 정확도 향상 효과' : '재고 관리 수준 안정적 유지'}.`);
+      }
+
+      // 4. DPO 추세
+      const dpoData = nwcTrendData.filter(d => d.DPO != null);
+      if (dpoData.length >= 2) {
+        const dpoVals = dpoData.map(d => d.DPO);
+        const dpoFirst = dpoVals[0]; const dpoLast = dpoVals[dpoVals.length - 1];
+        insights.push(`DPO(매입채무 지급일): ${dpoFirst.toFixed(0)}일 → ${dpoLast.toFixed(0)}일. ${dpoLast > dpoFirst + 5 ? '지급 조건 연장 → 현금 보유 여력 확대(공급업체 관계 지속 모니터링 필요)' : dpoLast < dpoFirst - 5 ? '지급 가속화 → 공급업체 지급 조건 재협상으로 DPO 연장 검토' : '공급업체 지급 조건 안정적 유지'}.`);
+      }
+
+      // 5. CCC 추세 및 시사점
+      const cccData = nwcTrendData.filter(d => d.CCC != null);
+      if (cccData.length >= 2) {
+        const cccFirst = cccData[0].CCC; const cccLast = cccData[cccData.length - 1].CCC;
+        const cccMin = Math.min(...cccData.map(d => d.CCC));
+        const cccMinPt = cccData.find(d => d.CCC === cccMin);
+        insights.push(`CCC(현금전환주기): ${cccFirst.toFixed(0)}일 → ${cccLast.toFixed(0)}일 (구간 최저 ${cccMin.toFixed(0)}일[${cccMinPt?.name}]). ${cccLast > cccFirst ? `현금 묶임 기간 연장(+${(cccLast - cccFirst).toFixed(0)}일) — 단기 유동성 압박 요인, 운전자본 효율화 전략 수립 권고` : `현금 회수 주기 단축(${(cccLast - cccFirst).toFixed(0)}일) — 운전자본 효율 개선으로 현금 창출력 강화`}.`);
+      }
+
+      return insights;
+    })();
+
     // ④ 리스크 & 이상징후 체크 (전분기 대비)
     const nwcRisks = [];
     if (dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev && qSalesM < qSalesPrevM) {
@@ -4866,6 +4930,21 @@ export default function FnFQ1_2026Dashboard() {
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
+
+                  {/* 추세 분석 시사점 */}
+                  {nwcTrendInsights.length > 0 && (
+                    <div className="mt-3 rounded-lg bg-teal-50/80 border border-teal-100 px-3 py-2.5">
+                      <p className="text-[10px] font-semibold text-teal-800 mb-1.5 uppercase tracking-wide">추세 분석 시사점 (대표 보고용)</p>
+                      <ul className="space-y-1.5">
+                        {nwcTrendInsights.map((t, i) => (
+                          <li key={i} className="flex gap-1.5 text-[10px] text-teal-900 leading-relaxed">
+                            <span className="shrink-0 font-bold text-teal-500 mt-0.5">{i + 1}.</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 )}
 
@@ -4953,61 +5032,375 @@ export default function FnFQ1_2026Dashboard() {
                   </ul>
                 </div>
 
+                {/* ⑥ 동종업계 비교 */}
+                <div>
+                  <p className="text-[11px] font-semibold text-zinc-600 mb-2">⑥ 동종업계 비교 <span className="font-normal text-zinc-400">(국내 패션업계 참고치)</span></p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[10px] border-collapse">
+                      <thead>
+                        <tr className="bg-zinc-50 text-zinc-500">
+                          <th className="text-left py-1.5 px-2 font-medium border border-zinc-100">지표</th>
+                          <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">F&amp;F 현재</th>
+                          <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">패션업계 평균</th>
+                          <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">평가</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          const rows = [
+                            { label: 'DSO (매출채권 회수일)', curr: dsoNWC, low: 30, high: 45, bench: '30~45일', lowerBetter: true },
+                            { label: 'DIO (재고 회전일)',     curr: dioNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
+                            { label: 'DPO (매입채무 지급일)', curr: dpoNWC, low: 30, high: 60,  bench: '30~60일',  lowerBetter: false },
+                            { label: 'CCC (현금전환주기)',    curr: cccNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
+                          ];
+                          return rows.map((row, i) => {
+                            const val = row.curr != null ? Math.round(row.curr) : null;
+                            const isGood = val != null && (row.lowerBetter ? val < row.low : val > row.high);
+                            const isBad  = val != null && (row.lowerBetter ? val > row.high : val < row.low);
+                            return (
+                              <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
+                                <td className="py-1.5 px-2 font-medium border border-zinc-100 text-zinc-700">{row.label}</td>
+                                <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-semibold ${isBad ? 'text-rose-600' : isGood ? 'text-teal-600' : 'text-zinc-800'}`}>
+                                  {val != null ? `${val}일` : '—'}
+                                </td>
+                                <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-zinc-400">{row.bench}</td>
+                                <td className={`text-right py-1.5 px-2 border border-zinc-100 text-[9px] font-medium ${isBad ? 'text-rose-600' : isGood ? 'text-teal-600' : 'text-zinc-500'}`}>
+                                  {val == null ? '—' : isBad ? '업계 평균 초과 ⚠️' : isGood ? '업계 평균 이하 ✅' : '업계 평균 수준'}
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 mt-1.5 leading-relaxed">※ 삼성패션연구소·업계 공개 자료 기반 참고치 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
+                </div>
+
               </div>
             </div>
           </div>
 
-          {/* 기타 */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-zinc-100 bg-amber-50/60">
-              <h4 className="text-xs font-semibold text-amber-900">기타</h4>
-            </div>
-            <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div>
-                <p className="text-[11px] font-semibold text-zinc-700 mb-2">① 이슈 및 리스크</p>
-                <ul className="space-y-2 text-zinc-600">
-                  {riskItems.length > 0 ? (
-                    riskItems.map((r, i) => (
-                      <li key={i} className="leading-relaxed border-l-2 border-rose-200 pl-2">
-                        <span className="font-medium text-zinc-800">{r.title}</span>
-                        <span className="block text-zinc-500 mt-0.5">{r.desc}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-zinc-400">등록된 리스크 요약이 없습니다.</li>
-                  )}
-                </ul>
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold text-zinc-700 mb-2">② 일회성 이슈</p>
-                {insightOneOff ? (
-                  <div className="rounded-lg bg-zinc-50 border border-zinc-100 p-3 leading-relaxed text-zinc-600">
-                    <span className="font-medium text-zinc-800 block mb-1">{insightOneOff.title}</span>
-                    {insightOneOff.desc}
+          {/* 자회사 현황 */}
+          {(() => {
+            const subEntities = ['중국', '홍콩', '베트남', '엔터테인먼트', 'ST미국'];
+            const subColors   = { '중국': '#6366f1', '홍콩': '#f59e0b', '베트남': '#10b981', '엔터테인먼트': '#f43f5e', 'ST미국': '#0ea5e9' };
+            const subPeriods  = ['2024_1Q','2024_2Q','2024_3Q','2024_4Q','2025_1Q','2025_2Q','2025_3Q','2025_4Q','2026_1Q'];
+
+            // 법인별 IS/BS 데이터 추출 (백만원 → 억원)
+            const getEV = (type, period, account, entity) => {
+              const v = entityCsvLookup?.[type]?.[period]?.[normalizeAccount(account)]?.[entity];
+              return v != null ? Math.round(v / 100) : null;
+            };
+
+            const subData = subEntities.map(entity => {
+              const series = subPeriods.map(pk => {
+                const name = pk.replace('20','').replace('_','.');
+                return {
+                  name,
+                  매출액:    getEV('is', pk, '매출액', entity),
+                  영업이익:  getEV('is', pk, '영업이익', entity),
+                  당기순이익: getEV('is', pk, '당기순이익', entity),
+                  자산총계:  getEV('bs', pk, '자산총계', entity),
+                  부채총계:  getEV('bs', pk, '부채총계', entity),
+                  자본총계:  getEV('bs', pk, '자본총계', entity),
+                };
+              });
+              const latest = series[series.length - 1];
+              return { entity, series, latest };
+            });
+
+            // 요약 분석 텍스트 (법인별)
+            const genAnalysis = (entity, series) => {
+              const items = [];
+              const hasData = series.some(s => s.매출액 != null);
+              if (!hasData) return ['CSV 데이터 로딩 중이거나 해당 법인 데이터 없음.'];
+              const validSales = series.filter(s => s.매출액 != null);
+              if (validSales.length >= 2) {
+                const first = validSales[0]; const last = validSales[validSales.length - 1];
+                const saleChg = first.매출액 > 0 ? Math.round((last.매출액 - first.매출액) / Math.abs(first.매출액) * 100) : null;
+                if (saleChg != null) items.push(`매출 추이: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억 (${saleChg >= 0 ? '+' : ''}${saleChg}%)`);
+              }
+              const validOp = series.filter(s => s.영업이익 != null);
+              if (validOp.length >= 2) {
+                const lastOp = validOp[validOp.length - 1];
+                const prevOp = validOp[validOp.length - 2];
+                items.push(`영업손익: ${lastOp.name} ${formatNumber(lastOp.영업이익)}억 (전분기 ${formatNumber(prevOp.영업이익)}억)`);
+              }
+              const validBs = series.filter(s => s.자본총계 != null);
+              if (validBs.length >= 1) {
+                const lastBs = validBs[validBs.length - 1];
+                items.push(`자본총계: ${lastBs.name} ${formatNumber(lastBs.자본총계)}억 / 부채: ${formatNumber(lastBs.부채총계 ?? 0)}억`);
+              }
+              return items.length ? items : ['데이터 집계 중.'];
+            };
+
+            return (
+              <div className="space-y-4">
+
+                {/* ① 자회사별 손익·재무 추이 */}
+                <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="px-4 py-2.5 border-b border-zinc-100 bg-amber-50/60">
+                    <h4 className="text-xs font-semibold text-amber-900">자회사 현황 — ① 손익 · 재무상태 추이 (24.1Q~26.1Q)</h4>
                   </div>
-                ) : (
-                  <p className="text-zinc-400 leading-relaxed">
-                    자동 탐지된 일회성 항목이 없습니다. 소송·구조조정·대규모 일시 비용 등은 별도 공시·내부 메모로 보완하세요.
-                  </p>
-                )}
+                  <div className="p-4 space-y-6">
+                    {subData.map(({ entity, series, latest }) => {
+                      const color = subColors[entity] || '#6366f1';
+                      const analysis = genAnalysis(entity, series);
+                      return (
+                        <div key={entity} className="border border-zinc-100 rounded-lg p-3 bg-zinc-50/40">
+                          <p className="text-[11px] font-semibold mb-2" style={{ color }}>{entity}</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* 손익 차트 */}
+                            <div>
+                              <p className="text-[9px] text-zinc-400 mb-1">손익 추이 (억원)</p>
+                              <div className="h-32 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <ComposedChart data={series} margin={{ top: 2, right: 8, left: -12, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                                    <XAxis dataKey="name" tick={{ fontSize: 8 }} stroke="#a1a1aa" interval={1} />
+                                    <YAxis tick={{ fontSize: 8 }} stroke="#a1a1aa" tickFormatter={v => v != null ? formatNumber(v) : ''} />
+                                    <Tooltip
+                                      content={({ active, payload, label }) => {
+                                        if (!active || !payload?.length) return null;
+                                        return (
+                                          <div className="bg-white border border-zinc-200 rounded shadow px-2 py-1.5 text-[9px]">
+                                            <div className="font-semibold mb-0.5">{label}</div>
+                                            {payload.map((p, pi) => <div key={pi} style={{ color: p.color || p.stroke }}>{p.name}: <span className="font-medium">{p.value != null ? `${formatNumber(p.value)}억` : '—'}</span></div>)}
+                                          </div>
+                                        );
+                                      }}
+                                    />
+                                    <Bar dataKey="매출액" name="매출액" fill={color} opacity={0.3} maxBarSize={18} radius={[2,2,0,0]} />
+                                    <Line type="monotone" dataKey="영업이익" name="영업이익" stroke={color} strokeWidth={2} dot={{ r: 2 }} connectNulls />
+                                    <Line type="monotone" dataKey="당기순이익" name="당기순이익" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="3 2" dot={{ r: 1.5 }} connectNulls />
+                                  </ComposedChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
+                            {/* BS 차트 */}
+                            <div>
+                              <p className="text-[9px] text-zinc-400 mb-1">재무상태 추이 (억원)</p>
+                              <div className="h-32 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <ComposedChart data={series} margin={{ top: 2, right: 8, left: -12, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                                    <XAxis dataKey="name" tick={{ fontSize: 8 }} stroke="#a1a1aa" interval={1} />
+                                    <YAxis tick={{ fontSize: 8 }} stroke="#a1a1aa" tickFormatter={v => v != null ? formatNumber(v) : ''} />
+                                    <Tooltip
+                                      content={({ active, payload, label }) => {
+                                        if (!active || !payload?.length) return null;
+                                        return (
+                                          <div className="bg-white border border-zinc-200 rounded shadow px-2 py-1.5 text-[9px]">
+                                            <div className="font-semibold mb-0.5">{label}</div>
+                                            {payload.map((p, pi) => <div key={pi} style={{ color: p.color || p.stroke }}>{p.name}: <span className="font-medium">{p.value != null ? `${formatNumber(p.value)}억` : '—'}</span></div>)}
+                                          </div>
+                                        );
+                                      }}
+                                    />
+                                    <Line type="monotone" dataKey="자산총계" name="자산" stroke="#6366f1" strokeWidth={2} dot={{ r: 2 }} connectNulls />
+                                    <Line type="monotone" dataKey="부채총계" name="부채" stroke="#f43f5e" strokeWidth={1.5} strokeDasharray="3 2" dot={{ r: 1.5 }} connectNulls />
+                                    <Line type="monotone" dataKey="자본총계" name="자본" stroke="#10b981" strokeWidth={1.5} dot={{ r: 1.5 }} connectNulls />
+                                  </ComposedChart>
+                                </ResponsiveContainer>
+                              </div>
+                            </div>
+                          </div>
+                          {/* 요약 분석 */}
+                          <div className="mt-2 text-[9px] text-zinc-500 leading-relaxed space-y-0.5">
+                            {analysis.map((a, ai) => <div key={ai}>· {a}</div>)}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* 비교 요약 테이블 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-zinc-600 mb-2">최신 분기 비교 (26.1Q 기준, 억원)</p>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[10px] border-collapse min-w-[480px]">
+                          <thead>
+                            <tr className="bg-zinc-50 text-zinc-500">
+                              <th className="text-left py-1.5 px-2 font-medium border border-zinc-100">법인</th>
+                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">자산</th>
+                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">부채</th>
+                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">자본</th>
+                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">매출액</th>
+                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">영업손익</th>
+                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">당기순손익</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {subData.map(({ entity, latest }, ri) => {
+                              const color = subColors[entity] || '#6366f1';
+                              const fmtVal = v => v != null ? formatNumber(v) : '—';
+                              const opColor = latest.영업이익 != null ? (latest.영업이익 >= 0 ? 'text-zinc-800' : 'text-rose-600') : 'text-zinc-400';
+                              const niColor = latest.당기순이익 != null ? (latest.당기순이익 >= 0 ? 'text-zinc-800' : 'text-rose-600') : 'text-zinc-400';
+                              return (
+                                <tr key={ri} className="border-b border-zinc-100 hover:bg-zinc-50">
+                                  <td className="py-1.5 px-2 font-semibold border border-zinc-100" style={{ color }}>{entity}</td>
+                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.자산총계)}</td>
+                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.부채총계)}</td>
+                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.자본총계)}</td>
+                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.매출액)}</td>
+                                  <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-medium ${opColor}`}>{fmtVal(latest.영업이익)}</td>
+                                  <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 ${niColor}`}>{fmtVal(latest.당기순이익)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ② 손상평가 모니터링 */}
+                <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="px-4 py-2.5 border-b border-zinc-100 bg-rose-50/60">
+                    <h4 className="text-xs font-semibold text-rose-900">자회사 현황 — ② 손상평가 모니터링 (엔터테인먼트 · ST미국)</h4>
+                  </div>
+                  <div className="p-4 space-y-5">
+                    <p className="text-[10px] text-zinc-500 leading-relaxed">손상징후 발견 법인에 대한 25년 사업계획 대비 실적 달성 추이 모니터링. 사업계획 수치 입력 후 실적과 비교.</p>
+                    {['엔터테인먼트', 'ST미국'].map(entity => {
+                      const color = subColors[entity];
+                      const imp = impairmentData[entity] || {};
+                      const entitySeries = subData.find(d => d.entity === entity)?.series || [];
+
+                      // 26.1Q 실적 (매출, 영업이익)
+                      const actual26_1Q = entitySeries.find(s => s.name === '26.1Q');
+                      const actual25_4Q = entitySeries.find(s => s.name === '25.4Q');
+                      const actual25_3Q = entitySeries.find(s => s.name === '25.3Q');
+
+                      // 계획 vs 실적 차트 데이터 (25.3Q~26.1Q, 분기 누적 개념)
+                      const planVsActualData = [
+                        { name: '25.3Q', 실적매출: actual25_3Q?.매출액, 실적영업이익: actual25_3Q?.영업이익 },
+                        { name: '25.4Q', 실적매출: actual25_4Q?.매출액, 실적영업이익: actual25_4Q?.영업이익 },
+                        { name: '26.1Q', 실적매출: actual26_1Q?.매출액, 실적영업이익: actual26_1Q?.영업이익,
+                          계획매출: imp.plan2025Sales || null, 계획영업이익: imp.plan2025OpInc || null },
+                      ];
+
+                      return (
+                        <div key={entity} className="border border-zinc-100 rounded-lg p-3 bg-zinc-50/40">
+                          <p className="text-[11px] font-semibold mb-3" style={{ color }}>{entity} — 손상평가 모니터링</p>
+
+                          {/* 사업계획 입력 */}
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <label className="text-[9px] text-zinc-400 block mb-1">26.1Q 분기 계획 매출 (억원)</label>
+                              <input
+                                type="number"
+                                value={imp.plan2025Sales || ''}
+                                onChange={e => setImpairmentData(prev => ({
+                                  ...prev,
+                                  [entity]: { ...prev[entity], plan2025Sales: Number(e.target.value) || 0 }
+                                }))}
+                                className="w-full border border-zinc-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-teal-400"
+                                placeholder="예: 150"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-zinc-400 block mb-1">26.1Q 분기 계획 영업이익 (억원)</label>
+                              <input
+                                type="number"
+                                value={imp.plan2025OpInc || ''}
+                                onChange={e => setImpairmentData(prev => ({
+                                  ...prev,
+                                  [entity]: { ...prev[entity], plan2025OpInc: Number(e.target.value) || 0 }
+                                }))}
+                                className="w-full border border-zinc-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-teal-400"
+                                placeholder="예: 10"
+                              />
+                            </div>
+                          </div>
+
+                          {/* 계획 vs 실적 차트 */}
+                          <p className="text-[9px] text-zinc-400 mb-1">매출 · 영업손익 추이 및 계획 비교 (억원)</p>
+                          <div className="h-36 w-full mb-3">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <ComposedChart data={planVsActualData} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                                <XAxis dataKey="name" tick={{ fontSize: 8 }} stroke="#a1a1aa" />
+                                <YAxis tick={{ fontSize: 8 }} stroke="#a1a1aa" tickFormatter={v => formatNumber(v)} />
+                                <Tooltip content={({ active, payload, label }) => {
+                                  if (!active || !payload?.length) return null;
+                                  return (
+                                    <div className="bg-white border border-zinc-200 rounded shadow px-2 py-1.5 text-[9px]">
+                                      <div className="font-semibold mb-0.5">{label}</div>
+                                      {payload.map((p, pi) => <div key={pi} style={{ color: p.color || p.stroke }}>{p.name}: <span className="font-medium">{p.value != null ? `${formatNumber(p.value)}억` : '—'}</span></div>)}
+                                    </div>
+                                  );
+                                }} />
+                                <Legend wrapperStyle={{ fontSize: 8 }} />
+                                <Bar dataKey="실적매출" name="실적 매출" fill={color} opacity={0.35} maxBarSize={22} radius={[2,2,0,0]} />
+                                <Bar dataKey="계획매출" name="계획 매출" fill="#94a3b8" opacity={0.4} maxBarSize={22} radius={[2,2,0,0]} />
+                                <Line type="monotone" dataKey="실적영업이익" name="실적 영업이익" stroke={color} strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                                <Line type="monotone" dataKey="계획영업이익" name="계획 영업이익" stroke="#94a3b8" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 2 }} connectNulls />
+                              </ComposedChart>
+                            </ResponsiveContainer>
+                          </div>
+
+                          {/* 계획 달성률 표시 */}
+                          {(imp.plan2025Sales > 0 || imp.plan2025OpInc > 0) && actual26_1Q && (
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                              {imp.plan2025Sales > 0 && actual26_1Q.매출액 != null && (
+                                <div className={`rounded px-2.5 py-1.5 text-center ${actual26_1Q.매출액 >= imp.plan2025Sales ? 'bg-teal-50 border border-teal-100' : 'bg-rose-50 border border-rose-100'}`}>
+                                  <div className="text-[9px] text-zinc-400">매출 달성률</div>
+                                  <div className={`text-sm font-bold tabular-nums ${actual26_1Q.매출액 >= imp.plan2025Sales ? 'text-teal-700' : 'text-rose-600'}`}>
+                                    {Math.round(actual26_1Q.매출액 / imp.plan2025Sales * 100)}%
+                                  </div>
+                                  <div className="text-[9px] text-zinc-400">{formatNumber(actual26_1Q.매출액)} / {formatNumber(imp.plan2025Sales)}억</div>
+                                </div>
+                              )}
+                              {imp.plan2025OpInc !== 0 && actual26_1Q.영업이익 != null && imp.plan2025OpInc !== 0 && (
+                                <div className={`rounded px-2.5 py-1.5 text-center ${actual26_1Q.영업이익 >= imp.plan2025OpInc ? 'bg-teal-50 border border-teal-100' : 'bg-rose-50 border border-rose-100'}`}>
+                                  <div className="text-[9px] text-zinc-400">영업이익 달성률</div>
+                                  <div className={`text-sm font-bold tabular-nums ${actual26_1Q.영업이익 >= imp.plan2025OpInc ? 'text-teal-700' : 'text-rose-600'}`}>
+                                    {imp.plan2025OpInc !== 0 ? Math.round(actual26_1Q.영업이익 / imp.plan2025OpInc * 100) : '—'}%
+                                  </div>
+                                  <div className="text-[9px] text-zinc-400">{formatNumber(actual26_1Q.영업이익)} / {formatNumber(imp.plan2025OpInc)}억</div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* 긍정적 사항 / 모니터링 사항 편집 */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[9px] font-semibold text-teal-700 block mb-1">✅ 긍정적 사항</label>
+                              <textarea
+                                value={imp.positives || ''}
+                                onChange={e => setImpairmentData(prev => ({
+                                  ...prev,
+                                  [entity]: { ...prev[entity], positives: e.target.value }
+                                }))}
+                                rows={4}
+                                className="w-full border border-zinc-200 rounded px-2 py-1.5 text-[10px] text-zinc-700 leading-relaxed resize-none focus:outline-none focus:border-teal-400"
+                                placeholder={"예)\n· 신규 브랜드 런칭 효과 가시화\n· 온라인 채널 성장률 +15%\n· 주요 거래처 계약 연장"}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] font-semibold text-rose-700 block mb-1">⚠️ 모니터링 사항</label>
+                              <textarea
+                                value={imp.monitoring || ''}
+                                onChange={e => setImpairmentData(prev => ({
+                                  ...prev,
+                                  [entity]: { ...prev[entity], monitoring: e.target.value }
+                                }))}
+                                rows={4}
+                                className="w-full border border-zinc-200 rounded px-2 py-1.5 text-[10px] text-zinc-700 leading-relaxed resize-none focus:outline-none focus:border-rose-400"
+                                placeholder={"예)\n· 영업이익 계획 대비 미달 지속\n· 현지 경기 침체 영향 모니터링\n· 환율 변동 리스크"}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] font-semibold text-zinc-700 mb-2">③ 대응방안</p>
-                <ul className="space-y-2 text-zinc-600">
-                  {actionItems.length > 0 ? (
-                    actionItems.map((a, i) => (
-                      <li key={i} className="leading-relaxed border-l-2 border-emerald-200 pl-2">
-                        <span className="font-medium text-zinc-800">{a.title}</span>
-                        <span className="block text-zinc-500 mt-0.5">{a.desc}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="text-zinc-400">제안된 대응 과제가 없습니다.</li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
         {/* AI 분석 섹션 */}
