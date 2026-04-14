@@ -5688,8 +5688,8 @@ export default function FnFQ1_2026Dashboard() {
           })()}
         </div>
 
-        {/* AI 분석 섹션 */}
-        <div>
+        {/* AI 분석 섹션 — 임시 숨김 (false && 로 복원 가능) */}
+        {false && <div>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
               <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-violet-500 rounded"></span>
@@ -6218,7 +6218,7 @@ export default function FnFQ1_2026Dashboard() {
               }
             })()}
           </div>
-        </div>
+        </div>}
       </div>
     );
   };
