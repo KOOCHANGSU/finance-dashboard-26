@@ -4516,7 +4516,14 @@ export default function FnFQ1_2026Dashboard() {
       nwcRisks.push({ level: 'red', text: `DIO ${Math.round(dioNWC)}일 — 재고 회전 극도 저하, 시즌·트렌드 리스크 긴급 점검 🚨` });
     }
     if (nwcRisks.length === 0) {
-      nwcRisks.push({ level: 'green', text: '✅ 운전자본 이상징후 없음 — 전분기 대비 정상 범위' });
+      const normalDetails = [
+        dsoNWC != null && dsoPrev != null ? `DSO ${Math.round(dsoNWC)}일 (전분기 ${Math.round(dsoPrev)}일, 변동 ${dsoNWC >= dsoPrev ? '+' : ''}${(dsoNWC - dsoPrev).toFixed(1)}일)` : dsoNWC != null ? `DSO ${Math.round(dsoNWC)}일` : null,
+        dioNWC != null && dioPrev != null ? `DIO ${Math.round(dioNWC)}일 (전분기 ${Math.round(dioPrev)}일, 변동 ${dioNWC >= dioPrev ? '+' : ''}${(dioNWC - dioPrev).toFixed(1)}일)` : dioNWC != null ? `DIO ${Math.round(dioNWC)}일` : null,
+        dpoNWC != null && dpoPrev != null ? `DPO ${Math.round(dpoNWC)}일 (전분기 ${Math.round(dpoPrev)}일, 변동 ${dpoNWC >= dpoPrev ? '+' : ''}${(dpoNWC - dpoPrev).toFixed(1)}일)` : dpoNWC != null ? `DPO ${Math.round(dpoNWC)}일` : null,
+        cccNWC != null ? `CCC ${Math.round(cccNWC)}일` : null,
+      ].filter(Boolean);
+      nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 모두 전분기 대비 ±5일 이내 변동(정상 임계치), NWC 변동 15% 미만. ${normalDetails.length ? `현재값: ${normalDetails.join(' / ')}` : ''}` });
+      nwcRisks.push({ level: 'info', text: `⚠️ 현재 26.1Q 마감 전 데이터 기준. 실적 확정 후 매출채권·재고·매입채무 수치가 변경되면 DSO↑, DIO↑, DPO↓ 등 이상징후가 자동으로 감지됩니다.` });
     }
 
     // ⑤ 해결책
@@ -4926,6 +4933,7 @@ export default function FnFQ1_2026Dashboard() {
                       <li key={i} className={`text-[10px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
                         r.level === 'red' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
                         r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                        r.level === 'info' ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
                         'bg-teal-50 text-teal-700 border border-teal-100'
                       }`}>{r.text}</li>
                     ))}
