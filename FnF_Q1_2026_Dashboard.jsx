@@ -4839,46 +4839,82 @@ export default function FnFQ1_2026Dashboard() {
                   )}
                 </div>
                 )}
-                {/* ② 비용구조 — 매출액 대비 비율 추이 */}
+                {/* ② 비용구조 — 매출액 대비 비율 (테이블) */}
                 <div>
                   <p className="text-[11px] font-semibold text-zinc-700 mb-1">
-                    ② 비용구조 — 매출액 대비 비율 추이 (24.1Q~26.1Q)
+                    ② 비용구조 — 매출액 대비 비율 <span className="font-normal text-zinc-400">(최근 5분기, %)</span>
                   </p>
-                  <p className="text-[10px] text-zinc-400 mb-2">단위: % (매출액 대비) · 영업이익률 선(주황): 우측 축</p>
-                  <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={costTrendData} margin={{ top: 4, right: 48, left: -8, bottom: 4 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                        <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" interval={1} />
-                        <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}%`} domain={[0, 100]} />
-                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#f97316" tickFormatter={v => `${v}%`} domain={[0, 45]} />
-                        <Tooltip
-                          content={({ active, payload, label }) => {
-                            if (!active || !payload?.length) return null;
-                            return (
-                              <div className="bg-white border border-zinc-200 rounded-lg shadow-lg px-3 py-2 text-[11px] min-w-[150px]">
-                                <div className="font-semibold text-zinc-700 mb-1">{label}</div>
-                                {payload.map((p, i) => (
-                                  <div key={i} className="flex justify-between gap-3" style={{ color: p.color || p.fill }}>
-                                    <span>{p.name}</span>
-                                    <span className="tabular-nums font-medium">{p.value != null ? `${Number(p.value).toFixed(1)}%` : '—'}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: 9 }} />
-                        <Bar yAxisId="left" dataKey="매출원가율" name="매출원가" fill="#94a3b8" stackId="cost" maxBarSize={28} />
-                        <Bar yAxisId="left" dataKey="인건비율" name="인건비" fill="#a78bfa" stackId="cost" maxBarSize={28} />
-                        <Bar yAxisId="left" dataKey="광고선전비율" name="광고선전비" fill="#60a5fa" stackId="cost" maxBarSize={28} />
-                        <Bar yAxisId="left" dataKey="수수료율" name="수수료" fill="#fbbf24" stackId="cost" maxBarSize={28} />
-                        <Bar yAxisId="left" dataKey="감가상각비율" name="감가상각비" fill="#34d399" stackId="cost" maxBarSize={28} />
-                        <Bar yAxisId="left" dataKey="기타판관비율" name="기타판관비" fill="#f87171" stackId="cost" radius={[2, 2, 0, 0]} maxBarSize={28} />
-                        <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f97316" strokeWidth={2} dot={{ r: 2 }} connectNulls={false} />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {(() => {
+                    const rows = [
+                      { label: '매출원가율', key: '매출원가율', dot: 'bg-slate-400' },
+                      { label: '수수료율', key: '수수료율', dot: 'bg-amber-400' },
+                      { label: '인건비율', key: '인건비율', dot: 'bg-violet-400' },
+                      { label: '광고선전비율', key: '광고선전비율', dot: 'bg-blue-400' },
+                      { label: '감가상각비율', key: '감가상각비율', dot: 'bg-emerald-400' },
+                      { label: '기타판관비율', key: '기타판관비율', dot: 'bg-rose-400' },
+                    ];
+                    const cols = costTrendData.slice(-5);
+                    const latest = cols[cols.length - 1];
+                    const prev   = cols[cols.length - 2];
+                    return (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[10px] border-collapse">
+                          <thead>
+                            <tr className="bg-zinc-50">
+                              <th className="text-left py-1.5 px-2 font-semibold text-zinc-500 border border-zinc-100 w-24">항목</th>
+                              {cols.map(d => (
+                                <th key={d.name} className={`text-right py-1.5 px-2 font-semibold border border-zinc-100 ${d.name === latest?.name ? 'bg-blue-50 text-blue-800' : 'text-zinc-500'}`}>
+                                  {d.name}
+                                </th>
+                              ))}
+                              <th className="text-right py-1.5 px-2 font-semibold text-zinc-400 border border-zinc-100">전분기차</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rows.map(({ label, key, dot }) => {
+                              const diff = latest?.[key] != null && prev?.[key] != null ? (latest[key] - prev[key]).toFixed(1) : null;
+                              return (
+                                <tr key={key} className="hover:bg-zinc-50/60">
+                                  <td className="py-1.5 px-2 border border-zinc-100 text-zinc-700 font-medium">
+                                    <span className="flex items-center gap-1.5">
+                                      <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
+                                      {label}
+                                    </span>
+                                  </td>
+                                  {cols.map(d => (
+                                    <td key={d.name} className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 ${d.name === latest?.name ? 'bg-blue-50/60 font-semibold text-zinc-800' : 'text-zinc-600'}`}>
+                                      {d[key] != null ? `${Number(d[key]).toFixed(1)}%` : '—'}
+                                    </td>
+                                  ))}
+                                  <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-semibold ${diff == null ? 'text-zinc-300' : Number(diff) > 0 ? 'text-rose-500' : Number(diff) < 0 ? 'text-emerald-600' : 'text-zinc-400'}`}>
+                                    {diff != null ? (Number(diff) > 0 ? `+${diff}%p` : `${diff}%p`) : '—'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                            {/* 영업이익률 구분선 */}
+                            <tr className="bg-zinc-50 font-semibold border-t-2 border-zinc-300">
+                              <td className="py-1.5 px-2 border border-zinc-100 text-zinc-800">영업이익률</td>
+                              {cols.map(d => (
+                                <td key={d.name} className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 ${d.name === latest?.name ? 'bg-blue-50/60 text-blue-700' : 'text-zinc-700'}`}>
+                                  {d['영업이익률'] != null ? `${Number(d['영업이익률']).toFixed(1)}%` : '—'}
+                                </td>
+                              ))}
+                              {(() => {
+                                const diff = latest?.['영업이익률'] != null && prev?.['영업이익률'] != null
+                                  ? (latest['영업이익률'] - prev['영업이익률']).toFixed(1) : null;
+                                return (
+                                  <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-semibold ${diff == null ? 'text-zinc-300' : Number(diff) >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                                    {diff != null ? (Number(diff) >= 0 ? `+${diff}%p` : `${diff}%p`) : '—'}
+                                  </td>
+                                );
+                              })()}
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
                   {costInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
                       <div className="flex items-center justify-between">
@@ -4995,29 +5031,6 @@ export default function FnFQ1_2026Dashboard() {
                 {nwcTrendData.length > 0 && (
                 <div>
                   <p className="text-[11px] font-semibold text-zinc-600 mb-1">② 추세 분석 <span className="font-normal text-zinc-400">(24.1Q~26.1Q)</span></p>
-                  {/* NWC 금액 + NWC/매출% */}
-                  <p className="text-[10px] text-zinc-400 mb-1">NWC (억원, 막대) · NWC/매출% (선)</p>
-                  <div className="h-40 w-full mb-3">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 40, left: -8, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                        <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" />
-                        <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${formatNumber(v)}`} />
-                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#0d9488" tickFormatter={v => `${v}%`} domain={[0, 100]} />
-                        <Tooltip content={({ active, payload, label }) => {
-                          if (!active || !payload?.length) return null;
-                          return (
-                            <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-1.5 text-[10px]">
-                              <div className="font-semibold mb-0.5">{label}</div>
-                              {payload.map((p, i) => <div key={i} style={{ color: p.color || p.fill }}>{p.name}: <span className="font-medium">{p.value != null ? (p.name === 'NWC/매출%' ? `${p.value}%` : `${formatNumber(p.value)}억`) : '—'}</span></div>)}
-                            </div>
-                          );
-                        }} />
-                        <Bar yAxisId="left" dataKey="NWC" name="NWC" fill="#5eead4" maxBarSize={28} radius={[3,3,0,0]} />
-                        <Line yAxisId="right" type="monotone" dataKey="NWC매출비" name="NWC/매출%" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </div>
                   {/* DSO / DIO / DPO 라인 3개 */}
                   <p className="text-[10px] text-zinc-400 mb-1">DSO · DIO · DPO (일수)</p>
                   <div className="h-44 w-full">
