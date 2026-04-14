@@ -210,8 +210,17 @@ const buildEntityQuarterLookup = (rows, year) => {
       const accountKey = normalizeAccount(rawAccount);
       if (!lookup[period][accountKey]) lookup[period][accountKey] = {};
       Object.entries(entityCols).forEach(([entity, rel]) => {
-        const v = parseCsvNumber(row[offset + rel]);
-        if (v !== undefined) lookup[period][accountKey][entity] = Math.round(v);
+        if (entity === '기타(연결조정)') {
+          // 연결조정 = 연결합계(+11) − 단순합계(+8)
+          const consolidated = parseCsvNumber(row[offset + 11]);
+          const simpleSum = parseCsvNumber(row[offset + 8]);
+          if (consolidated !== undefined && simpleSum !== undefined) {
+            lookup[period][accountKey][entity] = Math.round(consolidated - simpleSum);
+          }
+        } else {
+          const v = parseCsvNumber(row[offset + rel]);
+          if (v !== undefined) lookup[period][accountKey][entity] = Math.round(v);
+        }
       });
     }
   });
