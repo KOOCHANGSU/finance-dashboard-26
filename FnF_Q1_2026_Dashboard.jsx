@@ -5112,27 +5112,95 @@ export default function FnFQ1_2026Dashboard() {
 
             // 요약 분석 텍스트 (법인별)
             const genAnalysis = (entity, series) => {
-              const items = [];
+              const pos = [], neg = [], neu = [];
               const hasData = series.some(s => s.매출액 != null);
-              if (!hasData) return ['CSV 데이터 로딩 중이거나 해당 법인 데이터 없음.'];
+              if (!hasData) return { pos: [], neg: [], neu: ['CSV 데이터 로딩 중이거나 해당 법인 데이터 없음.'] };
+
               const validSales = series.filter(s => s.매출액 != null);
+              const validOp    = series.filter(s => s.영업이익 != null);
+              const validNi    = series.filter(s => s.당기순이익 != null);
+              const validBs    = series.filter(s => s.자본총계 != null);
+
+              // ── 매출 추이 ──
               if (validSales.length >= 2) {
                 const first = validSales[0]; const last = validSales[validSales.length - 1];
-                const saleChg = first.매출액 > 0 ? Math.round((last.매출액 - first.매출액) / Math.abs(first.매출액) * 100) : null;
-                if (saleChg != null) items.push(`매출 추이: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억 (${saleChg >= 0 ? '+' : ''}${saleChg}%)`);
+                const chg = first.매출액 > 0 ? Math.round((last.매출액 - first.매출액) / Math.abs(first.매출액) * 100) : null;
+                if (chg != null) {
+                  if (chg > 10)       pos.push(`매출 성장: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억 (+${chg}%) — 외형 성장세 지속`);
+                  else if (chg < -10) neg.push(`매출 하락: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억 (${chg}%) — 수요 회복 모니터링 필요`);
+                  else                neu.push(`매출 보합: ${first.name}→${last.name} ${chg >= 0 ? '+' : ''}${chg}% (안정권)`);
+                }
+                // YoY 동일 분기 비교
+                const lastQ = last.name.split('.')[1];
+                const prevYearPrefix = `${String(parseInt(last.name) - 1).padStart(2,'0')}.`;
+                const yoyPrev = validSales.find(s => s.name === prevYearPrefix + lastQ);
+                if (yoyPrev && yoyPrev.매출액 > 0) {
+                  const yoyChg = Math.round((last.매출액 - yoyPrev.매출액) / Math.abs(yoyPrev.매출액) * 100);
+                  if (yoyChg > 5)       pos.push(`전년 동기 대비 매출 +${yoyChg}% 성장 (${yoyPrev.name} ${formatNumber(yoyPrev.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억)`);
+                  else if (yoyChg < -5) neg.push(`전년 동기 대비 매출 ${yoyChg}% 감소 (${yoyPrev.name} ${formatNumber(yoyPrev.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억)`);
+                }
               }
-              const validOp = series.filter(s => s.영업이익 != null);
-              if (validOp.length >= 2) {
+
+              // ── 영업손익 ──
+              if (validOp.length >= 1) {
                 const lastOp = validOp[validOp.length - 1];
-                const prevOp = validOp[validOp.length - 2];
-                items.push(`영업손익: ${lastOp.name} ${formatNumber(lastOp.영업이익)}억 (전분기 ${formatNumber(prevOp.영업이익)}억)`);
+                const profitCnt = validOp.filter(s => s.영업이익 >= 0).length;
+                if (lastOp.영업이익 > 0)  pos.push(`흑자 유지: 최신(${lastOp.name}) 영업이익 +${formatNumber(lastOp.영업이익)}억`);
+                else                        neg.push(`영업손실: 최신(${lastOp.name}) ${formatNumber(lastOp.영업이익)}억 — 수익성 개선 필요`);
+
+                if (validOp.length >= 2) {
+                  const prevOp = validOp[validOp.length - 2];
+                  const opDiff = lastOp.영업이익 - prevOp.영업이익;
+                  if (opDiff > 0 && lastOp.영업이익 >= 0)  pos.push(`전분기 대비 영업이익 +${formatNumber(opDiff)}억 개선`);
+                  else if (opDiff > 0 && lastOp.영업이익 < 0) pos.push(`영업손실 축소: 전분기 대비 +${formatNumber(opDiff)}억 개선 (${formatNumber(prevOp.영업이익)}억 → ${formatNumber(lastOp.영업이익)}억)`);
+                  else if (opDiff < 0 && lastOp.영업이익 >= 0) neg.push(`전분기 대비 영업이익 ${formatNumber(opDiff)}억 감소`);
+                  else                                           neg.push(`영업손실 확대: 전분기 대비 ${formatNumber(opDiff)}억 추가 악화`);
+                }
+
+                if (profitCnt === validOp.length)      pos.push(`전 구간(${validOp.length}분기) 영업흑자 지속 — 안정적 수익 기반`);
+                else if (profitCnt === 0 && validOp.length >= 3) neg.push(`전 구간(${validOp.length}분기) 연속 적자 — 구조적 손실 위험`);
               }
-              const validBs = series.filter(s => s.자본총계 != null);
+
+              // ── 당기순손익 ──
+              if (validNi.length >= 1) {
+                const lastNi = validNi[validNi.length - 1];
+                if (lastNi.당기순이익 > 0 && validNi.length >= 2) {
+                  const prevNi = validNi[validNi.length - 2];
+                  if (lastNi.당기순이익 > prevNi.당기순이익) pos.push(`당기순이익 증가: ${formatNumber(prevNi.당기순이익)}억 → ${formatNumber(lastNi.당기순이익)}억`);
+                } else if (lastNi.당기순이익 < 0) {
+                  neg.push(`당기순손실: ${formatNumber(lastNi.당기순이익)}억 — 비영업 비용 포함 종합 손실`);
+                }
+              }
+
+              // ── 재무 건전성 ──
               if (validBs.length >= 1) {
                 const lastBs = validBs[validBs.length - 1];
-                items.push(`자본총계: ${lastBs.name} ${formatNumber(lastBs.자본총계)}억 / 부채: ${formatNumber(lastBs.부채총계 ?? 0)}억`);
+                if (lastBs.자본총계 <= 0) {
+                  neg.push(`완전 자본잠식: 자본총계 ${formatNumber(lastBs.자본총계)}억 — 즉각적 재무 구조 개선 필요`);
+                } else {
+                  if (validBs.length >= 2) {
+                    const firstBs = validBs[0];
+                    const eqChg = firstBs.자본총계 > 0 ? Math.round((lastBs.자본총계 - firstBs.자본총계) / Math.abs(firstBs.자본총계) * 100) : null;
+                    if (eqChg != null) {
+                      if (eqChg > 5)        pos.push(`자본 증가 +${eqChg}%: ${firstBs.name} ${formatNumber(firstBs.자본총계)}억 → ${lastBs.name} ${formatNumber(lastBs.자본총계)}억 (이익 누적)`);
+                      else if (eqChg < -15) neg.push(`자본 감소 ${eqChg}%: ${firstBs.name}→${lastBs.name} — 자본잠식 진행 가능성`);
+                    }
+                  }
+                  if (lastBs.부채총계 != null && lastBs.자본총계 > 0) {
+                    const dr = Math.round(lastBs.부채총계 / lastBs.자본총계 * 100);
+                    if (dr > 300)      neg.push(`부채비율 과다: ${dr}% — 재무 레버리지 위험 수준`);
+                    else if (dr < 100) pos.push(`재무 건전: 부채비율 ${dr}% — 안정적 재무 구조`);
+                    else               neu.push(`부채비율 ${dr}% — 보통 수준, 지속 모니터링`);
+                  }
+                }
               }
-              return items.length ? items : ['데이터 집계 중.'];
+
+              return {
+                pos,
+                neg,
+                neu,
+                verdict: neg.length > pos.length ? 'negative' : pos.length > neg.length ? 'positive' : 'mixed',
+              };
             };
 
             return (
@@ -5206,9 +5274,32 @@ export default function FnFQ1_2026Dashboard() {
                               </div>
                             </div>
                           </div>
-                          {/* 요약 분석 */}
-                          <div className="mt-2 text-[9px] text-zinc-500 leading-relaxed space-y-0.5">
-                            {analysis.map((a, ai) => <div key={ai}>· {a}</div>)}
+                          {/* AI 분석 */}
+                          <div className="mt-2.5 rounded-lg border px-3 py-2 text-[9px] leading-relaxed space-y-1.5" style={{
+                            borderColor: analysis.verdict === 'positive' ? '#d1fae5' : analysis.verdict === 'negative' ? '#fee2e2' : '#e4e4e7',
+                            background: analysis.verdict === 'positive' ? '#f0fdf4' : analysis.verdict === 'negative' ? '#fff7f7' : '#fafafa',
+                          }}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className={`text-[10px] font-bold ${analysis.verdict === 'positive' ? 'text-teal-600' : analysis.verdict === 'negative' ? 'text-rose-600' : 'text-zinc-500'}`}>
+                                {analysis.verdict === 'positive' ? '▲ 긍정적' : analysis.verdict === 'negative' ? '▼ 부정적' : '◆ 복합적'}
+                              </span>
+                              <span className="text-zinc-400 text-[9px]">— AI 분석 의견</span>
+                            </div>
+                            {analysis.pos.map((t, i) => (
+                              <div key={`p${i}`} className="flex gap-1 text-teal-700">
+                                <span className="shrink-0 font-bold text-teal-500">✓</span><span>{t}</span>
+                              </div>
+                            ))}
+                            {analysis.neg.map((t, i) => (
+                              <div key={`n${i}`} className="flex gap-1 text-rose-700">
+                                <span className="shrink-0 font-bold text-rose-400">!</span><span>{t}</span>
+                              </div>
+                            ))}
+                            {analysis.neu.map((t, i) => (
+                              <div key={`u${i}`} className="flex gap-1 text-zinc-500">
+                                <span className="shrink-0">·</span><span>{t}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       );
