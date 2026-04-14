@@ -4794,10 +4794,10 @@ export default function FnFQ1_2026Dashboard() {
                     {[
                       { label: 'NWC', val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—', sub: `전분기 ${nwcMPrev > 0 ? formatNumber(Math.round(nwcMPrev/100))+'억' : '—'}`, color: 'text-teal-700' },
                       { label: 'NWC / 매출', val: nwcPctRev != null ? `${nwcPctRev}%` : '—', sub: '매출 대비 NWC 집약도', color: 'text-teal-700' },
-                      { label: 'DSO', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—', sub: `전분기 ${dsoPrev != null ? Math.round(dsoPrev)+'일' : '—'}`, color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800' },
-                      { label: 'DIO', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—', sub: `전분기 ${dioPrev != null ? Math.round(dioPrev)+'일' : '—'}`, color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800' },
-                      { label: 'DPO', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—', sub: `전분기 ${dpoPrev != null ? Math.round(dpoPrev)+'일' : '—'}`, color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800' },
-                      { label: 'CCC', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—', sub: 'DSO + DIO − DPO', color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800' },
+                      { label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—', sub: `전분기 ${dsoPrev != null ? Math.round(dsoPrev)+'일' : '—'}`, color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800' },
+                      { label: 'DIO (재고 회전일)', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—', sub: `전분기 ${dioPrev != null ? Math.round(dioPrev)+'일' : '—'}`, color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800' },
+                      { label: 'DPO (매입채무 지급일)', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—', sub: `전분기 ${dpoPrev != null ? Math.round(dpoPrev)+'일' : '—'}`, color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800' },
+                      { label: 'CCC (현금전환주기)', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—', sub: 'DSO + DIO − DPO', color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800' },
                     ].map((k, i) => (
                       <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2">
                         <div className="text-[9px] text-zinc-400 uppercase tracking-wide font-medium">{k.label}</div>
