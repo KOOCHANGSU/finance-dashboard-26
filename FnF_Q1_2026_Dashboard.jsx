@@ -4351,11 +4351,91 @@ export default function FnFQ1_2026Dashboard() {
       (incomeStatementData[qKeyPerf]?.기타판관비 || 0) +
       (incomeStatementData[qKeyPerf]?.수수료 || 0) +
       (incomeStatementData[qKeyPerf]?.감가상각비 || 0);
-    const costBarData = [
-      { name: '인건비', value: Math.max(0, Math.round(laborM / 100)) },
-      { name: '광고비', value: Math.max(0, Math.round(adM / 100)) },
-      { name: '기타비용', value: Math.max(0, Math.round(otherSgaM / 100)) },
-    ];
+    // Quarter performance color coding for ② chart
+    const qRevMaxMap = {};
+    ['1Q', '2Q', '3Q', '4Q'].forEach(q => {
+      const key = `${q}매출`;
+      const vals = plTrendData.yearly.map(y => y[key] || 0);
+      qRevMaxMap[q] = Math.max(...vals, 0);
+    });
+    const getQuarterFill = (q, val) => {
+      const maxVal = qRevMaxMap[q];
+      if (maxVal <= 0) return '#c7d2fe';
+      if (val >= maxVal && val > 0) return '#ef4444';
+      const ratio = maxVal > 0 ? val / maxVal : 0;
+      if (ratio >= 0.95) return '#6366f1';
+      if (ratio >= 0.88) return '#818cf8';
+      if (ratio >= 0.78) return '#a5b4fc';
+      if (ratio >= 0.65) return '#c7d2fe';
+      return '#e0e7ff';
+    };
+
+    // ② Yearly trend insights (dynamic)
+    const yearlyInsights = [];
+    if (plTrendData.yearly.length > 0) {
+      const completedYears = plTrendData.yearly.filter(y => y.quarters >= 4);
+      const bestTotalYear = completedYears.reduce((b, y) => y.매출액 > (b?.매출액 || 0) ? y : b, null);
+      const bestMarginYear = completedYears.reduce((b, y) => y.영업이익률 > (b?.영업이익률 || 0) ? y : b, null);
+      if (bestTotalYear) yearlyInsights.push(`연간 최대 매출: ${bestTotalYear.name} ${formatNumber(bestTotalYear.매출액)}억원, 영업이익률 ${bestTotalYear.영업이익률}%.`);
+      if (bestMarginYear) yearlyInsights.push(`최고 영업이익률: ${bestMarginYear.name} ${bestMarginYear.영업이익률}% (매출 ${formatNumber(bestMarginYear.매출액)}억원).`);
+      const qBests = ['1Q', '2Q', '3Q', '4Q'].map(q => {
+        const key = `${q}매출`;
+        const best = plTrendData.yearly.reduce((b, y) => (y[key] || 0) > (b?.[key] || 0) ? y : b, null);
+        return best ? `${q}: ${best.name.replace('년', '')}년(${formatNumber(best[key])}억)` : null;
+      }).filter(Boolean);
+      if (qBests.length) yearlyInsights.push(`분기별 최대 매출 연도 — ${qBests.join(' / ')} (차트 내 빨간색 막대).`);
+      const firstY = completedYears[0];
+      const lastY = completedYears[completedYears.length - 1];
+      if (firstY && lastY && firstY !== lastY) {
+        const revGrowth = ((lastY.매출액 - firstY.매출액) / firstY.매출액 * 100).toFixed(0);
+        const marginDiff = (lastY.영업이익률 - firstY.영업이익률).toFixed(0);
+        yearlyInsights.push(`${firstY.name}→${lastY.name}: 연간 매출 ${revGrowth > 0 ? '+' : ''}${revGrowth}% 성장, 영업이익률 ${marginDiff}%p 변동. ${marginDiff < 0 ? '외형 성장에도 수익성 하락 — 원가·수수료 비중 관리 핵심 과제.' : '매출·이익률 동반 성장.'}`);
+      }
+    }
+
+    // Cost trend data for ③ chart (22.1Q~26.1Q, detailed from 24.1Q)
+    const costTrendData = plTrendData.quarterly.map(q => {
+      const m = q.name.match(/^(\d{2})\.([1-4]Q)$/);
+      if (!m) return { name: q.name, 영업이익률: q.영업이익률 };
+      const pk = `20${m[1]}_${m[2]}`;
+      const d = incomeStatementData[pk] || {};
+      const revM = d.매출액 || 0;
+      const entry = { name: q.name, 영업이익률: q.영업이익률 };
+      if (revM > 0) {
+        const pct = (v) => +((v || 0) / revM * 100).toFixed(1);
+        entry.매출원가율 = pct(d.매출원가);
+        entry.인건비율 = pct(d.인건비);
+        entry.광고선전비율 = pct(d.광고선전비);
+        entry.수수료율 = pct(d.수수료);
+        entry.감가상각비율 = pct(d.감가상각비);
+        entry.기타판관비율 = pct(d.기타판관비);
+      }
+      return entry;
+    });
+
+    // Cost insights for ③
+    const detailedCostData = costTrendData.filter(d => d.수수료율 !== undefined);
+    const latestDt = detailedCostData[detailedCostData.length - 1];
+    const earliestDt = detailedCostData[0];
+    const costInsights = [];
+    if (latestDt) {
+      costInsights.push(`수수료(지급수수료) ${latestDt.name} 기준 매출액 대비 ${latestDt.수수료율}% — 단일 최대 판관비 항목. 백화점·면세·온라인 채널 수수료로 매출 연동 변동비 성격.`);
+      if (earliestDt && earliestDt !== latestDt) {
+        const feeDiff = +(latestDt.수수료율 - earliestDt.수수료율).toFixed(1);
+        costInsights.push(`수수료율 ${earliestDt.name}(${earliestDt.수수료율}%) → ${latestDt.name}(${latestDt.수수료율}%), ${feeDiff >= 0 ? '+' : ''}${feeDiff}%p. 직매장·D2C 채널 비중 확대로 수수료 비중 최적화 검토 필요.`);
+        const adDiff = +(latestDt.광고선전비율 - earliestDt.광고선전비율).toFixed(1);
+        costInsights.push(`광고선전비율 ${earliestDt.name}(${earliestDt.광고선전비율}%) → ${latestDt.name}(${latestDt.광고선전비율}%), ${adDiff >= 0 ? '+' : ''}${adDiff}%p. 4Q 집중 집행 패턴(패션 시즌성) — 분기별 ROI 효율 점검 필요.`);
+        const depDiff = +(latestDt.감가상각비율 - earliestDt.감가상각비율).toFixed(1);
+        if (Math.abs(depDiff) >= 0.2) costInsights.push(`감가상각비율 ${earliestDt.name}(${earliestDt.감가상각비율}%) → ${latestDt.name}(${latestDt.감가상각비율}%), ${depDiff >= 0 ? '+' : ''}${depDiff}%p. IFRS16 리스 자산 또는 유·무형 고정자산 투자 증감 모니터링.`);
+      }
+      const firstAll = costTrendData[0];
+      const lastAll = costTrendData[costTrendData.length - 1];
+      if (firstAll && lastAll && firstAll !== lastAll) {
+        const opDiff = +(lastAll.영업이익률 - firstAll.영업이익률).toFixed(0);
+        costInsights.push(`영업이익률 ${firstAll.name}(${firstAll.영업이익률}%) → ${lastAll.name}(${lastAll.영업이익률}%), ${opDiff >= 0 ? '+' : ''}${opDiff}%p. ${opDiff < 0 ? '원가율·수수료 비중 증가가 마진 하락 주요 원인 — 고수익 채널 확대·원가 절감 병행 필요.' : '비용 효율화 성과 지속.'}`);
+      }
+      costInsights.push('개선 제안: ① 수수료 최적화(직매장·D2C 채널 비중 확대) ② 광고비 ROI 분석 기반 집행 효율화 ③ 감가상각 증가 구간 신규 자본지출 타당성 검토');
+    }
 
     const bsP = bsSummaryCurrentPeriod;
     const bsRow = balanceSheetData[bsP] || {};
@@ -4394,11 +4474,9 @@ export default function FnFQ1_2026Dashboard() {
         `영업이익률 ${operatingMarginCurr.toFixed(1)}% (${incomeCompareLabel} 대비 ${operatingMarginCurr >= operatingMarginPrev ? '개선 또는 유지' : '하락'} 구간).`
       );
     }
-    const costTotal = costBarData.reduce((s, x) => s + x.value, 0);
-    if (costTotal > 0) {
-      const topCost = [...costBarData].sort((a, b) => b.value - a.value)[0];
+    if (latestDt) {
       plHighlights.push(
-        `당분기(${qKeyPerf}) 판관 성격 비용 중 ${topCost.name} 비중이 상대적으로 큽니다(막대 기준 억원).`
+        `비용구조(${latestDt.name}): 수수료율 ${latestDt.수수료율}%, 인건비율 ${latestDt.인건비율}%, 광고선전비율 ${latestDt.광고선전비율}%. 수수료가 단일 최대 판관비 항목.`
       );
     }
     if (plHighlights.length === 0) {
@@ -4519,100 +4597,121 @@ export default function FnFQ1_2026Dashboard() {
                 <h4 className="text-xs font-semibold text-indigo-900">PL(성과분석)</h4>
               </div>
               <div className="p-4 space-y-4">
-                {/* ① 동일 분기 비교 (1Q끼리, 2Q끼리 등) */}
-                {plTrendData.quarterGroup && (
-                <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ① 실적추이 — 동일 분기 비교 (단위: 억원)
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {['1Q', '2Q', '3Q', '4Q'].map((qLabel) => {
-                      const data = plTrendData.quarterGroup[qLabel] || [];
-                      if (data.length === 0) return null;
-                      const maxRevenue = Math.max(...data.map(d => d.매출액));
-                      return (
-                        <div key={qLabel} className="border border-zinc-100 rounded-lg p-2 bg-zinc-50/50">
-                          <p className="text-[10px] font-semibold text-zinc-500 mb-1 text-center">{qLabel} 비교</p>
-                          <div className="h-48 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <ComposedChart data={data} margin={{ top: 4, right: 30, left: -10, bottom: 4 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                                <XAxis dataKey="year" tick={{ fontSize: 10 }} stroke="#a1a1aa" tickMargin={4} />
-                                <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#a1a1aa" tickFormatter={(v) => `${formatNumber(v)}`} />
-                                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#f59e0b" tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
-                                <Tooltip content={<CustomChartTooltip />} />
-                                <Bar yAxisId="left" dataKey="매출액" name="매출액" radius={[3, 3, 0, 0]} maxBarSize={32}>
-                                  {data.map((entry, idx) => (
-                                    <Cell key={`qc-${qLabel}-${idx}`} fill={entry.매출액 === maxRevenue ? '#ef4444' : '#818cf8'} />
-                                  ))}
-                                </Bar>
-                                <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} dot={{ r: 3 }} />
-                                <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 2 }} />
-                              </ComposedChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                )}
-                {/* ② 연도별 실적추이 — 분기별 스택 */}
+                {/* ① 연도별 실적추이 — 분기별 스택 (색상 농도로 성과 강조) */}
                 {plTrendData.yearly.length > 0 && (
                 <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ② 연도별 실적추이 — 분기별 구성 (단위: 억원){plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 일부 연도 미완분기 포함</span>}
+                  <p className="text-[11px] font-medium text-zinc-600 mb-1">
+                    ① 연도별 실적추이 — 분기별 구성 (단위: 억원)
+                    {plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 미완분기 포함</span>}
                   </p>
+                  <p className="text-[10px] text-zinc-400 mb-2">색상 진할수록 해당 분기 매출 높음 · <span className="text-red-500 font-medium">빨간색</span> = 동분기 중 최고 연도</p>
                   <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={plTrendData.yearly} margin={{ top: 8, right: 40, left: 0, bottom: 0 }}>
+                      <ComposedChart data={plTrendData.yearly} margin={{ top: 8, right: 44, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                         <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
-                        <YAxis
-                          yAxisId="left"
-                          tick={{ fontSize: 10 }}
-                          stroke="#71717a"
-                          tickFormatter={(v) => `${formatNumber(v)}`}
+                        <YAxis yAxisId="left" tick={{ fontSize: 10 }} stroke="#71717a" tickFormatter={(v) => `${formatNumber(v)}`} />
+                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} stroke="#f59e0b" tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload?.length) return null;
+                            return (
+                              <div className="bg-white border border-zinc-200 rounded-lg shadow-lg px-3 py-2 text-[11px] min-w-[160px]">
+                                <div className="font-semibold text-zinc-700 mb-1">{label}</div>
+                                {payload.map((p, i) => (
+                                  <div key={i} className="flex justify-between gap-3" style={{ color: p.color === '#ef4444' || p.fill === '#ef4444' ? '#ef4444' : p.color }}>
+                                    <span>{p.name}</span>
+                                    <span className="tabular-nums font-medium">{typeof p.value === 'number' && p.name !== '영업이익률' ? `${formatNumber(p.value)}억` : `${p.value}%`}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }}
                         />
-                        <YAxis
-                          yAxisId="right"
-                          orientation="right"
-                          tick={{ fontSize: 10 }}
-                          stroke="#f59e0b"
-                          tickFormatter={(v) => `${v}%`}
-                          domain={[0, 40]}
-                        />
-                        <Tooltip content={<CustomChartTooltip />} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar yAxisId="left" dataKey="1Q매출" name="1Q" fill="#c7d2fe" stackId="revenue" maxBarSize={48} />
-                        <Bar yAxisId="left" dataKey="2Q매출" name="2Q" fill="#a5b4fc" stackId="revenue" maxBarSize={48} />
-                        <Bar yAxisId="left" dataKey="3Q매출" name="3Q" fill="#818cf8" stackId="revenue" maxBarSize={48} />
-                        <Bar yAxisId="left" dataKey="4Q매출" name="4Q" fill="#6366f1" stackId="revenue" radius={[4, 4, 0, 0]} maxBarSize={48} />
+                        <Bar yAxisId="left" dataKey="1Q매출" name="1Q" stackId="revenue" maxBarSize={52}>
+                          {plTrendData.yearly.map((entry, i) => (
+                            <Cell key={`1q-${i}`} fill={getQuarterFill('1Q', entry['1Q매출'] || 0)} />
+                          ))}
+                        </Bar>
+                        <Bar yAxisId="left" dataKey="2Q매출" name="2Q" stackId="revenue" maxBarSize={52}>
+                          {plTrendData.yearly.map((entry, i) => (
+                            <Cell key={`2q-${i}`} fill={getQuarterFill('2Q', entry['2Q매출'] || 0)} />
+                          ))}
+                        </Bar>
+                        <Bar yAxisId="left" dataKey="3Q매출" name="3Q" stackId="revenue" maxBarSize={52}>
+                          {plTrendData.yearly.map((entry, i) => (
+                            <Cell key={`3q-${i}`} fill={getQuarterFill('3Q', entry['3Q매출'] || 0)} />
+                          ))}
+                        </Bar>
+                        <Bar yAxisId="left" dataKey="4Q매출" name="4Q" stackId="revenue" radius={[4, 4, 0, 0]} maxBarSize={52}>
+                          {plTrendData.yearly.map((entry, i) => (
+                            <Cell key={`4q-${i}`} fill={getQuarterFill('4Q', entry['4Q매출'] || 0)} />
+                          ))}
+                        </Bar>
                         <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2.5} dot={{ r: 4 }} />
                         <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 3 }} />
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
+                  {yearlyInsights.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">실적 분석</p>
+                      <ul className="text-[10px] text-zinc-600 space-y-0.5 list-disc pl-4 leading-relaxed">
+                        {yearlyInsights.map((t, i) => <li key={i}>{t}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 )}
+                {/* ② 비용구조 — 매출액 대비 비율 추이 */}
                 <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-2">
-                    ③ 비용구조 — 인건비 · 광고비 · 기타비용 (당분기)
+                  <p className="text-[11px] font-medium text-zinc-600 mb-1">
+                    ② 비용구조 — 매출액 대비 비율 추이 (22.1Q~26.1Q)
                   </p>
-                  <div className="h-48 w-full">
+                  <p className="text-[10px] text-zinc-400 mb-2">항목별 상세 데이터: 24.1Q~ / 영업이익률 선(주황)은 전 기간</p>
+                  <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={costBarData} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal stroke="#e4e4e7" />
-                        <XAxis type="number" tick={{ fontSize: 10 }} stroke="#71717a" />
-                        <YAxis type="category" dataKey="name" width={56} tick={{ fontSize: 11 }} stroke="#71717a" />
-                        <Tooltip formatter={(v) => [`${formatNumber(v)}억`, '']} contentStyle={{ fontSize: 12 }} />
-                        <Bar dataKey="value" name="억원" fill="#8b5cf6" radius={[0, 4, 4, 0]} maxBarSize={22} />
-                      </BarChart>
+                      <ComposedChart data={costTrendData} margin={{ top: 4, right: 48, left: -8, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                        <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" interval={1} />
+                        <YAxis yAxisId="left" tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}%`} domain={[0, 100]} />
+                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 9 }} stroke="#f97316" tickFormatter={v => `${v}%`} domain={[0, 45]} />
+                        <Tooltip
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload?.length) return null;
+                            return (
+                              <div className="bg-white border border-zinc-200 rounded-lg shadow-lg px-3 py-2 text-[11px] min-w-[150px]">
+                                <div className="font-semibold text-zinc-700 mb-1">{label}</div>
+                                {payload.map((p, i) => (
+                                  <div key={i} className="flex justify-between gap-3" style={{ color: p.color || p.fill }}>
+                                    <span>{p.name}</span>
+                                    <span className="tabular-nums font-medium">{p.value != null ? `${Number(p.value).toFixed(1)}%` : '—'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 9 }} />
+                        <Bar yAxisId="left" dataKey="매출원가율" name="매출원가" fill="#94a3b8" stackId="cost" maxBarSize={28} />
+                        <Bar yAxisId="left" dataKey="인건비율" name="인건비" fill="#a78bfa" stackId="cost" maxBarSize={28} />
+                        <Bar yAxisId="left" dataKey="광고선전비율" name="광고선전비" fill="#60a5fa" stackId="cost" maxBarSize={28} />
+                        <Bar yAxisId="left" dataKey="수수료율" name="수수료" fill="#fbbf24" stackId="cost" maxBarSize={28} />
+                        <Bar yAxisId="left" dataKey="감가상각비율" name="감가상각비" fill="#34d399" stackId="cost" maxBarSize={28} />
+                        <Bar yAxisId="left" dataKey="기타판관비율" name="기타판관비" fill="#f87171" stackId="cost" radius={[2, 2, 0, 0]} maxBarSize={28} />
+                        <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f97316" strokeWidth={2} dot={{ r: 2 }} connectNulls={false} />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </div>
-                  <p className="text-[10px] text-zinc-400 mt-1">
-                    기타비용 = 기타판관비+수수료+감가상각비(당분기, 백만원→억)
-                  </p>
+                  {costInsights.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">비용구조 분석 및 시사점</p>
+                      <ul className="text-[10px] text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
+                        {costInsights.map((t, i) => <li key={i}>{t}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <p className="text-[11px] font-medium text-zinc-600 mb-1.5">④ 핵심포인트</p>
