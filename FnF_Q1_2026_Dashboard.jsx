@@ -5202,54 +5202,72 @@ export default function FnFQ1_2026Dashboard() {
               const validNi    = series.filter(s => s.당기순이익 != null);
               const validBs    = series.filter(s => s.자본총계 != null);
 
-              // ── 매출 추이 ──
-              if (validSales.length >= 2) {
-                const first = validSales[0]; const last = validSales[validSales.length - 1];
-                const chg = first.매출액 > 0 ? Math.round((last.매출액 - first.매출액) / Math.abs(first.매출액) * 100) : null;
-                if (chg != null) {
-                  if (chg > 10)       pos.push(`매출 성장: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억 (+${chg}%) — 외형 성장세 지속`);
-                  else if (chg < -10) neg.push(`매출 하락: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억 (${chg}%) — 수요 회복 모니터링 필요`);
-                  else                neu.push(`매출 보합: ${first.name}→${last.name} ${chg >= 0 ? '+' : ''}${chg}% (안정권)`);
-                }
-                // YoY 동일 분기 비교
-                const lastQ = last.name.split('.')[1];
-                const prevYearPrefix = `${String(parseInt(last.name) - 1).padStart(2,'0')}.`;
-                const yoyPrev = validSales.find(s => s.name === prevYearPrefix + lastQ);
-                if (yoyPrev && yoyPrev.매출액 > 0) {
-                  const yoyChg = Math.round((last.매출액 - yoyPrev.매출액) / Math.abs(yoyPrev.매출액) * 100);
-                  if (yoyChg > 5)       pos.push(`전년 동기 대비 매출 +${yoyChg}% 성장 (${yoyPrev.name} ${formatNumber(yoyPrev.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억)`);
-                  else if (yoyChg < -5) neg.push(`전년 동기 대비 매출 ${yoyChg}% 감소 (${yoyPrev.name} ${formatNumber(yoyPrev.매출액)}억 → ${last.name} ${formatNumber(last.매출액)}억)`);
+              // 최신 분기 및 전년동분기 키 계산
+              const last = series[series.length - 1];
+              const lastQ = last.name.split('.')[1]; // '1Q'
+              const prevYY = String(parseInt(last.name) - 1).padStart(2, '0'); // '25'
+              const yoyName = `${prevYY}.${lastQ}`; // '25.1Q'
+
+              // ── 매출 — 전년동분기 기준 ──
+              const lastSales = validSales.find(s => s.name === last.name);
+              const yoySales  = validSales.find(s => s.name === yoyName);
+              if (lastSales) {
+                if (yoySales && yoySales.매출액 != null && yoySales.매출액 > 0) {
+                  const yoyChg = Math.round((lastSales.매출액 - yoySales.매출액) / Math.abs(yoySales.매출액) * 100);
+                  if (yoyChg > 5)       pos.push(`매출 전년동기대비 +${yoyChg}% 성장 (${yoyName} ${formatNumber(yoySales.매출액)}억 → ${last.name} ${formatNumber(lastSales.매출액)}억)`);
+                  else if (yoyChg < -5) neg.push(`매출 전년동기대비 ${yoyChg}% 감소 (${yoyName} ${formatNumber(yoySales.매출액)}억 → ${last.name} ${formatNumber(lastSales.매출액)}억)`);
+                  else                  neu.push(`매출 전년동기 유사 수준: ${yoyName} ${formatNumber(yoySales.매출액)}억 → ${last.name} ${formatNumber(lastSales.매출액)}억 (${yoyChg >= 0 ? '+' : ''}${yoyChg}%)`);
+                } else if (validSales.length >= 2) {
+                  // YoY 데이터 없을 때 전체 추세 대체
+                  const first = validSales[0];
+                  const chg = first.매출액 > 0 ? Math.round((lastSales.매출액 - first.매출액) / Math.abs(first.매출액) * 100) : null;
+                  if (chg != null) {
+                    if (chg > 10)       pos.push(`매출 성장: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(lastSales.매출액)}억 (+${chg}%)`);
+                    else if (chg < -10) neg.push(`매출 하락: ${first.name} ${formatNumber(first.매출액)}억 → ${last.name} ${formatNumber(lastSales.매출액)}억 (${chg}%)`);
+                    else                neu.push(`매출 보합: ${first.name}→${last.name} ${chg >= 0 ? '+' : ''}${chg}%`);
+                  }
                 }
               }
 
-              // ── 영업손익 ──
+              // ── 영업손익 — 전년동분기 기준 ──
               if (validOp.length >= 1) {
-                const lastOp = validOp[validOp.length - 1];
+                const lastOp = validOp.find(s => s.name === last.name);
+                const yoyOp  = validOp.find(s => s.name === yoyName);
                 const profitCnt = validOp.filter(s => s.영업이익 >= 0).length;
-                if (lastOp.영업이익 > 0)  pos.push(`흑자 유지: 최신(${lastOp.name}) 영업이익 +${formatNumber(lastOp.영업이익)}억`);
-                else                        neg.push(`영업손실: 최신(${lastOp.name}) ${formatNumber(lastOp.영업이익)}억 — 수익성 개선 필요`);
 
-                if (validOp.length >= 2) {
-                  const prevOp = validOp[validOp.length - 2];
-                  const opDiff = lastOp.영업이익 - prevOp.영업이익;
-                  if (opDiff > 0 && lastOp.영업이익 >= 0)  pos.push(`전분기 대비 영업이익 +${formatNumber(opDiff)}억 개선`);
-                  else if (opDiff > 0 && lastOp.영업이익 < 0) pos.push(`영업손실 축소: 전분기 대비 +${formatNumber(opDiff)}억 개선 (${formatNumber(prevOp.영업이익)}억 → ${formatNumber(lastOp.영업이익)}억)`);
-                  else if (opDiff < 0 && lastOp.영업이익 >= 0) neg.push(`전분기 대비 영업이익 ${formatNumber(opDiff)}억 감소`);
-                  else                                           neg.push(`영업손실 확대: 전분기 대비 ${formatNumber(opDiff)}억 추가 악화`);
+                if (lastOp) {
+                  if (lastOp.영업이익 > 0) pos.push(`흑자 유지: 최신(${last.name}) 영업이익 +${formatNumber(lastOp.영업이익)}억`);
+                  else                      neg.push(`영업손실: 최신(${last.name}) ${formatNumber(lastOp.영업이익)}억 — 수익성 개선 필요`);
+
+                  if (yoyOp) {
+                    const opDiff = lastOp.영업이익 - yoyOp.영업이익;
+                    if (opDiff > 0 && lastOp.영업이익 >= 0)
+                      pos.push(`영업이익 전년동기대비 +${formatNumber(opDiff)}억 개선 (${yoyName} ${formatNumber(yoyOp.영업이익)}억 → ${last.name} ${formatNumber(lastOp.영업이익)}억)`);
+                    else if (opDiff > 0 && lastOp.영업이익 < 0)
+                      pos.push(`영업손실 축소: 전년동기대비 +${formatNumber(opDiff)}억 개선 (${yoyName} ${formatNumber(yoyOp.영업이익)}억 → ${last.name} ${formatNumber(lastOp.영업이익)}억)`);
+                    else if (opDiff < 0 && lastOp.영업이익 >= 0)
+                      neg.push(`영업이익 전년동기대비 ${formatNumber(opDiff)}억 감소 (${yoyName} ${formatNumber(yoyOp.영업이익)}억 → ${last.name} ${formatNumber(lastOp.영업이익)}억)`);
+                    else
+                      neg.push(`영업손실 확대: 전년동기대비 ${formatNumber(Math.abs(opDiff))}억 추가 악화 (${yoyName} ${formatNumber(yoyOp.영업이익)}억 → ${last.name} ${formatNumber(lastOp.영업이익)}억)`);
+                  }
                 }
 
-                if (profitCnt === validOp.length)      pos.push(`전 구간(${validOp.length}분기) 영업흑자 지속 — 안정적 수익 기반`);
+                if (profitCnt === validOp.length)               pos.push(`전 구간(${validOp.length}분기) 영업흑자 지속 — 안정적 수익 기반`);
                 else if (profitCnt === 0 && validOp.length >= 3) neg.push(`전 구간(${validOp.length}분기) 연속 적자 — 구조적 손실 위험`);
               }
 
-              // ── 당기순손익 ──
+              // ── 당기순손익 — 전년동분기 기준 ──
               if (validNi.length >= 1) {
-                const lastNi = validNi[validNi.length - 1];
-                if (lastNi.당기순이익 > 0 && validNi.length >= 2) {
-                  const prevNi = validNi[validNi.length - 2];
-                  if (lastNi.당기순이익 > prevNi.당기순이익) pos.push(`당기순이익 증가: ${formatNumber(prevNi.당기순이익)}억 → ${formatNumber(lastNi.당기순이익)}억`);
-                } else if (lastNi.당기순이익 < 0) {
-                  neg.push(`당기순손실: ${formatNumber(lastNi.당기순이익)}억 — 비영업 비용 포함 종합 손실`);
+                const lastNi = validNi.find(s => s.name === last.name);
+                const yoyNi  = validNi.find(s => s.name === yoyName);
+                if (lastNi) {
+                  if (lastNi.당기순이익 < 0) {
+                    neg.push(`당기순손실: ${formatNumber(lastNi.당기순이익)}억 — 비영업 비용 포함 종합 손실`);
+                  } else if (yoyNi) {
+                    const niDiff = lastNi.당기순이익 - yoyNi.당기순이익;
+                    if (niDiff > 0) pos.push(`당기순이익 전년동기대비 +${formatNumber(niDiff)}억 증가 (${yoyName} ${formatNumber(yoyNi.당기순이익)}억 → ${last.name} ${formatNumber(lastNi.당기순이익)}억)`);
+                    else if (niDiff < 0) neg.push(`당기순이익 전년동기대비 ${formatNumber(niDiff)}억 감소 (${yoyName} ${formatNumber(yoyNi.당기순이익)}억 → ${last.name} ${formatNumber(lastNi.당기순이익)}억)`);
+                  }
                 }
               }
 
