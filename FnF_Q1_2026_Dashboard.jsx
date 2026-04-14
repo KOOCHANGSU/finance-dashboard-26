@@ -4783,7 +4783,7 @@ export default function FnFQ1_2026Dashboard() {
             {/* BS(재무상태) — 영업운전자본 분석 */}
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-2.5 border-b border-zinc-100 bg-teal-50/60">
-                <h4 className="text-xs font-semibold text-teal-900">BS — 영업운전자본 (NWC) 분석 <span className="font-normal text-teal-600">(24.1Q~26.1Q)</span></h4>
+                <h4 className="text-xs font-semibold text-teal-900">BS — 영업운전자본 (NWC) 분석 (24.1Q~26.1Q)</h4>
               </div>
               <div className="p-4 space-y-5">
 
