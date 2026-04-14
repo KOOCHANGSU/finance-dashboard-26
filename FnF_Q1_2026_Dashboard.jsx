@@ -4934,7 +4934,7 @@ export default function FnFQ1_2026Dashboard() {
                   {/* 추세 분석 시사점 */}
                   {nwcTrendInsights.length > 0 && (
                     <div className="mt-3 rounded-lg bg-teal-50/80 border border-teal-100 px-3 py-2.5">
-                      <p className="text-[10px] font-semibold text-teal-800 mb-1.5 uppercase tracking-wide">추세 분석 시사점 (대표 보고용)</p>
+                      <p className="text-[10px] font-semibold text-teal-800 mb-1.5 uppercase tracking-wide">추세 분석 시사점</p>
                       <ul className="space-y-1.5">
                         {nwcTrendInsights.map((t, i) => (
                           <li key={i} className="flex gap-1.5 text-[10px] text-teal-900 leading-relaxed">
