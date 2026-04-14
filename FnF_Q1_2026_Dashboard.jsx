@@ -4465,8 +4465,9 @@ export default function FnFQ1_2026Dashboard() {
     const cccNWC = dsoNWC != null && dioNWC != null && dpoNWC != null
       ? +(dsoNWC + dioNWC - dpoNWC).toFixed(1) : null;
 
-    // 전분기 비교
-    const prevQKey = getPeriodKey(selectedPeriod, 'prev_quarter');
+    // 직전분기 (QoQ) 비교 — e.g. 26.1Q → 25.4Q
+    const prevQKey = getPeriodKey(selectedPeriod, 'prev');
+    const prevQLabel = prevQKey.replace('20','').replace('_','.');
     const bsRowPrev = balanceSheetData[prevQKey] || {};
     const qSalesPrevM = incomeStatementData[prevQKey]?.매출액 || 0;
     const qCogsPrevM = incomeStatementData[prevQKey]?.매출원가 || 0;
@@ -4477,6 +4478,24 @@ export default function FnFQ1_2026Dashboard() {
     const dsoPrev = arMPrev > 0 && qSalesPrevM > 0 ? +(arMPrev / qSalesPrevM * 90).toFixed(1) : null;
     const dioPrev = invMPrev > 0 && qCogsPrevM > 0 ? +(invMPrev / qCogsPrevM * 90).toFixed(1) : null;
     const dpoPrev = apMPrev > 0 && qCogsPrevM > 0 ? +(apMPrev / qCogsPrevM * 90).toFixed(1) : null;
+    const cccPrev = dsoPrev != null && dioPrev != null && dpoPrev != null
+      ? +(dsoPrev + dioPrev - dpoPrev).toFixed(1) : null;
+
+    // 전년동분기 (YoY) 비교 — e.g. 26.1Q → 25.1Q
+    const yoyQKey = getPeriodKey(selectedPeriod, 'prev_quarter');
+    const yoyQLabel = yoyQKey.replace('20','').replace('_','.');
+    const bsRowYoY = balanceSheetData[yoyQKey] || {};
+    const qSalesYoYM = incomeStatementData[yoyQKey]?.매출액 || 0;
+    const qCogsYoYM  = incomeStatementData[yoyQKey]?.매출원가 || 0;
+    const arYoY  = bsRowYoY.매출채권 || 0;
+    const invYoY = bsRowYoY.재고자산 || 0;
+    const apYoY  = bsRowYoY.매입채무 || 0;
+    const nwcYoY = arYoY + invYoY - apYoY;
+    const dsoYoY = arYoY  > 0 && qSalesYoYM > 0 ? +(arYoY  / qSalesYoYM * 90).toFixed(1) : null;
+    const dioYoY = invYoY > 0 && qCogsYoYM  > 0 ? +(invYoY / qCogsYoYM  * 90).toFixed(1) : null;
+    const dpoYoY = apYoY  > 0 && qCogsYoYM  > 0 ? +(apYoY  / qCogsYoYM  * 90).toFixed(1) : null;
+    const cccYoY = dsoYoY != null && dioYoY != null && dpoYoY != null
+      ? +(dsoYoY + dioYoY - dpoYoY).toFixed(1) : null;
 
     // NWC 시계열 (24.1Q~26.1Q, balanceSheetData 기반)
     const nwcTrendPeriods = ['2024_1Q','2024_2Q','2024_3Q','2024_4Q','2025_1Q','2025_2Q','2025_3Q','2025_4Q','2026_1Q'];
@@ -4863,17 +4882,74 @@ export default function FnFQ1_2026Dashboard() {
                   <p className="text-[11px] font-semibold text-zinc-600 mb-2">① 핵심 KPI <span className="font-normal text-zinc-400">(NWC = 매출채권 + 재고자산 − 매입채무)</span></p>
                   <div className="grid grid-cols-3 gap-2 mb-2">
                     {[
-                      { label: 'NWC', val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—', sub: `전분기 ${nwcMPrev > 0 ? formatNumber(Math.round(nwcMPrev/100))+'억' : '—'}`, color: 'text-teal-700' },
-                      { label: 'NWC / 매출', val: nwcPctRev != null ? `${nwcPctRev}%` : '—', sub: '매출 대비 NWC 집약도', color: 'text-teal-700' },
-                      { label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—', sub: `전분기 ${dsoPrev != null ? Math.round(dsoPrev)+'일' : '—'}`, color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800' },
-                      { label: 'DIO (재고 회전일)', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—', sub: `전분기 ${dioPrev != null ? Math.round(dioPrev)+'일' : '—'}`, color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800' },
-                      { label: 'DPO (매입채무 지급일)', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—', sub: `전분기 ${dpoPrev != null ? Math.round(dpoPrev)+'일' : '—'}`, color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800' },
-                      { label: 'CCC (현금전환주기)', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—', sub: 'DSO + DIO − DPO', color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800' },
+                      {
+                        label: 'NWC',
+                        val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—',
+                        color: 'text-teal-700',
+                        rows: [
+                          { tag: `직전분기(${prevQLabel})`, v: nwcMPrev > 0 ? `${formatNumber(Math.round(nwcMPrev/100))}억` : '—' },
+                          { tag: `전년동기(${yoyQLabel})`, v: nwcYoY > 0 ? `${formatNumber(Math.round(nwcYoY/100))}억` : '—' },
+                        ],
+                      },
+                      {
+                        label: 'NWC / 매출',
+                        val: nwcPctRev != null ? `${nwcPctRev}%` : '—',
+                        color: nwcPctRev != null ? (nwcPctRev < 20 ? 'text-teal-600' : nwcPctRev > 40 ? 'text-rose-600' : 'text-zinc-700') : 'text-teal-700',
+                        rows: (() => {
+                          if (nwcPctRev == null) return [{ tag: '매출 대비 NWC 집약도', v: '' }];
+                          if (nwcPctRev < 20)  return [{ tag: '▲ 긍정', v: '낮은 집약도 — 효율적 자금 운용' }];
+                          if (nwcPctRev <= 40) return [{ tag: '◆ 보통', v: '업계 평균 수준 집약도' }];
+                          return [{ tag: '▼ 부정', v: '높은 집약도 — 현금 묶임 과다', warn: true }];
+                        })(),
+                      },
+                      {
+                        label: 'DSO (매출채권 회수일)',
+                        val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
+                        color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800',
+                        rows: [
+                          { tag: `직전분기(${prevQLabel})`, v: dsoPrev != null ? `${Math.round(dsoPrev)}일` : '—', warn: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev + 5 },
+                          { tag: `전년동기(${yoyQLabel})`, v: dsoYoY != null ? `${Math.round(dsoYoY)}일` : '—', warn: dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 },
+                        ],
+                      },
+                      {
+                        label: 'DIO (재고 회전일)',
+                        val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—',
+                        color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800',
+                        rows: [
+                          { tag: `직전분기(${prevQLabel})`, v: dioPrev != null ? `${Math.round(dioPrev)}일` : '—', warn: dioNWC != null && dioPrev != null && dioNWC > dioPrev + 5 },
+                          { tag: `전년동기(${yoyQLabel})`, v: dioYoY != null ? `${Math.round(dioYoY)}일` : '—', warn: dioNWC != null && dioYoY != null && dioNWC > dioYoY + 5 },
+                        ],
+                      },
+                      {
+                        label: 'DPO (매입채무 지급일)',
+                        val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—',
+                        color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800',
+                        rows: [
+                          { tag: `직전분기(${prevQLabel})`, v: dpoPrev != null ? `${Math.round(dpoPrev)}일` : '—', warn: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev - 5 },
+                          { tag: `전년동기(${yoyQLabel})`, v: dpoYoY != null ? `${Math.round(dpoYoY)}일` : '—', warn: dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5 },
+                        ],
+                      },
+                      {
+                        label: 'CCC (현금전환주기)',
+                        val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—',
+                        color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800',
+                        rows: [
+                          { tag: `직전분기(${prevQLabel})`, v: cccPrev != null ? `${Math.round(cccPrev)}일` : '—', warn: cccNWC != null && cccPrev != null && cccNWC > cccPrev + 5 },
+                          { tag: `전년동기(${yoyQLabel})`, v: cccYoY != null ? `${Math.round(cccYoY)}일` : '—', warn: cccNWC != null && cccYoY != null && cccNWC > cccYoY + 5 },
+                        ],
+                      },
                     ].map((k, i) => (
                       <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2">
                         <div className="text-[9px] text-zinc-400 uppercase tracking-wide font-medium">{k.label}</div>
                         <div className={`text-sm font-bold tabular-nums mt-0.5 ${k.color}`}>{k.val}</div>
-                        <div className="text-[9px] text-zinc-400 mt-0.5 leading-tight">{k.sub}</div>
+                        <div className="mt-1 space-y-0.5">
+                          {k.rows.map((r, ri) => (
+                            <div key={ri} className="flex justify-between items-center gap-1">
+                              <span className="text-[8px] text-zinc-400 leading-tight">{r.tag}</span>
+                              {r.v ? <span className={`text-[9px] tabular-nums font-medium ${r.warn ? 'text-rose-500' : 'text-zinc-500'}`}>{r.v}</span> : null}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -5064,8 +5140,13 @@ export default function FnFQ1_2026Dashboard() {
                                   {val != null ? `${val}일` : '—'}
                                 </td>
                                 <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-zinc-400">{row.bench}</td>
-                                <td className={`text-right py-1.5 px-2 border border-zinc-100 text-[9px] font-medium ${isBad ? 'text-rose-600' : isGood ? 'text-teal-600' : 'text-zinc-500'}`}>
-                                  {val == null ? '—' : isBad ? '업계 평균 초과 ⚠️' : isGood ? '업계 평균 이하 ✅' : '업계 평균 수준'}
+                                <td className={`py-1.5 px-2 border border-zinc-100 text-[9px] font-semibold ${isBad ? 'text-rose-600' : isGood ? 'text-teal-600' : 'text-zinc-500'}`}>
+                                  {val == null ? '—' : isBad
+                                    ? <span>▼ 부정<span className="font-normal text-zinc-400 ml-1">(업계 평균 초과)</span></span>
+                                    : isGood
+                                      ? <span>▲ 긍정<span className="font-normal text-zinc-400 ml-1">(업계 평균 이하)</span></span>
+                                      : <span>◆ 보통<span className="font-normal text-zinc-400 ml-1">(업계 평균 수준)</span></span>
+                                  }
                                 </td>
                               </tr>
                             );
