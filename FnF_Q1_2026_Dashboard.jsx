@@ -193,6 +193,7 @@ const buildEntityQuarterLookup = (rows, year) => {
     중국: 2,
     홍콩: 3,
     베트남: 4,
+    '기타(연결조정)': 5,
     엔터테인먼트: 6,
     ST미국: 7,
   };
@@ -9645,6 +9646,7 @@ export default function FnFQ1_2026Dashboard() {
       { label: 'ST', key: 'ST미국' },
       { label: '엔터테인먼트', key: '엔터테인먼트' },
       { label: '베트남', key: '베트남' },
+      { label: '기타(연결조정)', key: '기타(연결조정)' },
     ];
     const selectedEntityKey = entityTabs.find((t) => t.label === selectedEntityTab)?.key || 'OC(국내)';
     const entityKeyAliases = {
@@ -9654,6 +9656,7 @@ export default function FnFQ1_2026Dashboard() {
       ST미국: ['ST미국', '세르지오'],
       엔터테인먼트: ['엔터테인먼트', '엔터테인머트'],
       베트남: ['베트남', 'F&F 베트남', 'F&F 베트남 '],
+      '기타(연결조정)': ['기타(연결조정)', '기타', '연결조정', '연결조정분개', '내부거래제거', '빅텐츠'],
     };
     const entityCandidates = entityKeyAliases[selectedEntityKey] || [selectedEntityKey];
     const getPrevYearSameQuarter = (period) =>
