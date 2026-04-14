@@ -4237,33 +4237,42 @@ export default function FnFQ1_2026Dashboard() {
 
     // 카드 렌더링 함수
     const renderCard = (card, idx) => {
+      const iconColorBorderMap = {
+        'bg-blue-500': 'border-l-blue-500',
+        'bg-emerald-500': 'border-l-emerald-500',
+        'bg-violet-500': 'border-l-violet-500',
+        'bg-amber-500': 'border-l-amber-500',
+        'bg-rose-500': 'border-l-rose-500',
+        'bg-cyan-500': 'border-l-cyan-500',
+      };
+      const leftBorderColor = iconColorBorderMap[card.iconColor] || 'border-l-zinc-300';
       // 퍼센트 타입 카드 (ROE 등)
       if (card.isPercent) {
         const diff = card.value - card.prevValue;
         const isPositive = diff >= 0;
         return (
-          <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+          <div key={idx} className={`bg-white rounded-lg border border-zinc-200 border-l-4 ${leftBorderColor} shadow-sm p-4 hover:shadow-md transition-shadow duration-200`}>
             {/* 헤더: 제목과 증감 박스 */}
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{card.title}</span>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+              <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest">{card.title}</span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+                isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
               }`}>
                 {diff !== 0 ? `YoY ${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
               </span>
             </div>
-            
+
             {/* 당년 수치 */}
             <div className="flex items-baseline gap-1 mb-3">
-              <span className="text-2xl font-bold text-zinc-900">{card.value.toFixed(1)}</span>
+              <span className="text-3xl font-black text-zinc-900 tracking-tight">{card.value.toFixed(1)}</span>
               <span className="text-sm font-normal text-zinc-400">%</span>
             </div>
-            
+
             {/* 비교 기간 수치 */}
-            <div className="text-xs text-zinc-600 mb-3">
-              {card.compareLabel || '전년'} {card.prevValue.toFixed(1)}%
+            <div className="mb-3">
+              <span className="text-[10px] text-zinc-400">{card.compareLabel || '전년'} {card.prevValue.toFixed(1)}%</span>
               {diff !== 0 && (
-                <span className={`ml-1 font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <span className={`ml-1 font-bold text-[10px] ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {isPositive ? '+' : ''}{diff.toFixed(1)}%p
                 </span>
               )}
@@ -4301,28 +4310,28 @@ export default function FnFQ1_2026Dashboard() {
       }
       
       return (
-        <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+        <div key={idx} className={`bg-white rounded-lg border border-zinc-200 border-l-4 ${leftBorderColor} shadow-sm p-4 hover:shadow-md transition-shadow duration-200`}>
           {/* 헤더: 제목과 증감률 박스 */}
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{card.title}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-              isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest">{card.title}</span>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+              isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
             }`}>
               {change != 0 ? `YoY ${isPositive ? '+' : ''}${change}%` : '-'}
             </span>
           </div>
-          
+
           {/* 당년 수치 */}
           <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-2xl font-bold text-zinc-900">{formatted.number}</span>
+            <span className="text-3xl font-black text-zinc-900 tracking-tight">{formatted.number}</span>
             <span className="text-sm font-normal text-zinc-400">{formatted.unit}</span>
           </div>
-          
+
           {/* 비교 기간 수치 및 차액 (한 줄) */}
-          <div className="text-xs text-zinc-600 mb-3">
-            {card.compareLabel || '전년'} {formattedPrev.number.replace('억원', '억')}억원
+          <div className="mb-3">
+            <span className="text-[10px] text-zinc-400">{card.compareLabel || '전년'} {formattedPrev.number.replace('억원', '억')}억원</span>
             {diff !== 0 && (
-              <span className={`ml-1 font-medium ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <span className={`ml-1 font-bold text-[10px] ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {diff >= 0 ? '+' : ''}{formattedDiff.number.replace('억원', '억')}억원
               </span>
             )}
@@ -4667,8 +4676,8 @@ export default function FnFQ1_2026Dashboard() {
         {/* 손익 요약 섹션 */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-              <span className="w-1 h-4 bg-blue-500 rounded"></span>
+            <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
+              <span className="w-1.5 h-5 bg-blue-500 rounded"></span>
               손익 요약
             </h3>
             {/* 손익 조회 옵션 */}
@@ -4703,8 +4712,8 @@ export default function FnFQ1_2026Dashboard() {
         {/* 재무상태 요약 섹션 */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-              <span className="w-1 h-4 bg-amber-500 rounded"></span>
+            <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
+              <span className="w-1.5 h-5 bg-amber-500 rounded"></span>
               재무상태 요약
             </h3>
             {/* 재무상태 조회 옵션 */}
@@ -4739,8 +4748,8 @@ export default function FnFQ1_2026Dashboard() {
         {/* PL·BS 성과분석 & 기타 (재무상태 요약 ↔ AI 분석) */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-1 h-4 bg-indigo-500 rounded" />
-            <h3 className="text-sm font-semibold text-zinc-800">성과분석 · 재무구조</h3>
+            <span className="w-1.5 h-5 bg-indigo-500 rounded" />
+            <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight">성과분석 · 재무구조</h3>
             <span className="text-[10px] text-zinc-400">
               {qKeyPerf} · {balanceCompareLabel} BS · 단위 차트 억원
             </span>
@@ -4750,13 +4759,13 @@ export default function FnFQ1_2026Dashboard() {
             {/* PL(성과분석) */}
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-2.5 border-b border-zinc-100 bg-indigo-50/60">
-                <h4 className="text-xs font-semibold text-indigo-900">PL(성과분석)</h4>
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-indigo-800">PL(성과분석)</h4>
               </div>
               <div className="p-4 space-y-4">
                 {/* ① 연도별 실적추이 — 분기별 스택 (색상 농도로 성과 강조) */}
                 {plTrendData.yearly.length > 0 && (
                 <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-1">
+                  <p className="text-[11px] font-semibold text-zinc-700 mb-1">
                     ① 연도별 실적추이 — 분기별 구성 (단위: 억원)
                     {plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 미완분기 포함</span>}
                   </p>
@@ -4822,7 +4831,7 @@ export default function FnFQ1_2026Dashboard() {
                 )}
                 {/* ② 비용구조 — 매출액 대비 비율 추이 */}
                 <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-1">
+                  <p className="text-[11px] font-semibold text-zinc-700 mb-1">
                     ② 비용구조 — 매출액 대비 비율 추이 (24.1Q~26.1Q)
                   </p>
                   <p className="text-[10px] text-zinc-400 mb-2">단위: % (매출액 대비) · 영업이익률 선(주황): 우측 축</p>
@@ -4870,7 +4879,7 @@ export default function FnFQ1_2026Dashboard() {
                   )}
                 </div>
                 <div>
-                  <p className="text-[11px] font-medium text-zinc-600 mb-1.5">④ 핵심포인트</p>
+                  <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">④ 핵심포인트</p>
                   <ul className="text-xs text-zinc-600 space-y-1.5 list-disc pl-4 leading-relaxed">
                     {plHighlights.map((t, i) => (
                       <li key={i}>{t}</li>
@@ -4883,7 +4892,7 @@ export default function FnFQ1_2026Dashboard() {
             {/* BS(재무상태) — 영업운전자본 분석 */}
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-2.5 border-b border-zinc-100 bg-teal-50/60">
-                <h4 className="text-xs font-semibold text-teal-900">BS — 영업운전자본 (NWC) 분석 (24.1Q~26.1Q)</h4>
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-teal-800">BS — 영업운전자본 (NWC) 분석 (24.1Q~26.1Q)</h4>
               </div>
               <div className="p-4 space-y-5">
 
@@ -5099,6 +5108,7 @@ export default function FnFQ1_2026Dashboard() {
                         r.level === 'red' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
                         r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                         r.level === 'info' ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
+                        r.level === 'green' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
                         'bg-teal-50 text-teal-700 border border-teal-100'
                       }`}>{r.text}</li>
                     ))}
@@ -5318,7 +5328,7 @@ export default function FnFQ1_2026Dashboard() {
                 {/* ① 자회사별 손익·재무 추이 */}
                 <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
                   <div className="px-4 py-2.5 border-b border-zinc-100 bg-amber-50/60">
-                    <h4 className="text-xs font-semibold text-amber-900">자회사 현황 — ① 손익 · 재무상태 추이 (24.1Q~26.1Q)</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-amber-800">자회사 현황 — ① 손익 · 재무상태 추이 (24.1Q~26.1Q)</h4>
                   </div>
                   <div className="p-4 space-y-6">
                     {subData.map(({ entity, series, latest }) => {
@@ -5552,7 +5562,7 @@ export default function FnFQ1_2026Dashboard() {
                 {/* ② 손상평가 모니터링 */}
                 <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
                   <div className="px-4 py-2.5 border-b border-zinc-100 bg-rose-50/60">
-                    <h4 className="text-xs font-semibold text-rose-900">자회사 현황 — ② 손상평가 모니터링 (엔터테인먼트 · ST미국)</h4>
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-rose-800">자회사 현황 — ② 손상평가 모니터링 (엔터테인먼트 · ST미국)</h4>
                   </div>
                   <div className="p-4 space-y-5">
                     <p className="text-[10px] text-zinc-500 leading-relaxed">손상징후 발견 법인에 대한 25년 사업계획 대비 실적 달성 추이 모니터링. 사업계획 수치 입력 후 실적과 비교.</p>
@@ -5700,8 +5710,8 @@ export default function FnFQ1_2026Dashboard() {
         {/* AI 분석 섹션 — 임시 숨김 (false && 로 복원 가능) */}
         {false && <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-zinc-700 flex items-center gap-2">
-              <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-violet-500 rounded"></span>
+            <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
+              <span className="w-1.5 h-5 bg-gradient-to-b from-blue-500 to-violet-500 rounded"></span>
               AI 분석
             </h3>
             {/* 편집 컨트롤 버튼 */}
@@ -6600,7 +6610,7 @@ export default function FnFQ1_2026Dashboard() {
                 ▶
               </span>
             </button>
-            <h2 className="text-sm font-semibold text-zinc-700 cursor-pointer" onClick={() => setOperatingSectionExpanded(!operatingSectionExpanded)}>
+            <h2 className="text-[13px] font-bold text-zinc-800 tracking-tight cursor-pointer" onClick={() => setOperatingSectionExpanded(!operatingSectionExpanded)}>
               영업 실적
             </h2>
             <div className="h-px flex-1 bg-zinc-200"></div>
@@ -7149,7 +7159,7 @@ export default function FnFQ1_2026Dashboard() {
                 ▶
               </span>
             </button>
-            <h2 className="text-sm font-semibold text-zinc-700 cursor-pointer" onClick={() => setNonOpSectionExpanded(!nonOpSectionExpanded)}>
+            <h2 className="text-[13px] font-bold text-zinc-800 tracking-tight cursor-pointer" onClick={() => setNonOpSectionExpanded(!nonOpSectionExpanded)}>
               영업 외 실적
             </h2>
             <div className="h-px flex-1 bg-zinc-200"></div>
@@ -9283,7 +9293,7 @@ export default function FnFQ1_2026Dashboard() {
             {balanceItems.find(i => i.key === selectedBSAccount)?.selectable && quarterlyEntityData[selectedBSAccount] && (
               <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-zinc-700">분기별 추이</h3>
+                  <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight">분기별 추이</h3>
                   <div className="flex items-center gap-4">
                     {Object.entries(trendColors).map(([name, color]) => (
                       <div key={name} className="flex items-center gap-1.5">
@@ -10106,7 +10116,7 @@ export default function FnFQ1_2026Dashboard() {
               <span className={`text-zinc-500 text-sm transition-transform duration-200 ${entityStmtOpExpanded ? 'rotate-90' : ''}`}>▶</span>
             </button>
             <h2
-              className="text-sm font-semibold text-zinc-700 cursor-pointer"
+              className="text-[13px] font-bold text-zinc-800 tracking-tight cursor-pointer"
               onClick={() => setEntityStmtOpExpanded(!entityStmtOpExpanded)}
             >
               영업 실적
@@ -10143,7 +10153,7 @@ export default function FnFQ1_2026Dashboard() {
               <span className={`text-zinc-500 text-sm transition-transform duration-200 ${entityStmtNonOpExpanded ? 'rotate-90' : ''}`}>▶</span>
             </button>
             <h2
-              className="text-sm font-semibold text-zinc-700 cursor-pointer"
+              className="text-[13px] font-bold text-zinc-800 tracking-tight cursor-pointer"
               onClick={() => setEntityStmtNonOpExpanded(!entityStmtNonOpExpanded)}
             >
               영업 외 실적
@@ -10248,7 +10258,7 @@ export default function FnFQ1_2026Dashboard() {
                 <span className="text-white font-bold text-base tracking-tight">F&F</span>
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl font-serif font-semibold tracking-tight text-white leading-snug">
+                <h1 className="text-2xl font-black text-white tracking-tight leading-snug">
                   F&F Corporation 연결 재무제표
                 </h1>
                 <p className="mt-1.5 text-sm text-white/90">
@@ -10280,15 +10290,15 @@ export default function FnFQ1_2026Dashboard() {
 
         <div className="bg-zinc-100 border-b border-zinc-200">
           <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="inline-flex p-0.5 bg-white rounded-lg border border-zinc-200 shadow-sm">
+            <div className="inline-flex p-1 bg-zinc-100 rounded-xl border border-zinc-200">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-150 ${
+                  className={`px-4 py-2 text-sm rounded-lg transition-all duration-150 ${
                     activeTab === tab.id
-                      ? 'bg-[#1e3a5f] text-white shadow-sm'
-                      : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+                      ? 'bg-white text-zinc-900 font-semibold shadow-sm border border-zinc-200'
+                      : 'text-zinc-500 hover:text-zinc-700 font-medium'
                   }`}
                 >
                   {tab.label}
@@ -10320,7 +10330,7 @@ export default function FnFQ1_2026Dashboard() {
       </div>
 
       {/* 메인 컨텐츠 영역 */}
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-screen-2xl mx-auto p-4">
         {/* 탭 컨텐츠 */}
         <div>
           {activeTab === 'summary' && renderSummaryTab()}
