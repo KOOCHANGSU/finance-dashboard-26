@@ -544,6 +544,9 @@ export default function FnFQ1_2026Dashboard() {
   const [isNonOperatingExpanded, setIsNonOperatingExpanded] = useState(false);
   const [operatingSectionExpanded, setOperatingSectionExpanded] = useState(true); // 영업 실적 섹션 접기/펼치기
   const [nonOpSectionExpanded, setNonOpSectionExpanded] = useState(true); // 영업외 손익 섹션 접기/펼치기
+  const [plInsightExpanded, setPlInsightExpanded] = useState(false);   // 실적분석 텍스트 접기/펼치기
+  const [costInsightExpanded, setCostInsightExpanded] = useState(false); // 비용구조 텍스트 접기/펼치기
+  const [nwcInsightExpanded, setNwcInsightExpanded] = useState(false);  // NWC 추세 시사점 접기/펼치기
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
   const [selectedPeriod, setSelectedPeriod] = useState('2026_Q1'); // 선택된 조회기간 ('2026_Q1' ~ '2026_Q4')
   const [summaryKpiMode, setSummaryKpiMode] = useState('quarter'); // 'quarter' | 'cumulative' - 손익 요약 카드 보기 모드
@@ -4821,9 +4824,16 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                   {yearlyInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">실적 분석</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">실적 분석</p>
+                        {yearlyInsights.length > 2 && (
+                          <button onClick={() => setPlInsightExpanded(v => !v)} className="text-[9px] text-blue-500 hover:text-blue-700 font-medium">
+                            {plInsightExpanded ? '접기 ▲' : `+${yearlyInsights.length - 2}개 더 보기 ▼`}
+                          </button>
+                        )}
+                      </div>
                       <ul className="text-[10px] text-zinc-600 space-y-0.5 list-disc pl-4 leading-relaxed">
-                        {yearlyInsights.map((t, i) => <li key={i}>{t}</li>)}
+                        {(plInsightExpanded ? yearlyInsights : yearlyInsights.slice(0, 2)).map((t, i) => <li key={i}>{t}</li>)}
                       </ul>
                     </div>
                   )}
@@ -4871,9 +4881,16 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                   {costInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">비용구조 분석 및 시사점</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">비용구조 분석 및 시사점</p>
+                        {costInsights.length > 2 && (
+                          <button onClick={() => setCostInsightExpanded(v => !v)} className="text-[9px] text-blue-500 hover:text-blue-700 font-medium">
+                            {costInsightExpanded ? '접기 ▲' : `+${costInsights.length - 2}개 더 보기 ▼`}
+                          </button>
+                        )}
+                      </div>
                       <ul className="text-[10px] text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
-                        {costInsights.map((t, i) => <li key={i}>{t}</li>)}
+                        {(costInsightExpanded ? costInsights : costInsights.slice(0, 2)).map((t, i) => <li key={i}>{t}</li>)}
                       </ul>
                     </div>
                   )}
@@ -5029,9 +5046,16 @@ export default function FnFQ1_2026Dashboard() {
                   {/* 추세 분석 시사점 */}
                   {nwcTrendInsights.length > 0 && (
                     <div className="mt-3 rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
-                      <p className="text-[10px] font-semibold text-emerald-800 mb-1.5 uppercase tracking-wide">추세 분석 시사점</p>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-[10px] font-semibold text-emerald-800 uppercase tracking-wide">추세 분석 시사점</p>
+                        {nwcTrendInsights.length > 2 && (
+                          <button onClick={() => setNwcInsightExpanded(v => !v)} className="text-[9px] text-emerald-600 hover:text-emerald-800 font-medium">
+                            {nwcInsightExpanded ? '접기 ▲' : `+${nwcTrendInsights.length - 2}개 더 보기 ▼`}
+                          </button>
+                        )}
+                      </div>
                       <ul className="space-y-1.5">
-                        {nwcTrendInsights.map((t, i) => (
+                        {(nwcInsightExpanded ? nwcTrendInsights : nwcTrendInsights.slice(0, 2)).map((t, i) => (
                           <li key={i} className="flex gap-1.5 text-[10px] text-emerald-900 leading-relaxed">
                             <span className="shrink-0 font-bold text-emerald-500 mt-0.5">{i + 1}.</span>
                             <span>{t}</span>
