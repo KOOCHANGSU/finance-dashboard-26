@@ -4309,20 +4309,36 @@ export default function FnFQ1_2026Dashboard() {
                 </span>
               )}
             </div>
-            {/* 전기말 모드: 전동분기 YoY 추가 표시 */}
-            {card.isYearEndMode && card.yoyValue != null && (
-              <div className="mb-1">
-                <span className="text-[10px] text-zinc-400">{card.yoyLabel} {card.yoyValue.toFixed(1)}%</span>
-                {(() => {
-                  const yoyDiff = card.value - card.yoyValue;
-                  return yoyDiff !== 0 ? (
-                    <span className={`ml-1 font-bold text-[10px] ${yoyDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {yoyDiff >= 0 ? '+' : ''}{yoyDiff.toFixed(1)}%p
-                    </span>
-                  ) : null;
-                })()}
-              </div>
-            )}
+            {/* 전기말 모드: 전동분기 YoY 추가 표시 + 의미 분석 */}
+            {card.isYearEndMode && card.yoyValue != null && (() => {
+              const yoyDiff = card.value - card.yoyValue;
+              const yeDiff  = diff; // 전기말 대비 (위에서 계산된 diff)
+              // 4가지 케이스: 전기말↓·전동분기↑ / 전기말↑·전동분기↑ / 전기말↓·전동분기↓ / 전기말↑·전동분기↓
+              let memo = '';
+              if (yeDiff < -1 && yoyDiff > 1)
+                memo = '전기말 하락은 계절성·연간이익 기저 영향 / 동분기 대비 실질 개선';
+              else if (yeDiff > 1 && yoyDiff > 1)
+                memo = '전기말·전동분기 모두 개선 — 수익성 회복세 확인';
+              else if (yeDiff < -1 && yoyDiff < -1)
+                memo = '전기말·전동분기 모두 하락 — 수익성 추이 모니터링 필요';
+              else if (yeDiff > 1 && yoyDiff < -1)
+                memo = '전기말 개선·동분기 하락 — 계절성 외 구조적 요인 점검 필요';
+              else
+                memo = '전기말 대비 변동 미미 — 계절성 영향 정상 범위';
+              return (
+                <>
+                  <div className="mb-1">
+                    <span className="text-[10px] text-zinc-400">{card.yoyLabel} {card.yoyValue.toFixed(1)}%</span>
+                    {yoyDiff !== 0 && (
+                      <span className={`ml-1 font-bold text-[10px] ${yoyDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {yoyDiff >= 0 ? '+' : ''}{yoyDiff.toFixed(1)}%p
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[9px] text-indigo-500 leading-tight mt-0.5 italic">{memo}</div>
+                </>
+              );
+            })()}
 
             {/* ROE 등급 표시 */}
             <div className="pt-2 border-t border-zinc-100 mt-1">
