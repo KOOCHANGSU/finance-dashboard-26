@@ -4287,11 +4287,28 @@ export default function FnFQ1_2026Dashboard() {
             {/* 헤더: 제목과 증감 박스 */}
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">{card.title}</span>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
-                isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
-              }`}>
-                {diff !== 0 ? `YoY ${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
-              </span>
+              {card.isYearEndMode && card.yoyValue != null ? (
+                <div className="flex flex-col items-end gap-0.5">
+                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                    전기말 {diff !== 0 ? `${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
+                  </span>
+                  {(() => {
+                    const yoyDiff = card.value - card.yoyValue;
+                    const yoyPos = yoyDiff >= 0;
+                    return (
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${yoyPos ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>
+                        전동분기 {yoyDiff !== 0 ? `${yoyPos ? '+' : ''}${yoyDiff.toFixed(1)}%p` : '-'}
+                      </span>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
+                  isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                }`}>
+                  {diff !== 0 ? `YoY ${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
+                </span>
+              )}
             </div>
 
             {/* 당년 수치 */}
