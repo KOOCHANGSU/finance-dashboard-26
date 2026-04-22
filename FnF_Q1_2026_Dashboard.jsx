@@ -4482,22 +4482,81 @@ export default function FnFQ1_2026Dashboard() {
     const yearlyInsights = [];
     if (plTrendData.yearly.length > 0) {
       const completedYears = plTrendData.yearly.filter(y => y.quarters >= 4);
-      const bestTotalYear = completedYears.reduce((b, y) => y.매출액 > (b?.매출액 || 0) ? y : b, null);
-      const bestMarginYear = completedYears.reduce((b, y) => y.영업이익률 > (b?.영업이익률 || 0) ? y : b, null);
-      if (bestTotalYear) yearlyInsights.push(`연간 최대 매출: ${bestTotalYear.name} ${formatNumber(bestTotalYear.매출액)}억원, 영업이익률 ${bestTotalYear.영업이익률}%.`);
-      if (bestMarginYear) yearlyInsights.push(`최고 영업이익률: ${bestMarginYear.name} ${bestMarginYear.영업이익률}% (매출 ${formatNumber(bestMarginYear.매출액)}억원).`);
-      const qBests = ['1Q', '2Q', '3Q', '4Q'].map(q => {
-        const key = `${q}매출`;
-        const best = plTrendData.yearly.reduce((b, y) => (y[key] || 0) > (b?.[key] || 0) ? y : b, null);
-        return best ? `${q}: ${best.name.replace('년', '')}년(${formatNumber(best[key])}억)` : null;
-      }).filter(Boolean);
-      if (qBests.length) yearlyInsights.push(`분기별 최대 매출 연도 — ${qBests.join(' / ')}.`);
+      const allYears = plTrendData.yearly;
+      const bestTotalYear   = completedYears.reduce((b, y) => y.매출액      > (b?.매출액      || 0) ? y : b, null);
+      const bestMarginYear  = completedYears.reduce((b, y) => y.영업이익률  > (b?.영업이익률  || 0) ? y : b, null);
+      const worstMarginYear = completedYears.reduce((b, y) => (y.영업이익률 != null && (b == null || y.영업이익률 < b.영업이익률)) ? y : b, null);
       const firstY = completedYears[0];
-      const lastY = completedYears[completedYears.length - 1];
+      const lastY  = completedYears[completedYears.length - 1];
+
+      // ① 매출 CAGR + 피크 연도
       if (firstY && lastY && firstY !== lastY) {
-        const revGrowth = ((lastY.매출액 - firstY.매출액) / firstY.매출액 * 100).toFixed(0);
-        const marginDiff = (lastY.영업이익률 - firstY.영업이익률).toFixed(0);
-        yearlyInsights.push(`${firstY.name}→${lastY.name}: 연간 매출 ${revGrowth > 0 ? '+' : ''}${revGrowth}% 성장, 영업이익률 ${marginDiff}%p 변동. ${marginDiff < 0 ? '외형 성장에도 수익성 하락 — 원가·수수료 비중 관리 핵심 과제.' : '매출·이익률 동반 성장.'}`);
+        const nYears = allYears.indexOf(lastY) - allYears.indexOf(firstY);
+        const cagr = nYears > 0 ? ((Math.pow(lastY.매출액 / firstY.매출액, 1 / nYears) - 1) * 100).toFixed(1) : null;
+        const yoyLast = allYears.length >= 2 ? ((lastY.매출액 - allYears[allYears.indexOf(lastY) - 1]?.매출액) / (allYears[allYears.indexOf(lastY) - 1]?.매출액 || 1) * 100).toFixed(1) : null;
+        yearlyInsights.push(
+          `매출 성장 추이: ${firstY.name} ${formatNumber(firstY.매출액)}억 → ${lastY.name} ${formatNumber(lastY.매출액)}억` +
+          (cagr ? ` (CAGR +${cagr}%/년)` : '') +
+          (yoyLast ? `. 직전연도 대비 YoY ${parseFloat(yoyLast) >= 0 ? '+' : ''}${yoyLast}%.` : '.')
+        );
+      }
+
+      // ② 영업이익률 밴드 — 최고·최저·최근 흐름
+      if (bestMarginYear && worstMarginYear && bestMarginYear !== worstMarginYear) {
+        const marginSpread = (bestMarginYear.영업이익률 - worstMarginYear.영업이익률).toFixed(1);
+        const avgMargin = completedYears.length > 0
+          ? (completedYears.reduce((s, y) => s + (y.영업이익률 || 0), 0) / completedYears.length).toFixed(1)
+          : null;
+        const lastMargin = lastY?.영업이익률;
+        const vsAvg = avgMargin && lastMargin != null ? (lastMargin - parseFloat(avgMargin)).toFixed(1) : null;
+        yearlyInsights.push(
+          `영업이익률 밴드: 최고 ${bestMarginYear.name} ${bestMarginYear.영업이익률}% / 최저 ${worstMarginYear.name} ${worstMarginYear.영업이익률}% (격차 ${marginSpread}%p)` +
+          (avgMargin ? `, 연평균 ${avgMargin}%` : '') +
+          (vsAvg != null ? `. 최근 연도 평균 대비 ${parseFloat(vsAvg) >= 0 ? '+' : ''}${vsAvg}%p.` : '.')
+        );
+      }
+
+      // ③ 분기 계절성 패턴 (전 연도 기준)
+      const qs = ['1Q','2Q','3Q','4Q'];
+      const seasonality = qs.map(q => {
+        const vals = completedYears.map(y => y[`${q}매출`] || 0).filter(v => v > 0);
+        const avg = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+        return { q, avg };
+      });
+      const totalAvg = seasonality.reduce((s, d) => s + d.avg, 0);
+      if (totalAvg > 0) {
+        const seasonStr = seasonality.map(d => `${d.q} ${totalAvg > 0 ? (d.avg / totalAvg * 100).toFixed(0) : 0}%`).join(' / ');
+        const peakQ = seasonality.reduce((b, d) => d.avg > b.avg ? d : b, seasonality[0]);
+        yearlyInsights.push(
+          `분기 계절성(연평균 비중): ${seasonStr}. ${peakQ.q}가 연중 매출 집중 구간 — 시즌 재고·마케팅 선행 투자 타이밍 고려 필요.`
+        );
+      }
+
+      // ④ 이익률 방향성 — 최근 3년 추세
+      const recent3 = completedYears.slice(-3);
+      if (recent3.length >= 2) {
+        const marginTrend = recent3.map(y => y.영업이익률);
+        const isRising   = marginTrend.every((v, i) => i === 0 || v >= marginTrend[i-1]);
+        const isFalling  = marginTrend.every((v, i) => i === 0 || v <= marginTrend[i-1]);
+        const trendWord  = isRising ? '지속 개선' : isFalling ? '지속 하락' : '등락 반복';
+        yearlyInsights.push(
+          `최근 ${recent3.length}개년 영업이익률: ${recent3.map(y => `${y.name.replace('년','')} ${y.영업이익률}%`).join(' → ')} (${trendWord}). ` +
+          (isFalling ? '수익성 구조 점검 — 원가율·판관비 증가 요인 분리 분석 필요.' :
+           isRising  ? '비용 효율화·채널믹스 개선 효과 지속 여부 모니터링.' :
+           '이익률 변동성 관리 및 안정적 마진 밴드 유지 전략 필요.')
+        );
+      }
+
+      // ⑤ 미완분기(진행 중) 26.1Q 맥락
+      const currentY = allYears.find(y => y.quarters < 4);
+      if (currentY && firstY && lastY) {
+        const q1Share = lastY['1Q매출'] > 0 && lastY.매출액 > 0
+          ? (lastY['1Q매출'] / lastY.매출액 * 100).toFixed(0) : null;
+        yearlyInsights.push(
+          `${currentY.name} 진행 현황: 1Q 매출 ${formatNumber(currentY['1Q매출'] || 0)}억` +
+          (q1Share ? ` (전년도 연간 대비 ${q1Share}% 수준, 계절성 감안 필요)` : '') +
+          `. 연간 예상치는 하반기(3Q·4Q) 성수기 실적에 좌우.`
+        );
       }
     }
 
@@ -4677,34 +4736,44 @@ export default function FnFQ1_2026Dashboard() {
       return insights;
     })();
 
-    // ④ 리스크 & 이상징후 체크 (전분기 대비)
+    // ④ 리스크 & 이상징후 체크 (전년동기 YoY 대비 — 계절성 제거)
     const nwcRisks = [];
-    if (dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev && qSalesM < qSalesPrevM) {
-      nwcRisks.push({ level: 'red', text: `DSO ↑ (${Math.round(dsoPrev)}일→${Math.round(dsoNWC)}일) + 매출 ↓ → 매출채권 회수 지연 🚨` });
-    } else if (dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev + 5) {
-      nwcRisks.push({ level: 'orange', text: `DSO ↑ (${Math.round(dsoPrev)}일→${Math.round(dsoNWC)}일) → 매출채권 회수 주의 ⚠️` });
+    const riskYoyLabel = yoyQLabel; // e.g. '25.1Q'
+    // DSO
+    if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 && qSalesM < qSalesYoYM) {
+      nwcRisks.push({ level: 'red', text: `DSO ↑ (전동분기 ${Math.round(dsoYoY)}일→${Math.round(dsoNWC)}일) + 매출 ↓ → 매출채권 회수 지연 🚨` });
+    } else if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5) {
+      nwcRisks.push({ level: 'orange', text: `DSO ↑ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, +${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수기일 장기화 ⚠️` });
+    } else if (dsoNWC != null && dsoYoY != null && dsoNWC < dsoYoY - 5) {
+      nwcRisks.push({ level: 'green', text: `DSO ↓ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, ${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수 효율 개선 ✅` });
     }
-    if (dioNWC != null && dioPrev != null && dioNWC > dioPrev + 5) {
-      nwcRisks.push({ level: 'orange', text: `DIO ↑ (${Math.round(dioPrev)}일→${Math.round(dioNWC)}일) → 재고 과잉 누적 위험 🚨` });
-    }
-    if (dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev - 5) {
-      nwcRisks.push({ level: 'orange', text: `DPO ↓ (${Math.round(dpoPrev)}일→${Math.round(dpoNWC)}일) → 공급업체 지급 가속, 현금 압박 🚨` });
-    }
-    if (nwcM > 0 && nwcMPrev > 0 && (nwcM - nwcMPrev) / Math.abs(nwcMPrev) > 0.15) {
-      nwcRisks.push({ level: 'orange', text: `NWC 급증 (${formatNumber(Math.round(nwcMPrev/100))}억→${formatNumber(Math.round(nwcM/100))}억, +${((nwcM-nwcMPrev)/Math.abs(nwcMPrev)*100).toFixed(0)}%) → 현금 묶임 🚨` });
+    // DIO
+    if (dioNWC != null && dioYoY != null && dioNWC > dioYoY + 10) {
+      nwcRisks.push({ level: 'orange', text: `DIO ↑ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일, +${(dioNWC-dioYoY).toFixed(0)}일) → 재고 체화 심화, 시즌 소진 전략 점검 🚨` });
+    } else if (dioNWC != null && dioYoY != null && dioNWC < dioYoY - 10) {
+      nwcRisks.push({ level: 'green', text: `DIO ↓ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일) → 재고 효율 개선 ✅` });
     }
     if (dioNWC != null && dioNWC > 180) {
-      nwcRisks.push({ level: 'red', text: `DIO ${Math.round(dioNWC)}일 — 재고 회전 극도 저하, 시즌·트렌드 리스크 긴급 점검 🚨` });
+      nwcRisks.push({ level: 'red', text: `DIO ${Math.round(dioNWC)}일 — 절대 수준 과대, 시즌·트렌드 리스크 긴급 점검 🚨` });
+    }
+    // DPO
+    if (dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5) {
+      nwcRisks.push({ level: 'orange', text: `DPO ↓ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일, ${(dpoNWC-dpoYoY).toFixed(0)}일) → 공급업체 지급 가속, 지급조건 재협상 필요 🚨` });
+    } else if (dpoNWC != null && dpoYoY != null && dpoNWC > dpoYoY + 5) {
+      nwcRisks.push({ level: 'green', text: `DPO ↑ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일) → 지급조건 연장, 현금 보유 여력 확대 ✅` });
+    }
+    // NWC 전체 집약도 (YoY)
+    if (nwcM > 0 && nwcYoY > 0 && (nwcM - nwcYoY) / Math.abs(nwcYoY) > 0.2) {
+      nwcRisks.push({ level: 'orange', text: `NWC 급증 (${riskYoyLabel} ${formatNumber(Math.round(nwcYoY/100))}억 → 현재 ${formatNumber(Math.round(nwcM/100))}억, +${((nwcM-nwcYoY)/Math.abs(nwcYoY)*100).toFixed(0)}% YoY) → 현금 묶임 확대 🚨` });
     }
     if (nwcRisks.length === 0) {
       const normalDetails = [
-        dsoNWC != null && dsoPrev != null ? `DSO ${Math.round(dsoNWC)}일 (전분기 ${Math.round(dsoPrev)}일, 변동 ${dsoNWC >= dsoPrev ? '+' : ''}${(dsoNWC - dsoPrev).toFixed(1)}일)` : dsoNWC != null ? `DSO ${Math.round(dsoNWC)}일` : null,
-        dioNWC != null && dioPrev != null ? `DIO ${Math.round(dioNWC)}일 (전분기 ${Math.round(dioPrev)}일, 변동 ${dioNWC >= dioPrev ? '+' : ''}${(dioNWC - dioPrev).toFixed(1)}일)` : dioNWC != null ? `DIO ${Math.round(dioNWC)}일` : null,
-        dpoNWC != null && dpoPrev != null ? `DPO ${Math.round(dpoNWC)}일 (전분기 ${Math.round(dpoPrev)}일, 변동 ${dpoNWC >= dpoPrev ? '+' : ''}${(dpoNWC - dpoPrev).toFixed(1)}일)` : dpoNWC != null ? `DPO ${Math.round(dpoNWC)}일` : null,
+        dsoNWC != null && dsoYoY != null ? `DSO ${Math.round(dsoNWC)}일(YoY ${dsoNWC >= dsoYoY ? '+' : ''}${(dsoNWC-dsoYoY).toFixed(0)}일)` : null,
+        dioNWC != null && dioYoY != null ? `DIO ${Math.round(dioNWC)}일(YoY ${dioNWC >= dioYoY ? '+' : ''}${(dioNWC-dioYoY).toFixed(0)}일)` : null,
+        dpoNWC != null && dpoYoY != null ? `DPO ${Math.round(dpoNWC)}일(YoY ${dpoNWC >= dpoYoY ? '+' : ''}${(dpoNWC-dpoYoY).toFixed(0)}일)` : null,
         cccNWC != null ? `CCC ${Math.round(cccNWC)}일` : null,
       ].filter(Boolean);
-      nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 모두 전분기 대비 ±5일 이내 변동(정상 임계치), NWC 변동 15% 미만. ${normalDetails.length ? `현재값: ${normalDetails.join(' / ')}` : ''}` });
-      nwcRisks.push({ level: 'info', text: `⚠️ 현재 26.1Q 마감 전 데이터 기준. 실적 확정 후 매출채권·재고·매입채무 수치가 변경되면 DSO↑, DIO↑, DPO↓ 등 이상징후가 자동으로 감지됩니다.` });
+      nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 전년동기(${riskYoyLabel}) 대비 정상 범위. ${normalDetails.length ? normalDetails.join(' / ') : ''}` });
     }
 
     // ⑤ 해결책
@@ -4720,21 +4789,50 @@ export default function FnFQ1_2026Dashboard() {
     }
 
     const plHighlights = [];
-    if (plQuarterTrend.length > 0) {
-      const last = plQuarterTrend[plQuarterTrend.length - 1];
+    if (salesCurr > 0) {
+      // ① 매출 모멘텀
+      const salesGrowth = salesPrev > 0 ? ((salesCurr - salesPrev) / salesPrev * 100).toFixed(1) : null;
+      const salesDiff   = salesPrev > 0 ? Math.round((salesCurr - salesPrev) / 100) : null;
       plHighlights.push(
-        `선택 연도(${summaryYear}년) 분기별 매출·영업이익 추이를 확인할 수 있습니다. 최근 분기 매출 약 ${formatNumber(last.매출액)}억원, 영업이익 약 ${formatNumber(last.영업이익)}억원(백만원 기준 억원 환산).`
+        `📈 매출 모멘텀: ${Math.round(salesCurr/100)}억원` +
+        (salesGrowth ? ` (${incomeCompareLabel} 대비 ${parseFloat(salesGrowth) >= 0 ? '+' : ''}${salesGrowth}%, ${salesDiff >= 0 ? '+' : ''}${formatNumber(Math.abs(salesDiff))}억)` : '') +
+        (parseFloat(salesGrowth) > 10 ? ' — 두 자릿수 성장세, 채널 확장·브랜드 모멘텀 견조.' :
+         parseFloat(salesGrowth) > 0  ? ' — 완만한 성장. 성장 동력 유지 여부 확인 필요.' :
+         ' — 매출 역성장 구간. 채널·브랜드별 원인 분석 필요.')
       );
-    }
-    if (salesCurr > 0 && operatingIncomeCurr !== undefined) {
+
+      // ② 이익 구조 — 매출총이익률 vs 영업이익률 vs 순이익률
+      const grossMarginDiff = (grossMarginCurr - grossMarginPrev).toFixed(1);
+      const opMarginDiff    = (operatingMarginCurr - operatingMarginPrev).toFixed(1);
+      const niMarginDiff    = (netMarginCurr - netMarginPrev).toFixed(1);
       plHighlights.push(
-        `영업이익률 ${operatingMarginCurr.toFixed(1)}% (${incomeCompareLabel} 대비 ${operatingMarginCurr >= operatingMarginPrev ? '개선 또는 유지' : '하락'} 구간).`
+        `💰 이익 구조: 매출총이익률 ${grossMarginCurr.toFixed(1)}%(${parseFloat(grossMarginDiff)>=0?'+':''}${grossMarginDiff}%p) → 영업이익률 ${operatingMarginCurr.toFixed(1)}%(${parseFloat(opMarginDiff)>=0?'+':''}${opMarginDiff}%p) → 순이익률 ${netMarginCurr.toFixed(1)}%(${parseFloat(niMarginDiff)>=0?'+':''}${niMarginDiff}%p). ` +
+        (() => {
+          const gap = netMarginCurr - operatingMarginCurr;
+          if (gap > 5)  return `순이익률이 영업이익률 대비 +${gap.toFixed(1)}%p 높음 — 영업외 이익(외환·투자) 기여 또는 세금 효과 확인 필요.`;
+          if (gap < -3) return `순이익률이 영업이익률 대비 ${gap.toFixed(1)}%p 낮음 — 금융비용·영업외손실 부담 점검.`;
+          return '영업이익과 순이익 괴리 없음 — 영업활동 중심의 안정적 이익 구조.';
+        })()
       );
-    }
-    if (latestDt) {
-      plHighlights.push(
-        `비용구조(${latestDt.name}): 수수료율 ${latestDt.수수료율}%, 인건비율 ${latestDt.인건비율}%, 광고선전비율 ${latestDt.광고선전비율}%. 수수료가 단일 최대 판관비 항목.`
-      );
+
+      // ③ 비용 핵심 드라이버
+      if (latestDt) {
+        const feeImpact  = latestDt.수수료율    > 20 ? '높음(채널 직판 확대 여력 검토)' : '적정';
+        const laborImpact= latestDt.인건비율   > 10 ? '증가 추세' : '안정적';
+        const adImpact   = latestDt.광고선전비율 > 5  ? '공격적 투자 구간' : '효율적 집행';
+        plHighlights.push(
+          `🏷 비용 드라이버(${latestDt.name}): 수수료율 ${latestDt.수수료율}%(${feeImpact}) · 인건비율 ${latestDt.인건비율}%(${laborImpact}) · 광고비율 ${latestDt.광고선전비율}%(${adImpact}) · 감가상각 ${latestDt.감가상각비율}%. 수수료가 최대 판관비 항목 — 직매장·D2C 비중 확대 시 마진 레버리지 여력 존재.`
+        );
+      }
+
+      // ④ 성장성 vs 수익성 교차 평가
+      const growthOk  = salesGrowth  != null && parseFloat(salesGrowth)  > 0;
+      const marginOk  = parseFloat(opMarginDiff) >= 0;
+      const quadrant  =  growthOk && marginOk  ? '매출↑·이익률↑ — 성장과 수익성 동반 개선(최선 구간)'
+                       : growthOk && !marginOk ? '매출↑·이익률↓ — 외형 성장, 수익성 희생. 비용 레버리지 확보 필요'
+                       : !growthOk && marginOk ? '매출↓·이익률↑ — 수익성 집중 전략. 볼륨 회복이 다음 과제'
+                       :                         '매출↓·이익률↓ — 외형·수익성 동반 약화. 구조적 원인 진단 급선무';
+      plHighlights.push(`🎯 성장·수익성 매트릭스: ${quadrant}.`);
     }
     if (plHighlights.length === 0) {
       plHighlights.push('손익 요약 카드 및 조회 기간을 확인해 주세요. CSV·기간 데이터가 채워지면 추이가 표시됩니다.');
@@ -4841,12 +4939,14 @@ export default function FnFQ1_2026Dashboard() {
                 <h4 className="text-[11px] font-bold uppercase tracking-wider text-blue-800">PL(성과분석)</h4>
               </div>
               <div className="p-5 space-y-6">
-                {/* ① 연도별 실적추이 — 분기별 스택 (색상 농도로 성과 강조) */}
+                {/* ① 연도별 실적추이 + ② 비용구조 — 좌우 2열 */}
                 {plTrendData.yearly.length > 0 && (
-                <div>
-                  <p className="text-[11px] font-semibold text-zinc-700 mb-1">
-                    ① 연도별 실적추이 — 분기별 구성 (단위: 억원)
-                                  </p>
+                <div className="grid grid-cols-5 gap-5 items-start">
+                {/* 좌: ① 연도별 실적추이 */}
+                <div className="col-span-3">
+                  <p className="text-[12px] font-semibold text-zinc-700 mb-1.5">
+                    ① 연도별 실적추이 — 분기별 구성 <span className="font-normal text-zinc-400 text-[11px]">(단위: 억원)</span>
+                  </p>
                   <p className="text-[10px] text-zinc-400 mb-2">
                     <span className="inline-block w-3 h-3 rounded-sm bg-amber-100 border border-amber-300 mr-1 align-middle" />연간 최고 영업이익률 분기 &nbsp;·&nbsp;
                     <span className="inline-block w-3 h-3 rounded-sm bg-blue-50 border border-blue-200 mr-1 align-middle" />동분기 중 최고 연도
@@ -4920,18 +5020,17 @@ export default function FnFQ1_2026Dashboard() {
                   })()}
                   {yearlyInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">실적 분석</p>
-                      <ul className="text-[10px] text-zinc-600 space-y-0.5 list-disc pl-4 leading-relaxed">
+                      <p className="text-[11px] font-semibold text-zinc-500 mb-1">실적 분석</p>
+                      <ul className="text-[11px] text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
                         {yearlyInsights.map((t, i) => <li key={i}>{t}</li>)}
                       </ul>
                     </div>
                   )}
                 </div>
-                )}
-                {/* ② 비용구조 — 매출액 대비 비율 (테이블) */}
-                <div>
-                  <p className="text-[11px] font-semibold text-zinc-700 mb-1">
-                    ② 비용구조 — 매출액 대비 비율 <span className="font-normal text-zinc-400">(최근 5분기, %)</span>
+                {/* 우: ② 비용구조 */}
+                <div className="col-span-2">
+                  <p className="text-[12px] font-semibold text-zinc-700 mb-1.5">
+                    ② 비용구조 <span className="font-normal text-zinc-400 text-[11px]">(최근 5분기, %)</span>
                   </p>
                   {(() => {
                     const rows = [
@@ -5009,18 +5108,21 @@ export default function FnFQ1_2026Dashboard() {
                   })()}
                   {costInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">비용구조 분석 및 시사점</p>
-                      <ul className="text-[10px] text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
+                      <p className="text-[11px] font-semibold text-zinc-500 mb-1">비용구조 분석 및 시사점</p>
+                      <ul className="text-[11px] text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
                         {costInsights.map((t, i) => <li key={i}>{t}</li>)}
                       </ul>
                     </div>
                   )}
                 </div>
+                </div>
+                )}
+                {/* ④ 핵심포인트 */}
                 <div>
-                  <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">④ 핵심포인트</p>
-                  <ul className="text-xs text-zinc-600 space-y-1.5 list-disc pl-4 leading-relaxed">
+                  <p className="text-[12px] font-semibold text-zinc-700 mb-2">④ 핵심포인트</p>
+                  <ul className="text-[11px] text-zinc-600 space-y-2 list-none pl-0">
                     {plHighlights.map((t, i) => (
-                      <li key={i}>{t}</li>
+                      <li key={i} className="flex gap-1.5 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">{t}</li>
                     ))}
                   </ul>
                 </div>
@@ -5217,7 +5319,7 @@ export default function FnFQ1_2026Dashboard() {
 
                     {/* 리스크 & 이상징후 */}
                     <div>
-                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전분기 대비)</span></p>
+                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전년동기 YoY 대비)</span></p>
                       <ul className="space-y-1.5">
                         {nwcRisks.map((r, i) => (
                           <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
@@ -5247,46 +5349,38 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
                 )}
 
-                {/* ══ Row 3: 동종업계 비교 (전체 폭, 참고용) ══ */}
-                <div className="border-t border-zinc-100 pt-4">
-                  <p className="text-[11px] font-semibold text-zinc-500 mb-2">
-                    동종업계 비교
-                    <span className="font-normal text-zinc-400 text-[10px] ml-1">(국내 패션업계 참고치)</span>
+                {/* ══ Row 3: 동종업계 비교 (참고용, 컴팩트) ══ */}
+                <div className="border-t border-zinc-100 pt-3">
+                  <p className="text-[10px] font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
+                    동종업계 비교 <span className="font-normal normal-case">(국내 패션업계 참고치)</span>
                   </p>
-                  <table className="w-full text-[11px] border-collapse">
-                    <thead>
-                      <tr className="bg-zinc-50 text-zinc-400">
-                        <th className="text-left py-1.5 px-2.5 font-medium border border-zinc-100">지표</th>
-                        <th className="text-right py-1.5 px-2.5 font-medium border border-zinc-100">F&amp;F 현재</th>
-                        <th className="text-right py-1.5 px-2.5 font-medium border border-zinc-100">업계 평균</th>
-                        <th className="text-center py-1.5 px-2.5 font-medium border border-zinc-100">평가</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { label: 'DSO (매출채권 회수일)', curr: dsoNWC, low: 30, high: 45, bench: '30~45일', lowerBetter: true },
-                        { label: 'DIO (재고 회전일)',     curr: dioNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
-                        { label: 'DPO (매입채무 지급일)', curr: dpoNWC, low: 30, high: 60,  bench: '30~60일',  lowerBetter: false },
-                        { label: 'CCC (현금전환주기)',    curr: cccNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
-                      ].map((row, i) => {
-                        const val = row.curr != null ? Math.round(row.curr) : null;
-                        const isGood = val != null && (row.lowerBetter ? val < row.low : val > row.high);
-                        const isBad  = val != null && (row.lowerBetter ? val > row.high : val < row.low);
-                        return (
-                          <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50/60">
-                            <td className="py-1.5 px-2.5 font-medium border border-zinc-100 text-zinc-600">{row.label}</td>
-                            <td className={`text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 font-bold ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-700'}`}>
-                              {val != null ? `${val}일` : '—'}
-                            </td>
-                            <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-zinc-400">{row.bench}</td>
-                            <td className={`text-center py-1.5 px-2.5 border border-zinc-100 font-semibold ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-400'}`}>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: 'DSO', sub: '매출채권 회수일', curr: dsoNWC, low: 30, high: 45, bench: '30~45일', lowerBetter: true },
+                      { label: 'DIO', sub: '재고 회전일',     curr: dioNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
+                      { label: 'DPO', sub: '매입채무 지급일', curr: dpoNWC, low: 30, high: 60,  bench: '30~60일',  lowerBetter: false },
+                      { label: 'CCC', sub: '현금전환주기',    curr: cccNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
+                    ].map((row, i) => {
+                      const val = row.curr != null ? Math.round(row.curr) : null;
+                      const isGood = val != null && (row.lowerBetter ? val < row.low : val > row.high);
+                      const isBad  = val != null && (row.lowerBetter ? val > row.high : val < row.low);
+                      return (
+                        <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50/60 px-2.5 py-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] font-bold text-zinc-600">{row.label}</span>
+                            <span className={`text-[10px] font-semibold ${isBad ? 'text-rose-500' : isGood ? 'text-emerald-600' : 'text-zinc-400'}`}>
                               {val == null ? '—' : isBad ? '▼ 부정' : isGood ? '▲ 긍정' : '◆ 보통'}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </span>
+                          </div>
+                          <div className={`text-base font-bold tabular-nums ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-700'}`}>
+                            {val != null ? `${val}일` : '—'}
+                          </div>
+                          <div className="text-[9px] text-zinc-400 mt-0.5">{row.sub}</div>
+                          <div className="text-[9px] text-zinc-300 mt-0.5">업계 {row.bench}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                   <p className="text-[9px] text-zinc-400 mt-1.5">※ 삼성패션연구소·업계 공개 자료 기반 참고치 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
                 </div>
 
