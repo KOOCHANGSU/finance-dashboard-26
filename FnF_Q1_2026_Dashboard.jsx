@@ -5680,9 +5680,9 @@ export default function FnFQ1_2026Dashboard() {
                                           </div>
                                         );
                                       }} />
-                                      {/* 고정 색상: 자본=에메랄드, 부채=로즈, 자산=바이올렛 */}
-                                      <Bar dataKey="자본총계" name="자본" stackId="bs" fill="#10b981" fillOpacity={0.5} maxBarSize={22} />
-                                      <Bar dataKey="부채총계" name="부채" stackId="bs" fill="#f43f5e" fillOpacity={0.45} maxBarSize={22} radius={[2,2,0,0]} />
+                                      {/* 고정 색상: 자본=에메랄드, 부채=로즈, 자산=바이올렛 (stackId 제거 → 음수 자본 시 색상 혼합 방지) */}
+                                      <Bar dataKey="자본총계" name="자본" fill="#10b981" fillOpacity={0.55} maxBarSize={14} radius={[2,2,0,0]} />
+                                      <Bar dataKey="부채총계" name="부채" fill="#f43f5e" fillOpacity={0.5} maxBarSize={14} radius={[2,2,0,0]} />
                                       <Line type="monotone" dataKey="자산총계" name="자산" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3, fill: '#7c3aed', stroke: 'white', strokeWidth: 1.5 }} connectNulls />
                                     </ComposedChart>
                                   </ResponsiveContainer>
