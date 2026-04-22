@@ -4234,6 +4234,12 @@ export default function FnFQ1_2026Dashboard() {
     const netIncomePrevForROE = incomeStatementData[bsIncomePrevKey]?.당기순이익 || 0;
     const roeCurr = totalEquityCurr > 0 ? (netIncomeCurrForROE / totalEquityCurr * 100) : 0;
     const roePrev = totalEquityPrev > 0 ? (netIncomePrevForROE / totalEquityPrev * 100) : 0;
+    // YoY ROE (전동분기) — 전기말 모드에서도 추가 표시용
+    const yoyQKeyForROE = getPeriodKey(selectedPeriod, 'prev_quarter'); // e.g. 2025_1Q
+    const totalEquityYoy = balanceSheetData[yoyQKeyForROE]?.자본총계 || 0;
+    const netIncomeYoyForROE = incomeStatementData[yoyQKeyForROE]?.당기순이익 || 0;
+    const roeYoY = totalEquityYoy > 0 ? (netIncomeYoyForROE / totalEquityYoy * 100) : 0;
+    const yoyQShortLabel = yoyQKeyForROE ? yoyQKeyForROE.replace('20','').replace('_','.') : '';
     
     // 재무상태 비교 라벨
     const balanceCompareLabel = isBalanceSameQuarter 
@@ -4244,7 +4250,7 @@ export default function FnFQ1_2026Dashboard() {
       { title: '자산총계', value: Math.round((balanceSheetData[bsSummaryCurrentPeriod]?.자산총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsSummaryPrevPeriod]?.자산총계 || 0) / 100), iconColor: 'bg-amber-500', hasRate: false, compareLabel: balanceCompareLabel },
       { title: '부채총계', value: Math.round((balanceSheetData[bsSummaryCurrentPeriod]?.부채총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsSummaryPrevPeriod]?.부채총계 || 0) / 100), iconColor: 'bg-rose-500', hasRate: false, compareLabel: balanceCompareLabel },
       { title: '자본총계', value: Math.round((balanceSheetData[bsSummaryCurrentPeriod]?.자본총계 || 0) / 100), prevValue: Math.round((balanceSheetData[bsSummaryPrevPeriod]?.자본총계 || 0) / 100), iconColor: 'bg-cyan-500', hasRate: false, compareLabel: balanceCompareLabel },
-      { title: 'ROE', value: roeCurr, prevValue: roePrev, iconColor: 'bg-violet-500', hasRate: false, isPercent: true, compareLabel: balanceCompareLabel },
+      { title: 'ROE', value: roeCurr, prevValue: roePrev, iconColor: 'bg-violet-500', hasRate: false, isPercent: true, compareLabel: balanceCompareLabel, yoyValue: roeYoY, yoyLabel: `전동분기(${yoyQShortLabel})`, isYearEndMode: !isBalanceSameQuarter },
     ];
 
     // 조단위 포맷 함수 (억원 단위 입력) - 숫자와 단위 분리 반환
@@ -4295,7 +4301,7 @@ export default function FnFQ1_2026Dashboard() {
             </div>
 
             {/* 비교 기간 수치 */}
-            <div className="mb-2">
+            <div className="mb-1">
               <span className="text-[10px] text-zinc-400">{card.compareLabel || '전년'} {card.prevValue.toFixed(1)}%</span>
               {diff !== 0 && (
                 <span className={`ml-1 font-bold text-[10px] ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -4303,9 +4309,23 @@ export default function FnFQ1_2026Dashboard() {
                 </span>
               )}
             </div>
-            
+            {/* 전기말 모드: 전동분기 YoY 추가 표시 */}
+            {card.isYearEndMode && card.yoyValue != null && (
+              <div className="mb-1">
+                <span className="text-[10px] text-zinc-400">{card.yoyLabel} {card.yoyValue.toFixed(1)}%</span>
+                {(() => {
+                  const yoyDiff = card.value - card.yoyValue;
+                  return yoyDiff !== 0 ? (
+                    <span className={`ml-1 font-bold text-[10px] ${yoyDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {yoyDiff >= 0 ? '+' : ''}{yoyDiff.toFixed(1)}%p
+                    </span>
+                  ) : null;
+                })()}
+              </div>
+            )}
+
             {/* ROE 등급 표시 */}
-            <div className="pt-3 border-t border-zinc-100">
+            <div className="pt-2 border-t border-zinc-100 mt-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-zinc-400">수익성 등급</span>
                 <span className={`font-semibold ${
@@ -4438,7 +4458,7 @@ export default function FnFQ1_2026Dashboard() {
         const best = plTrendData.yearly.reduce((b, y) => (y[key] || 0) > (b?.[key] || 0) ? y : b, null);
         return best ? `${q}: ${best.name.replace('년', '')}년(${formatNumber(best[key])}억)` : null;
       }).filter(Boolean);
-      if (qBests.length) yearlyInsights.push(`분기별 최대 매출 연도 — ${qBests.join(' / ')} (차트 내 빨간색 막대).`);
+      if (qBests.length) yearlyInsights.push(`분기별 최대 매출 연도 — ${qBests.join(' / ')}.`);
       const firstY = completedYears[0];
       const lastY = completedYears[completedYears.length - 1];
       if (firstY && lastY && firstY !== lastY) {
