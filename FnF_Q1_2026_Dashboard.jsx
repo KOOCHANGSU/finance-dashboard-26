@@ -236,11 +236,32 @@ const buildEntityQuarterLookup = (rows, year) => {
         }
       });
     }
+    // 파생 계정: 수수료 = 지급수수료 + 운반비 (법인별, 맵핑표 기준)
+    const feeRawByEntity = lookup[period]['지급수수료'];
+    const deliveryByEntity = lookup[period]['운반비'];
+    if (feeRawByEntity || deliveryByEntity) {
+      if (!lookup[period]['수수료']) lookup[period]['수수료'] = {};
+      Object.keys(entityCols).forEach((entity) => {
+        const f = feeRawByEntity?.[entity] || 0;
+        const d = deliveryByEntity?.[entity] || 0;
+        if (f !== 0 || d !== 0) lookup[period]['수수료'][entity] = Math.round(f + d);
+      });
+    }
+    // 파생 계정: 감가상각비 += 무형자산상각비 (법인별, 맵핑표 기준)
+    const intanDepByEntity = lookup[period]['무형자산상각비'];
+    if (intanDepByEntity) {
+      if (!lookup[period]['감가상각비']) lookup[period]['감가상각비'] = {};
+      Object.keys(entityCols).forEach((entity) => {
+        const d = lookup[period]['감가상각비']?.[entity] || 0;
+        const id = intanDepByEntity?.[entity] || 0;
+        if (d !== 0 || id !== 0) lookup[period]['감가상각비'][entity] = Math.round(d + id);
+      });
+    }
     // 파생 계정: 기타판관비 = 판매비와관리비 - 인건비 - 광고선전비 - 수수료 - 감가상각비 (법인별)
     const sgaByEntity = lookup[period]['판매비와관리비'] || lookup[period]['판관비'];
     const laborByEntity = lookup[period]['인건비'];
     const adByEntity = lookup[period]['광고선전비'];
-    const feeByEntity = lookup[period]['수수료'] || lookup[period]['지급수수료'];
+    const feeByEntity = lookup[period]['수수료'];
     const depByEntity = lookup[period]['감가상각비'];
     if (sgaByEntity) {
       if (!lookup[period]['기타판관비']) lookup[period]['기타판관비'] = {};
@@ -300,8 +321,10 @@ const buildConsolidatedISLookup = (rows, year) => {
     급여: '급여',
     퇴직급여: '퇴직급여',
     광고선전비: '광고선전비',
-    지급수수료: '수수료',
+    지급수수료: '__지급수수료',  // 맵핑표: (3)수수료
+    운반비: '__운반비',          // 맵핑표: (3)수수료 — 지급수수료와 합산
     감가상각비: '감가상각비',
+    무형자산상각비: '__무형자산상각비', // 맵핑표: (4)감가상각비 — 감가상각비와 합산
     외환손익: '외환손익',
     외환차익: '__외환차익',
     외환차손: '__외환차손',
@@ -358,11 +381,24 @@ const buildConsolidatedISLookup = (rows, year) => {
   });
 
   Object.keys(lookup).forEach((period) => {
+    // 인건비 = 급여 + 퇴직급여
     const salary = lookup[period]?.급여;
     const retirement = lookup[period]?.퇴직급여;
     if (salary !== undefined || retirement !== undefined) {
       lookup[period].인건비 = Math.round(Number(salary || 0) + Number(retirement || 0));
     }
+    // 수수료 = 지급수수료 + 운반비 (맵핑표: 둘 다 (3)수수료)
+    const fee1 = lookup[period]?.__지급수수료;
+    const fee2 = lookup[period]?.__운반비;
+    if (fee1 !== undefined || fee2 !== undefined) {
+      lookup[period].수수료 = Math.round(Number(fee1 || 0) + Number(fee2 || 0));
+    }
+    // 감가상각비 += 무형자산상각비 (맵핑표: 둘 다 (4)감가상각비)
+    const intanDep = lookup[period]?.__무형자산상각비;
+    if (intanDep !== undefined) {
+      lookup[period].감가상각비 = Math.round(Number(lookup[period]?.감가상각비 || 0) + Number(intanDep || 0));
+    }
+    // 기타판관비 = 판관비 - 인건비 - 광고선전비 - 수수료 - 감가상각비
     const sga = lookup[period]?.판매비와관리비;
     const labor = lookup[period]?.인건비;
     const ad = lookup[period]?.광고선전비;
