@@ -661,6 +661,8 @@ export default function FnFQ1_2026Dashboard() {
   const [nonOpEditMode, setNonOpEditMode] = useState(false); // 영업외 섹션 증감 분석 편집 모드
   const [entityAmtInputMode, setEntityAmtInputMode] = useState(false); // 법인별 금액 직접입력 모드
   const [entityAmtDraft, setEntityAmtDraft] = useState({}); // 법인별 금액 임시 입력값 (억원)
+  const [miscEditMode, setMiscEditMode] = useState(false); // 기타손익 구성상세 편집 모드
+  const [miscDraft, setMiscDraft] = useState({}); // 기타손익 구성상세 임시 입력값
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
   const [hiddenEntityCards, setHiddenEntityCards] = useState(() => {
     // localStorage에서 숨겨진 법인 카드 목록 로드
@@ -7864,11 +7866,12 @@ export default function FnFQ1_2026Dashboard() {
                       const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
                       
                       // 법인세비용 선택 시 법인세비용차감전순이익 데이터 가져오기 (전기/당기)
-                      const ebtDataCurr = selectedNonOpAccount === '법인세비용' 
-                        ? entityData['법인세비용차감전순이익']?.[currPeriod] || {}
+                      // CSV 기반 데이터 우선 사용 (normalizeYearDataset 클론값 방지)
+                      const ebtDataCurr = selectedNonOpAccount === '법인세비용'
+                        ? getBaseEntityBreakdown('법인세비용차감전순이익', currPeriod)
                         : {};
-                      const ebtDataPrev = selectedNonOpAccount === '법인세비용' 
-                        ? entityData['법인세비용차감전순이익']?.[prevPeriod] || {}
+                      const ebtDataPrev = selectedNonOpAccount === '법인세비용'
+                        ? getBaseEntityBreakdown('법인세비용차감전순이익', prevPeriod)
                         : {};
                       
                       return data.map((row, idx) => {
@@ -8547,9 +8550,6 @@ export default function FnFQ1_2026Dashboard() {
                 MISC_ITEMS.reduce((s, it) => s + (getVal(it.key, period) !== null ? getVal(it.key, period) : 0), 0);
 
               const actualTotal = (period) => (incomeStatementData[period]?.기타손익 || 0) / 100; // 백만원 → 억원
-
-              const [miscEditMode, setMiscEditMode] = React.useState(false);
-              const [miscDraft, setMiscDraft] = React.useState({});
 
               const startEdit = () => {
                 const d = {};
