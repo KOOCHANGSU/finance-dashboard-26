@@ -568,6 +568,7 @@ const buildConsolidatedBSLookup = (rows, year) => {
     무형자산: '유무형자산',
     투자부동산: '유무형자산',
     사용권자산: '사용권자산',
+    사용권자산감가상각누계액: '사용권자산',  // 음수 → 순사용권자산(net) 반영
     기타비유동자산: '기타자산',
     기타유동자산: '기타자산',
     자산총계: '자산총계',
@@ -10242,7 +10243,8 @@ export default function FnFQ1_2026Dashboard() {
         if (sga !== undefined) return Math.round(Number(sga || 0) - Number(labor || 0) - Number(ad || 0) - Number(fee || 0) - Number(dep || 0));
       }
       if (account === '판매비와관리비') {
-        const parts = ['인건비', '광고선전비', '수수료', '감가상각비', '기타판관비'];
+        // ⚠️ '기타판관비'는 포함 금지: 기타판관비→판관비→기타판관비 무한재귀 방지
+        const parts = ['인건비', '광고선전비', '수수료', '감가상각비'];
         const vals = parts.map((k) => getISRaw(k, resolvedPeriod));
         if (vals.some((v) => v !== undefined)) return vals.reduce((s, v) => s + Number(v || 0), 0);
       }
