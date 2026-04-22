@@ -4972,20 +4972,34 @@ export default function FnFQ1_2026Dashboard() {
                   </p>
                   {(() => {
                     const qs = ['1Q','2Q','3Q','4Q'];
-                    // 동분기 중 최고 영업이익률 연도
-                    const colBestRate = {};
+                    // 분기별 항목별 최고값 사전계산
+                    const colMaxSales = {}, colMaxOp = {}, colMaxRate = {};
                     qs.forEach(q => {
-                      let bestRate = -Infinity;
-                      plTrendData.yearly.forEach(y => {
+                      colMaxSales[q] = Math.max(...plTrendData.yearly.map(y => y[q+'매출'] || 0));
+                      colMaxOp[q]    = Math.max(...plTrendData.yearly.map(y => y[q+'영업이익'] || 0));
+                      const rates = plTrendData.yearly.map(y => {
                         const s = y[q+'매출'] || 0; const o = y[q+'영업이익'] || 0;
-                        const r = s > 0 ? o / s : -Infinity;
-                        if (r > bestRate) bestRate = r;
+                        return s > 0 ? o / s : -Infinity;
                       });
-                      colBestRate[q] = bestRate;
+                      colMaxRate[q]  = Math.max(...rates);
                     });
                     const fmt = v => v > 0 ? formatNumber(Math.round(v)) : '-';
                     const fmtR = (op, sales) => sales > 0 ? (op / sales * 100).toFixed(1) + '%' : '-';
+                    // 범례
+                    const legend = [
+                      { color: 'bg-blue-100 text-blue-800', label: '매출액 최고' },
+                      { color: 'bg-emerald-100 text-emerald-800', label: '영업이익 최고' },
+                      { color: 'bg-amber-100 text-amber-800', label: '이익률 최고' },
+                    ];
                     return (
+                      <>
+                        <div className="flex items-center gap-3 mb-1.5 text-[9px]">
+                          {legend.map(l => (
+                            <span key={l.label} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-semibold ${l.color}`}>
+                              {l.label}
+                            </span>
+                          ))}
+                        </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-[10px] border-collapse">
                           <thead>
@@ -5005,15 +5019,6 @@ export default function FnFQ1_2026Dashboard() {
                           </thead>
                           <tbody>
                             {plTrendData.yearly.map(y => {
-                              // 해당 연도의 최고 영업이익률 분기
-                              const bestQ = qs.reduce((best, q) => {
-                                const s = y[q+'매출'] || 0; const o = y[q+'영업이익'] || 0;
-                                const r = s > 0 ? o / s : -Infinity;
-                                const bs = best ? (y[best+'매출']||0) : 0;
-                                const bo = best ? (y[best+'영업이익']||0) : 0;
-                                const br = bs > 0 ? bo / bs : -Infinity;
-                                return r > br ? q : best;
-                              }, null);
                               const yearShort = y.name.replace('20','').replace('년','년');
                               return (
                                 <tr key={y.name} className="hover:bg-zinc-50/80 border-b border-zinc-100">
@@ -5022,14 +5027,17 @@ export default function FnFQ1_2026Dashboard() {
                                     const s = y[q+'매출'] || 0;
                                     const o = y[q+'영업이익'] || 0;
                                     const rate = s > 0 ? o / s : -Infinity;
-                                    // 연도 내 최고 분기 OR 동분기 최고 연도 → 굵은 빨간색
-                                    const isBestQ = q === bestQ && s > 0;
-                                    const isColBest = s > 0 && Math.abs(rate - colBestRate[q]) < 0.0001;
-                                    const highlight = (isBestQ || isColBest) ? 'font-bold text-red-600' : 'text-zinc-600';
+                                    // 분기 기준 항목별 최고 연도 → 3색 음영
+                                    const isBestSales = s > 0 && s === colMaxSales[q];
+                                    const isBestOp    = o > 0 && o === colMaxOp[q];
+                                    const isBestRate  = s > 0 && Math.abs(rate - colMaxRate[q]) < 0.00001;
+                                    const sCls = isBestSales ? 'bg-blue-100 text-blue-800 font-bold' : 'text-zinc-600';
+                                    const oCls = isBestOp    ? 'bg-emerald-100 text-emerald-800 font-bold' : 'text-zinc-600';
+                                    const rCls = isBestRate  ? 'bg-amber-100 text-amber-800 font-bold' : 'text-zinc-600';
                                     return [
-                                      <td key={q+'s'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${highlight}`}>{fmt(s)}</td>,
-                                      <td key={q+'o'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${highlight}`}>{fmt(o)}</td>,
-                                      <td key={q+'r'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${highlight}`}>{fmtR(o,s)}</td>,
+                                      <td key={q+'s'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${sCls}`}>{fmt(s)}</td>,
+                                      <td key={q+'o'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${oCls}`}>{fmt(o)}</td>,
+                                      <td key={q+'r'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${rCls}`}>{fmtR(o,s)}</td>,
                                     ];
                                   })}
                                   {/* 합계 */}
@@ -5042,6 +5050,7 @@ export default function FnFQ1_2026Dashboard() {
                           </tbody>
                         </table>
                       </div>
+                      </>
                     );
                   })()}
                   {yearlyInsights.length > 0 && (
