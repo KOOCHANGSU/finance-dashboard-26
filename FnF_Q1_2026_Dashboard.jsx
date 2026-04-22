@@ -4584,7 +4584,10 @@ export default function FnFQ1_2026Dashboard() {
     // Cost insights for ③
     const detailedCostData = costTrendData.filter(d => d.수수료율 !== undefined);
     const latestDt = detailedCostData[detailedCostData.length - 1];
-    const earliestDt = detailedCostData[0];
+    // 전년동기(YoY) 비교: 최신 분기의 전년 같은 분기 (e.g. 26.1Q → 25.1Q)
+    const latestDtName = latestDt?.name ?? '';
+    const yoyDtName = latestDtName ? (String(Number(latestDtName.slice(0,2)) - 1) + latestDtName.slice(2)) : null;
+    const earliestDt = yoyDtName ? (detailedCostData.find(d => d.name === yoyDtName) ?? detailedCostData[0]) : detailedCostData[0];
     const costInsights = [];
     if (latestDt) {
       costInsights.push(`수수료(지급수수료) ${latestDt.name} 기준 매출액 대비 ${latestDt.수수료율}% — 단일 최대 판관비 항목. 백화점·면세·온라인 채널 수수료로 매출 연동 변동비 성격.`);
@@ -4596,11 +4599,12 @@ export default function FnFQ1_2026Dashboard() {
         const depDiff = +(latestDt.감가상각비율 - earliestDt.감가상각비율).toFixed(1);
         if (Math.abs(depDiff) >= 0.2) costInsights.push(`감가상각비율 ${earliestDt.name}(${earliestDt.감가상각비율}%) → ${latestDt.name}(${latestDt.감가상각비율}%), ${depDiff >= 0 ? '+' : ''}${depDiff}%p. IFRS16 리스 자산 또는 유·무형 고정자산 투자 증감 모니터링.`);
       }
-      const firstAll = costTrendData[0];
       const lastAll = costTrendData[costTrendData.length - 1];
+      const yoyAll  = yoyDtName ? costTrendData.find(d => d.name === yoyDtName) : null;
+      const firstAll = yoyAll ?? costTrendData[0];
       if (firstAll && lastAll && firstAll !== lastAll) {
-        const opDiff = +(lastAll.영업이익률 - firstAll.영업이익률).toFixed(0);
-        costInsights.push(`영업이익률 ${firstAll.name}(${firstAll.영업이익률}%) → ${lastAll.name}(${lastAll.영업이익률}%), ${opDiff >= 0 ? '+' : ''}${opDiff}%p. ${opDiff < 0 ? '원가율·수수료 비중 증가가 마진 하락 주요 원인 — 고수익 채널 확대·원가 절감 병행 필요.' : '비용 효율화 성과 지속.'}`);
+        const opDiff = +(lastAll.영업이익률 - firstAll.영업이익률).toFixed(1);
+        costInsights.push(`영업이익률 ${firstAll.name}(${firstAll.영업이익률}%) → ${lastAll.name}(${lastAll.영업이익률}%), ${opDiff >= 0 ? '+' : ''}${opDiff}%p (YoY). ${opDiff < 0 ? '원가율·수수료 비중 증가가 마진 하락 주요 원인 — 고수익 채널 확대·원가 절감 병행 필요.' : '비용 효율화 성과 지속.'}`);
       }
       costInsights.push('개선 제안: ① 수수료 최적화(직매장·D2C 채널 비중 확대) ② 광고비 ROI 분석 기반 집행 효율화 ③ 감가상각 증가 구간 신규 자본지출 타당성 검토');
     }
