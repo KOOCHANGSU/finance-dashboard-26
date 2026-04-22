@@ -5034,40 +5034,36 @@ export default function FnFQ1_2026Dashboard() {
               </div>
               <div className="p-5 space-y-6">
 
-                {/* ① KPI + ② 추세 분석 — 좌우 2열 레이아웃 */}
+                {/* ══ Row 1: ① 핵심 KPI (좌) + 구성요소 상세 (우) ══ */}
                 <div className="grid grid-cols-5 gap-5 items-start">
 
-                  {/* 왼쪽: ① 핵심 KPI */}
+                  {/* 좌: ① 핵심 KPI */}
                   <div className="col-span-2">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-3">
+                    <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">
                       ① 핵심 KPI
-                      <span className="font-normal text-zinc-400 text-[11px] ml-1">(NWC = 매출채권 + 재고 − 매입채무)</span>
+                      <span className="font-normal text-zinc-400 text-[10px] ml-1">(NWC = 매출채권 + 재고 − 매입채무)</span>
                     </p>
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-2 gap-2">
                       {[
                         {
-                          label: 'NWC',
-                          val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—',
-                          color: 'text-emerald-700',
+                          label: 'NWC', val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—', color: 'text-emerald-700',
                           rows: [
                             { tag: `직전분기(${prevQLabel})`, v: nwcMPrev > 0 ? `${formatNumber(Math.round(nwcMPrev/100))}억` : '—' },
                             { tag: `전년동기(${yoyQLabel})`, v: nwcYoY > 0 ? `${formatNumber(Math.round(nwcYoY/100))}억` : '—' },
                           ],
                         },
                         {
-                          label: 'NWC / 매출',
-                          val: nwcPctRev != null ? `${nwcPctRev}%` : '—',
+                          label: 'NWC / 매출', val: nwcPctRev != null ? `${nwcPctRev}%` : '—',
                           color: nwcPctRev != null ? (nwcPctRev < 20 ? 'text-emerald-600' : nwcPctRev > 40 ? 'text-rose-600' : 'text-zinc-700') : 'text-emerald-700',
                           rows: (() => {
-                            if (nwcPctRev == null) return [{ tag: '매출 대비 NWC 집약도', v: '' }];
-                            if (nwcPctRev < 20)  return [{ tag: '▲ 긍정', v: '낮은 집약도 — 효율적 자금 운용' }];
-                            if (nwcPctRev <= 40) return [{ tag: '◆ 보통', v: '업계 평균 수준 집약도' }];
-                            return [{ tag: '▼ 부정', v: '높은 집약도 — 현금 묶임 과다', warn: true }];
+                            if (nwcPctRev == null) return [{ tag: '집약도', v: '' }];
+                            if (nwcPctRev < 20)  return [{ tag: '▲ 긍정', v: '효율적 자금 운용' }];
+                            if (nwcPctRev <= 40) return [{ tag: '◆ 보통', v: '업계 평균 수준' }];
+                            return [{ tag: '▼ 부정', v: '현금 묶임 과다', warn: true }];
                           })(),
                         },
                         {
-                          label: 'DSO (매출채권 회수일)',
-                          val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
+                          label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
                           color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800',
                           rows: [
                             { tag: `직전분기(${prevQLabel})`, v: dsoPrev != null ? `${Math.round(dsoPrev)}일` : '—', warn: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev + 5 },
@@ -5075,8 +5071,7 @@ export default function FnFQ1_2026Dashboard() {
                           ],
                         },
                         {
-                          label: 'DIO (재고 회전일)',
-                          val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—',
+                          label: 'DIO (재고 회전일)', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—',
                           color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800',
                           rows: [
                             { tag: `직전분기(${prevQLabel})`, v: dioPrev != null ? `${Math.round(dioPrev)}일` : '—', warn: dioNWC != null && dioPrev != null && dioNWC > dioPrev + 5 },
@@ -5084,8 +5079,7 @@ export default function FnFQ1_2026Dashboard() {
                           ],
                         },
                         {
-                          label: 'DPO (매입채무 지급일)',
-                          val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—',
+                          label: 'DPO (매입채무 지급일)', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—',
                           color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800',
                           rows: [
                             { tag: `직전분기(${prevQLabel})`, v: dpoPrev != null ? `${Math.round(dpoPrev)}일` : '—', warn: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev - 5 },
@@ -5093,8 +5087,7 @@ export default function FnFQ1_2026Dashboard() {
                           ],
                         },
                         {
-                          label: 'CCC (현금전환주기)',
-                          val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—',
+                          label: 'CCC (현금전환주기)', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—',
                           color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800',
                           rows: [
                             { tag: `직전분기(${prevQLabel})`, v: cccPrev != null ? `${Math.round(cccPrev)}일` : '—', warn: cccNWC != null && cccPrev != null && cccNWC > cccPrev + 5 },
@@ -5102,14 +5095,14 @@ export default function FnFQ1_2026Dashboard() {
                           ],
                         },
                       ].map((k, i) => (
-                        <div key={i} className="rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-3">
-                          <div className="text-[11px] text-zinc-400 font-medium leading-tight mb-1">{k.label}</div>
-                          <div className={`text-xl font-bold tabular-nums mb-2 ${k.color}`}>{k.val}</div>
-                          <div className="space-y-1 border-t border-zinc-100 pt-1.5">
+                        <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2.5">
+                          <div className="text-[10px] text-zinc-400 font-medium leading-tight mb-1">{k.label}</div>
+                          <div className={`text-lg font-bold tabular-nums mb-1.5 ${k.color}`}>{k.val}</div>
+                          <div className="space-y-0.5 border-t border-zinc-100 pt-1">
                             {k.rows.map((r, ri) => (
                               <div key={ri} className="flex justify-between items-center gap-1">
-                                <span className="text-[10px] text-zinc-400 leading-tight">{r.tag}</span>
-                                {r.v ? <span className={`text-[11px] tabular-nums font-semibold ${r.warn ? 'text-rose-500' : 'text-zinc-500'}`}>{r.v}</span> : null}
+                                <span className="text-[9px] text-zinc-400 leading-tight">{r.tag}</span>
+                                {r.v ? <span className={`text-[10px] tabular-nums font-semibold ${r.warn ? 'text-rose-500' : 'text-zinc-500'}`}>{r.v}</span> : null}
                               </div>
                             ))}
                           </div>
@@ -5118,67 +5111,10 @@ export default function FnFQ1_2026Dashboard() {
                     </div>
                   </div>
 
-                  {/* 오른쪽: ② 추세 분석 */}
-                  {nwcTrendData.length > 0 && (
+                  {/* 우: 구성요소 상세 */}
                   <div className="col-span-3">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-3">
-                      ② 추세 분석
-                      <span className="font-normal text-zinc-400 text-[11px] ml-1">(24.1Q~26.1Q)</span>
-                    </p>
-                    <p className="text-[11px] text-zinc-400 mb-1.5">DSO · DIO · DPO (일수)</p>
-                    <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 12, left: -4, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                          <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="#71717a" />
-                          <YAxis tick={{ fontSize: 10 }} stroke="#71717a" tickFormatter={v => `${v}일`} domain={[0, 'auto']} />
-                          <Tooltip content={({ active, payload, label }) => {
-                            if (!active || !payload?.length) return null;
-                            return (
-                              <div className="bg-white border border-zinc-200 rounded-lg shadow px-3 py-2 text-[11px]">
-                                <div className="font-semibold mb-1 text-zinc-700">{label}</div>
-                                {payload.map((p, i) => (
-                                  <div key={i} className="flex justify-between gap-4" style={{ color: p.color }}>
-                                    <span>{p.name}</span>
-                                    <span className="font-bold">{p.value != null ? `${p.value}일` : '—'}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          }} />
-                          <Legend wrapperStyle={{ fontSize: 11 }} />
-                          <Line type="monotone" dataKey="DSO" name="DSO" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 3.5 }} />
-                          <Line type="monotone" dataKey="DIO" name="DIO" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3.5 }} />
-                          <Line type="monotone" dataKey="DPO" name="DPO" stroke="#10b981" strokeWidth={2.5} strokeDasharray="4 2" dot={{ r: 3.5 }} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    </div>
-                    {/* 추세 분석 시사점 */}
-                    {nwcTrendInsights.length > 0 && (
-                      <div className="mt-3 rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
-                        <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
-                        <ul className="space-y-1.5">
-                          {nwcTrendInsights.map((t, i) => (
-                            <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
-                              <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
-                              <span>{t}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                  )}
-
-                </div>
-
-                {/* ③ 구성요소 상세 + ④ 리스크 & 이상징후 — 2열 */}
-                <div className="grid grid-cols-5 gap-5 items-start">
-
-                  {/* 왼쪽: ③ 구성요소 상세 */}
-                  <div className="col-span-2">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2">③ 구성요소 상세</p>
-                    <table className="w-full text-[11px] border-collapse">
+                    <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">구성요소 상세</p>
+                    <table className="w-full text-[11px] border-collapse mb-0">
                       <thead>
                         <tr className="bg-zinc-50 text-zinc-500">
                           <th className="text-left py-2 px-2.5 font-semibold border border-zinc-100">항목</th>
@@ -5193,11 +5129,10 @@ export default function FnFQ1_2026Dashboard() {
                           { label: '재고자산', valM: invM, valAMPrev: invMPrev, pct: qSalesM > 0 ? (invM/qSalesM*100).toFixed(1) : null, color: 'text-amber-600' },
                           { label: '매입채무', valM: apM, valAMPrev: apMPrev, pct: qSalesM > 0 ? (apM/qSalesM*100).toFixed(1) : null, color: 'text-emerald-600' },
                         ].map((row, i) => {
-                          const diff = row.valM - row.valAMPrev;
-                          const diffPct = row.valAMPrev > 0 ? (diff / row.valAMPrev * 100).toFixed(1) : null;
-                          const isUp = diff > 0;
-                          const isAsset = i < 2;
-                          const isAlert = (isAsset && isUp && Math.abs(diff) > 5000) || (!isAsset && !isUp && Math.abs(diff) > 5000);
+                          const d2 = row.valM - row.valAMPrev;
+                          const diffPct = row.valAMPrev > 0 ? (d2 / row.valAMPrev * 100).toFixed(1) : null;
+                          const isUp = d2 > 0; const isAsset = i < 2;
+                          const isAlert = (isAsset && isUp && Math.abs(d2) > 5000) || (!isAsset && !isUp && Math.abs(d2) > 5000);
                           return (
                             <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
                               <td className={`py-2 px-2.5 font-semibold border border-zinc-100 ${row.color}`}>{row.label}</td>
@@ -5220,81 +5155,139 @@ export default function FnFQ1_2026Dashboard() {
                       </tbody>
                     </table>
                   </div>
-
-                  {/* 오른쪽: ④ 리스크 & 이상징후 */}
-                  <div className="col-span-3">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2">④ 리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[11px]">(전분기 대비)</span></p>
-                    <ul className="space-y-2">
-                      {nwcRisks.map((r, i) => (
-                        <li key={i} className={`text-[11px] rounded-lg px-3 py-2.5 leading-relaxed font-medium ${
-                          r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                          r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                          r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
-                          'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                        }`}>{r.text}</li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
 
-                {/* ⑤ 개선 방향 + ⑥ 동종업계 비교 — 2열 */}
+                {/* ══ Row 2: ② 추세분석 차트 (좌) + 시사점·리스크·개선방향 (우) ══ */}
+                {nwcTrendData.length > 0 && (
                 <div className="grid grid-cols-5 gap-5 items-start">
 
-                  {/* 왼쪽: ⑤ 개선 방향 */}
+                  {/* 좌: ② 추세 분석 차트 */}
                   <div className="col-span-2">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2">⑤ 개선 방향</p>
-                    <ul className="space-y-2">
-                      {nwcSolutions.map((s, i) => (
-                        <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2.5 border border-zinc-100">
-                          <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
-                          <span>{s}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-[12px] font-semibold text-zinc-700 mb-2">
+                      ② 추세 분석
+                      <span className="font-normal text-zinc-400 text-[10px] ml-1">(24.1Q~26.1Q)</span>
+                    </p>
+                    <p className="text-[10px] text-zinc-400 mb-1">DSO · DIO · DPO (일수)</p>
+                    <div className="h-52 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                          <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" />
+                          <YAxis tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}일`} domain={[0, 'auto']} />
+                          <Tooltip content={({ active, payload, label }) => {
+                            if (!active || !payload?.length) return null;
+                            return (
+                              <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-2 text-[10px]">
+                                <div className="font-semibold mb-1 text-zinc-700">{label}</div>
+                                {payload.map((p, i) => (
+                                  <div key={i} className="flex justify-between gap-3" style={{ color: p.color }}>
+                                    <span>{p.name}</span>
+                                    <span className="font-bold">{p.value != null ? `${p.value}일` : '—'}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }} />
+                          <Legend wrapperStyle={{ fontSize: 10 }} />
+                          <Line type="monotone" dataKey="DSO" name="DSO" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                          <Line type="monotone" dataKey="DIO" name="DIO" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                          <Line type="monotone" dataKey="DPO" name="DPO" stroke="#10b981" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
 
-                  {/* 오른쪽: ⑥ 동종업계 비교 */}
-                  <div className="col-span-3">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2">⑥ 동종업계 비교 <span className="font-normal text-zinc-400 text-[11px]">(국내 패션업계 참고치)</span></p>
-                    <table className="w-full text-[11px] border-collapse">
-                      <thead>
-                        <tr className="bg-zinc-50 text-zinc-500">
-                          <th className="text-left py-2 px-2.5 font-semibold border border-zinc-100">지표</th>
-                          <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">F&amp;F 현재</th>
-                          <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">업계 평균</th>
-                          <th className="text-center py-2 px-2.5 font-semibold border border-zinc-100">평가</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(() => {
-                          const rows = [
-                            { label: 'DSO (매출채권 회수일)', curr: dsoNWC, low: 30, high: 45, bench: '30~45일', lowerBetter: true },
-                            { label: 'DIO (재고 회전일)',     curr: dioNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
-                            { label: 'DPO (매입채무 지급일)', curr: dpoNWC, low: 30, high: 60,  bench: '30~60일',  lowerBetter: false },
-                            { label: 'CCC (현금전환주기)',    curr: cccNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
-                          ];
-                          return rows.map((row, i) => {
-                            const val = row.curr != null ? Math.round(row.curr) : null;
-                            const isGood = val != null && (row.lowerBetter ? val < row.low : val > row.high);
-                            const isBad  = val != null && (row.lowerBetter ? val > row.high : val < row.low);
-                            return (
-                              <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
-                                <td className="py-2 px-2.5 font-medium border border-zinc-100 text-zinc-700">{row.label}</td>
-                                <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-bold ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-800'}`}>
-                                  {val != null ? `${val}일` : '—'}
-                                </td>
-                                <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-zinc-400">{row.bench}</td>
-                                <td className={`text-center py-2 px-2.5 border border-zinc-100 text-[11px] font-semibold ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-500'}`}>
-                                  {val == null ? '—' : isBad ? '▼ 부정' : isGood ? '▲ 긍정' : '◆ 보통'}
-                                </td>
-                              </tr>
-                            );
-                          });
-                        })()}
-                      </tbody>
-                    </table>
-                    <p className="text-[10px] text-zinc-400 mt-1.5">※ 삼성패션연구소·업계 공개 자료 기반 참고치 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
+                  {/* 우: 추세분석 시사점 + 리스크 & 이상징후 + 개선 방향 */}
+                  <div className="col-span-3 space-y-3">
+
+                    {/* 추세 분석 시사점 */}
+                    {nwcTrendInsights.length > 0 && (
+                      <div className="rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
+                        <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
+                        <ul className="space-y-1">
+                          {nwcTrendInsights.map((t, i) => (
+                            <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
+                              <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
+                              <span>{t}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* 리스크 & 이상징후 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전분기 대비)</span></p>
+                      <ul className="space-y-1.5">
+                        {nwcRisks.map((r, i) => (
+                          <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
+                            r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
+                            r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                            r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
+                            'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          }`}>{r.text}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 개선 방향 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">개선 방향</p>
+                      <ul className="space-y-1.5">
+                        {nwcSolutions.map((s, i) => (
+                          <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
+                            <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
                   </div>
+                </div>
+                )}
+
+                {/* ══ Row 3: 동종업계 비교 (전체 폭, 참고용) ══ */}
+                <div className="border-t border-zinc-100 pt-4">
+                  <p className="text-[11px] font-semibold text-zinc-500 mb-2">
+                    동종업계 비교
+                    <span className="font-normal text-zinc-400 text-[10px] ml-1">(국내 패션업계 참고치)</span>
+                  </p>
+                  <table className="w-full text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-zinc-50 text-zinc-400">
+                        <th className="text-left py-1.5 px-2.5 font-medium border border-zinc-100">지표</th>
+                        <th className="text-right py-1.5 px-2.5 font-medium border border-zinc-100">F&amp;F 현재</th>
+                        <th className="text-right py-1.5 px-2.5 font-medium border border-zinc-100">업계 평균</th>
+                        <th className="text-center py-1.5 px-2.5 font-medium border border-zinc-100">평가</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { label: 'DSO (매출채권 회수일)', curr: dsoNWC, low: 30, high: 45, bench: '30~45일', lowerBetter: true },
+                        { label: 'DIO (재고 회전일)',     curr: dioNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
+                        { label: 'DPO (매입채무 지급일)', curr: dpoNWC, low: 30, high: 60,  bench: '30~60일',  lowerBetter: false },
+                        { label: 'CCC (현금전환주기)',    curr: cccNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
+                      ].map((row, i) => {
+                        const val = row.curr != null ? Math.round(row.curr) : null;
+                        const isGood = val != null && (row.lowerBetter ? val < row.low : val > row.high);
+                        const isBad  = val != null && (row.lowerBetter ? val > row.high : val < row.low);
+                        return (
+                          <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50/60">
+                            <td className="py-1.5 px-2.5 font-medium border border-zinc-100 text-zinc-600">{row.label}</td>
+                            <td className={`text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 font-bold ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-700'}`}>
+                              {val != null ? `${val}일` : '—'}
+                            </td>
+                            <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-zinc-400">{row.bench}</td>
+                            <td className={`text-center py-1.5 px-2.5 border border-zinc-100 font-semibold ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-400'}`}>
+                              {val == null ? '—' : isBad ? '▼ 부정' : isGood ? '▲ 긍정' : '◆ 보통'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <p className="text-[9px] text-zinc-400 mt-1.5">※ 삼성패션연구소·업계 공개 자료 기반 참고치 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
                 </div>
 
               </div>
