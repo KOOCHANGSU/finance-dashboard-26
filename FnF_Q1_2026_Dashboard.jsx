@@ -4867,16 +4867,9 @@ export default function FnFQ1_2026Dashboard() {
                   })()}
                   {yearlyInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">실적 분석</p>
-                        {yearlyInsights.length > 2 && (
-                          <button onClick={() => setPlInsightExpanded(v => !v)} className="text-[9px] text-blue-500 hover:text-blue-700 font-medium">
-                            {plInsightExpanded ? '접기 ▲' : `+${yearlyInsights.length - 2}개 더 보기 ▼`}
-                          </button>
-                        )}
-                      </div>
+                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">실적 분석</p>
                       <ul className="text-[10px] text-zinc-600 space-y-0.5 list-disc pl-4 leading-relaxed">
-                        {(plInsightExpanded ? yearlyInsights : yearlyInsights.slice(0, 2)).map((t, i) => <li key={i}>{t}</li>)}
+                        {yearlyInsights.map((t, i) => <li key={i}>{t}</li>)}
                       </ul>
                     </div>
                   )}
@@ -4898,7 +4891,10 @@ export default function FnFQ1_2026Dashboard() {
                     ];
                     const cols = costTrendData.slice(-5);
                     const latest = cols[cols.length - 1];
-                    const prev   = cols[cols.length - 2];
+                    // 전동분기차: 최신 분기의 전년 동분기 (e.g. 26.1Q → 25.1Q)
+                    const latestName = latest?.name ?? '';
+                    const yoyName = latestName ? (String(Number(latestName.slice(0,2)) - 1) + latestName.slice(2)) : null;
+                    const prev = yoyName ? costTrendData.find(d => d.name === yoyName) : null;
                     return (
                       <div className="overflow-x-auto">
                         <table className="w-full text-[10px] border-collapse">
@@ -4910,7 +4906,7 @@ export default function FnFQ1_2026Dashboard() {
                                   {d.name}
                                 </th>
                               ))}
-                              <th className="text-right py-1.5 px-2 font-semibold text-zinc-400 border border-zinc-100">전분기차</th>
+                              <th className="text-right py-1.5 px-2 font-semibold text-zinc-400 border border-zinc-100">전동분기차<br/><span className="font-normal text-[9px] text-zinc-300">{yoyName ?? ''}</span></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -4960,16 +4956,9 @@ export default function FnFQ1_2026Dashboard() {
                   })()}
                   {costInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">비용구조 분석 및 시사점</p>
-                        {costInsights.length > 2 && (
-                          <button onClick={() => setCostInsightExpanded(v => !v)} className="text-[9px] text-blue-500 hover:text-blue-700 font-medium">
-                            {costInsightExpanded ? '접기 ▲' : `+${costInsights.length - 2}개 더 보기 ▼`}
-                          </button>
-                        )}
-                      </div>
+                      <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wide">비용구조 분석 및 시사점</p>
                       <ul className="text-[10px] text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
-                        {(costInsightExpanded ? costInsights : costInsights.slice(0, 2)).map((t, i) => <li key={i}>{t}</li>)}
+                        {costInsights.map((t, i) => <li key={i}>{t}</li>)}
                       </ul>
                     </div>
                   )}
