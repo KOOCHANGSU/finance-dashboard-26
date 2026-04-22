@@ -188,15 +188,20 @@ const buildEntityQuarterLookup = (rows, year) => {
   for (let i = 0; i < header.length; i += 1) {
     if (/^\d{2}\.[1-4]Q$/.test(header[i])) quarterOffsets.push(i);
   }
-  const entityCols = {
+  // CSV 열 구조: [period, F&F(+1), 중국(+2), 홍콩(+3), 베트남(+4), 빅텐츠(+5), 엔터(+6), ST미국(+7),
+  //              단순합계(+8), 연결조정(+9,+10), 누적(+11), 전분기누적(+12), 분기연결합계(+13)]
+  const ENTITY_COL_NAMED = {
     'OC(국내)': 1,
     중국: 2,
     홍콩: 3,
     베트남: 4,
-    '기타(연결조정)': 5,
     엔터테인먼트: 6,
     ST미국: 7,
   };
+  const COL_BIGTENTS = 5;   // 빅텐츠 (별도 법인, 기타(연결조정)에 포함)
+  const COL_SIMPLE_SUM = 8; // 단순합계
+  const COL_CONSOL_QTR = 13; // 분기 연결합계 (누적 아님!)
+
   quarterOffsets.forEach((offset) => {
     const m = header[offset].match(/^\d{2}\.([1-4])Q$/);
     if (!m) return;
@@ -209,17 +214,42 @@ const buildEntityQuarterLookup = (rows, year) => {
       if (!String(rawAccount ?? '').trim()) continue;
       const accountKey = normalizeAccount(rawAccount);
       if (!lookup[period][accountKey]) lookup[period][accountKey] = {};
-      Object.entries(entityCols).forEach(([entity, rel]) => {
-        if (entity === '기타(연결조정)') {
-          // 연결조정 = 연결합계(+11) − 단순합계(+8)
-          const consolidated = parseCsvNumber(row[offset + 11]);
-          const simpleSum = parseCsvNumber(row[offset + 8]);
-          if (consolidated !== undefined && simpleSum !== undefined) {
-            lookup[period][accountKey][entity] = Math.round(consolidated - simpleSum);
-          }
-        } else {
-          const v = parseCsvNumber(row[offset + rel]);
-          if (v !== undefined) lookup[period][accountKey][entity] = Math.round(v);
+
+      // 명명 법인 (OC·중국·홍콩·베트남·엔터·ST미국)
+      Object.entries(ENTITY_COL_NAMED).forEach(([entity, rel]) => {
+        const v = parseCsvNumber(row[offset + rel]);
+        if (v !== undefined) lookup[period][accountKey][entity] = Math.round(v);
+      });
+
+      // 기타(연결조정) = 분기연결합계 − (단순합계 − 빅텐츠)
+      //   = 순연결조정분개 + 빅텐츠 (빅텐츠가 표시 합계에서 누락되지 않도록)
+      //   → SUM(모든표시법인) = 분기연결합계 보장
+      const qConsolidated = parseCsvNumber(row[offset + COL_CONSOL_QTR]);
+      const simpleSum = parseCsvNumber(row[offset + COL_SIMPLE_SUM]);
+      const bigtents = parseCsvNumber(row[offset + COL_BIGTENTS]) ?? 0;
+      if (qConsolidated !== undefined && simpleSum !== undefined) {
+        lookup[period][accountKey]['기타(연결조정)'] =
+          Math.round(qConsolidated - simpleSum + bigtents);
+      }
+    }
+    // 파생 계정: 배당금수익(CSV명) → 배당수익(대시보드 키) alias
+    if (lookup[period]['배당금수익'] && !lookup[period]['배당수익']) {
+      lookup[period]['배당수익'] = { ...lookup[period]['배당금수익'] };
+    }
+    // 파생 계정: 선물환손익 = 파생상품평가이익/거래이익 - 파생상품평가손실/거래손실 (법인별)
+    const fwdGainByEntity = lookup[period]['파생상품평가이익'];
+    const fwdTradeGainByEntity = lookup[period]['파생상품거래이익'];
+    const fwdLossByEntity = lookup[period]['파생상품평가손실'];
+    const fwdTradeLossByEntity = lookup[period]['파생상품거래손실'];
+    if (fwdGainByEntity || fwdTradeGainByEntity || fwdLossByEntity || fwdTradeLossByEntity) {
+      if (!lookup[period]['선물환손익']) lookup[period]['선물환손익'] = {};
+      Object.keys(entityCols).forEach((entity) => {
+        const g1 = fwdGainByEntity?.[entity] || 0;
+        const g2 = fwdTradeGainByEntity?.[entity] || 0;
+        const l1 = fwdLossByEntity?.[entity] || 0;
+        const l2 = fwdTradeLossByEntity?.[entity] || 0;
+        if (g1 !== 0 || g2 !== 0 || l1 !== 0 || l2 !== 0) {
+          lookup[period]['선물환손익'][entity] = Math.round(g1 + g2 - l1 - l2);
         }
       });
     }
@@ -343,11 +373,15 @@ const buildConsolidatedISLookup = (rows, year) => {
     이자손익: '이자손익',
     이자수익: '__이자수익',
     이자비용: '__이자비용',
-    배당수익: '배당수익',
+    배당수익: '배당수익',   // fallback: CSV에 없을 경우
+    배당금수익: '배당수익', // CSV 실제 계정명 → 배당수익으로 맵핑
     기부금: '기부금',
     기타손익: '기타손익',
     잡이익: '__잡이익',
     잡손실: '__잡손실',
+    // (3)금융상품손익: 당기손익-공정가치측정 계정 + 단기매매증권 계정
+    단기매매증권평가이익: '__단매평가이익',
+    단기매매증권처분이익: '__단매처분이익',
   };
 
   quarterOffsets.forEach((offset) => {
@@ -436,15 +470,26 @@ const buildConsolidatedISLookup = (rows, year) => {
         lookup[period].외환손익 = Math.round(fxGain - fxLoss);
       }
     }
+    // 선물환손익 = 파생상품 계정 합산 (맵핑표: (2)선물환손익)
+    if (lookup[period].선물환손익 === undefined) {
+      const fwdGain =
+        Number(lookup[period].__파생평가이익 || 0) +
+        Number(lookup[period].__파생거래이익 || 0);
+      const fwdLoss =
+        Number(lookup[period].__파생평가손실 || 0) +
+        Number(lookup[period].__파생거래손실 || 0);
+      if (fwdGain !== 0 || fwdLoss !== 0) {
+        lookup[period].선물환손익 = Math.round(fwdGain - fwdLoss);
+      }
+    }
+    // 금융상품손익 = 당기손익-공정가치측정 + 단기매매증권 계정 (맵핑표: (3)금융상품손익)
     if (lookup[period].금융상품손익 === undefined) {
       const finGain =
-        Number(lookup[period].__파생평가이익 || 0) +
-        Number(lookup[period].__파생거래이익 || 0) +
         Number(lookup[period].__당손금융자산처분이익 || 0) +
-        Number(lookup[period].__당손금융자산평가이익 || 0);
+        Number(lookup[period].__당손금융자산평가이익 || 0) +
+        Number(lookup[period].__단매평가이익 || 0) +
+        Number(lookup[period].__단매처분이익 || 0);
       const finLoss =
-        Number(lookup[period].__파생평가손실 || 0) +
-        Number(lookup[period].__파생거래손실 || 0) +
         Number(lookup[period].__당손금융자산처분손실 || 0) +
         Number(lookup[period].__당손금융자산평가손실 || 0);
       if (finGain !== 0 || finLoss !== 0) {
@@ -503,7 +548,18 @@ const buildConsolidatedBSLookup = (rows, year) => {
     기타유동금융자산: '금융자산',
     통화선도: '금융자산',
     유동당기손익공정가치측정금융자산: '금융자산',
+    장기금융상품: '금융자산',
+    당기손익공정가치측정금융자산: '금융자산',  // 비유동
+    기타포괄손익공정가치측정금융자산: '금융자산',
+    상각후원가금융자산: '금융자산',
+    파생상품자산: '금융자산',
     매출채권: '매출채권',
+    장기매출채권: '매출채권',
+    // 대여금: 맵핑표 별도 카테고리 (기타자산 residual에서 분리)
+    단기대여금: '대여금',
+    단기대여금대손충당금: '대여금',  // 충당금(음수) 합산
+    장기대여금: '대여금',
+    장기대여금대손충당금: '대여금',  // 충당금(음수) 합산
     재고자산: '재고자산',
     투자자산: '투자자산',
     관계기업및종속기업투자: '투자자산',
@@ -516,7 +572,10 @@ const buildConsolidatedBSLookup = (rows, year) => {
     자산총계: '자산총계',
     매입채무: '매입채무',
     미지급금: '미지급금',
+    장기미지급금: '미지급금',
     유동성보증금: '보증금',
+    유동성장기예수보증금: '보증금',
+    장기성예수보증금: '보증금',
     단기차입금: '차입금',
     장기차입금: '차입금',
     유동리스부채: '리스부채',
@@ -574,7 +633,8 @@ const buildConsolidatedBSLookup = (rows, year) => {
         + Number(item.재고자산 || 0)
         + Number(item.투자자산 || 0)
         + Number(item.유무형자산 || 0)
-        + Number(item.사용권자산 || 0);
+        + Number(item.사용권자산 || 0)
+        + Number(item.대여금 || 0);  // 맵핑표 대여금 카테고리 분리 (기타자산에서 제외)
       item.기타자산 = Math.round(Number(item.자산총계 || 0) - otherAssets);
     }
 
