@@ -449,10 +449,27 @@ const buildConsolidatedBSLookup = (rows, year) => {
     const q = Number(m[1]);
     const qKey = `${year}_${q}Q`;
     const qCol = offset + 13;
+
+    // Pass 1: exact match (plain account names without numeric prefix)
     for (let r = 1; r < rows.length; r += 1) {
       const row = rows[r];
       const mapped = accountMap[normalizeAccount(row[offset])];
       if (!mapped) continue;
+      addSum(lookup, qKey, mapped, parseCsvNumber(row[qCol]));
+    }
+
+    // Pass 2: for accounts not yet loaded, try rows with leading-digit prefix
+    // e.g. "(2)재고자산" → normalizeAccount → "2재고자산" → strip → "재고자산" → accountMap match
+    const loadedAccounts = new Set(Object.keys(lookup[qKey] || {}));
+    for (let r = 1; r < rows.length; r += 1) {
+      const row = rows[r];
+      const normalKey = normalizeAccount(row[offset]);
+      if (accountMap[normalKey]) continue; // already handled in pass 1
+      const stripped = normalKey.replace(/^\d+/, '');
+      if (!stripped || stripped === normalKey) continue;
+      const mapped = accountMap[stripped];
+      if (!mapped) continue;
+      if (loadedAccounts.has(mapped)) continue; // plain row already loaded this account
       addSum(lookup, qKey, mapped, parseCsvNumber(row[qCol]));
     }
   });
@@ -5121,9 +5138,9 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
                 </div>
                 )}
-                {/* ④ 핵심포인트 */}
+                {/* ③ 핵심포인트 */}
                 <div>
-                  <p className="text-[12px] font-semibold text-zinc-700 mb-2">④ 핵심포인트</p>
+                  <p className="text-[12px] font-semibold text-zinc-700 mb-2">③ 핵심포인트</p>
                   <ul className="text-[11px] text-zinc-600 space-y-2 list-none pl-0">
                     {plHighlights.map((t, i) => (
                       <li key={i} className="flex gap-1.5 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">{t}</li>
@@ -5175,6 +5192,7 @@ export default function FnFQ1_2026Dashboard() {
                             { tag: `직전분기(${prevQLabel})`, v: dsoPrev != null ? `${Math.round(dsoPrev)}일` : '—', warn: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev + 5 },
                             { tag: `전년동기(${yoyQLabel})`, v: dsoYoY != null ? `${Math.round(dsoYoY)}일` : '—', warn: dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 },
                           ],
+                          bench: '30~45일', benchLow: 30, benchHigh: 45, lowerBetter: true,
                         },
                         {
                           label: 'DIO (재고 회전일)', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—',
@@ -5183,6 +5201,7 @@ export default function FnFQ1_2026Dashboard() {
                             { tag: `직전분기(${prevQLabel})`, v: dioPrev != null ? `${Math.round(dioPrev)}일` : '—', warn: dioNWC != null && dioPrev != null && dioNWC > dioPrev + 5 },
                             { tag: `전년동기(${yoyQLabel})`, v: dioYoY != null ? `${Math.round(dioYoY)}일` : '—', warn: dioNWC != null && dioYoY != null && dioNWC > dioYoY + 5 },
                           ],
+                          bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
                         },
                         {
                           label: 'DPO (매입채무 지급일)', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—',
@@ -5191,6 +5210,7 @@ export default function FnFQ1_2026Dashboard() {
                             { tag: `직전분기(${prevQLabel})`, v: dpoPrev != null ? `${Math.round(dpoPrev)}일` : '—', warn: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev - 5 },
                             { tag: `전년동기(${yoyQLabel})`, v: dpoYoY != null ? `${Math.round(dpoYoY)}일` : '—', warn: dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5 },
                           ],
+                          bench: '30~60일', benchLow: 30, benchHigh: 60, lowerBetter: false,
                         },
                         {
                           label: 'CCC (현금전환주기)', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—',
@@ -5199,8 +5219,13 @@ export default function FnFQ1_2026Dashboard() {
                             { tag: `직전분기(${prevQLabel})`, v: cccPrev != null ? `${Math.round(cccPrev)}일` : '—', warn: cccNWC != null && cccPrev != null && cccNWC > cccPrev + 5 },
                             { tag: `전년동기(${yoyQLabel})`, v: cccYoY != null ? `${Math.round(cccYoY)}일` : '—', warn: cccNWC != null && cccYoY != null && cccNWC > cccYoY + 5 },
                           ],
+                          bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
                         },
-                      ].map((k, i) => (
+                      ].map((k, i) => {
+                        const numVal = k.bench ? parseFloat(k.val) : null;
+                        const benchGood = numVal != null && k.bench && (k.lowerBetter ? numVal < k.benchLow : numVal > k.benchHigh);
+                        const benchBad  = numVal != null && k.bench && (k.lowerBetter ? numVal > k.benchHigh : numVal < k.benchLow);
+                        return (
                         <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2.5">
                           <div className="text-[10px] text-zinc-400 font-medium leading-tight mb-1">{k.label}</div>
                           <div className={`text-lg font-bold tabular-nums mb-1.5 ${k.color}`}>{k.val}</div>
@@ -5212,8 +5237,17 @@ export default function FnFQ1_2026Dashboard() {
                               </div>
                             ))}
                           </div>
+                          {k.bench && (
+                            <div className="mt-1.5 pt-1.5 border-t border-zinc-100 flex justify-between items-center">
+                              <span className="text-[9px] text-zinc-300">업계 {k.bench}</span>
+                              <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${benchBad ? 'bg-rose-50 text-rose-500' : benchGood ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
+                                {benchBad ? '▼ 부정' : benchGood ? '▲ 긍정' : '◆ 보통'}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -5353,40 +5387,8 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
                 )}
 
-                {/* ══ Row 3: 동종업계 비교 (참고용, 컴팩트) ══ */}
-                <div className="border-t border-zinc-100 pt-3">
-                  <p className="text-[10px] font-semibold text-zinc-400 mb-2 uppercase tracking-wide">
-                    동종업계 비교 <span className="font-normal normal-case">(국내 패션업계 참고치)</span>
-                  </p>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { label: 'DSO', sub: '매출채권 회수일', curr: dsoNWC, low: 30, high: 45, bench: '30~45일', lowerBetter: true },
-                      { label: 'DIO', sub: '재고 회전일',     curr: dioNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
-                      { label: 'DPO', sub: '매입채무 지급일', curr: dpoNWC, low: 30, high: 60,  bench: '30~60일',  lowerBetter: false },
-                      { label: 'CCC', sub: '현금전환주기',    curr: cccNWC, low: 90, high: 150, bench: '90~150일', lowerBetter: true },
-                    ].map((row, i) => {
-                      const val = row.curr != null ? Math.round(row.curr) : null;
-                      const isGood = val != null && (row.lowerBetter ? val < row.low : val > row.high);
-                      const isBad  = val != null && (row.lowerBetter ? val > row.high : val < row.low);
-                      return (
-                        <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50/60 px-2.5 py-2">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[11px] font-bold text-zinc-600">{row.label}</span>
-                            <span className={`text-[10px] font-semibold ${isBad ? 'text-rose-500' : isGood ? 'text-emerald-600' : 'text-zinc-400'}`}>
-                              {val == null ? '—' : isBad ? '▼ 부정' : isGood ? '▲ 긍정' : '◆ 보통'}
-                            </span>
-                          </div>
-                          <div className={`text-base font-bold tabular-nums ${isBad ? 'text-rose-600' : isGood ? 'text-emerald-600' : 'text-zinc-700'}`}>
-                            {val != null ? `${val}일` : '—'}
-                          </div>
-                          <div className="text-[9px] text-zinc-400 mt-0.5">{row.sub}</div>
-                          <div className="text-[9px] text-zinc-300 mt-0.5">업계 {row.bench}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[9px] text-zinc-400 mt-1.5">※ 삼성패션연구소·업계 공개 자료 기반 참고치 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
-                </div>
+                {/* ══ 업계 비교 각주 ══ */}
+                <p className="text-[9px] text-zinc-400 mt-0">※ 업계 기준치(국내 패션업계 참고): DSO 30~45일 / DIO 90~150일 / DPO 30~60일 / CCC 90~150일 · 삼성패션연구소·업계 공개 자료 기반 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
 
               </div>
             </div>
@@ -6497,9 +6499,16 @@ export default function FnFQ1_2026Dashboard() {
 
     const currPeriod = getCurrentPeriodKey();
     const prevPeriod = getPrevPeriodKey();
-    const periodLabel = incomeViewMode === 'quarter' 
+    const periodLabel = incomeViewMode === 'quarter'
       ? selectedPeriod.split('_')[1].replace('Q', '') + '분기'
       : '연간';
+    // 동적 기간 레이블 (도넛/테이블 헤더에 사용)
+    const prevPeriodLabel = incomeViewMode === 'quarter'
+      ? prevPeriod.replace('_', '.')   // e.g. 2025_1Q → 2025.1Q
+      : prevPeriod.split('_')[0] + '년'; // e.g. 2025_Year → 2025년
+    const currPeriodLabel = incomeViewMode === 'quarter'
+      ? currPeriod.replace('_', '.')   // e.g. 2026_1Q → 2026.1Q
+      : currPeriod.split('_')[0] + '년'; // e.g. 2026_Year → 2026년
 
     // 법인 색상
     const entityColors = {
@@ -6918,7 +6927,7 @@ export default function FnFQ1_2026Dashboard() {
             <div className="flex justify-around mt-4">
               <div className="text-center">
                 <p className="text-xs font-medium text-zinc-500 mb-2">
-                  {incomeViewMode === 'quarter' ? '2024.4Q' : '2024년'}
+                  {prevPeriodLabel}
                 </p>
                 <div style={{ width: 110, height: 110 }}>
                   {getDonutData(prevPeriod).length > 0 ? (
@@ -6947,13 +6956,7 @@ export default function FnFQ1_2026Dashboard() {
               </div>
               <div className="text-center">
                 <p className="text-xs font-medium text-zinc-500 mb-2">
-                  {incomeViewMode === 'quarter' 
-                    ? (() => {
-                        const [yearStr, qStr] = selectedPeriod.split('_');
-                        const quarterNum = (qStr || 'Q4').replace('Q', '');
-                        return `${yearStr}.${quarterNum}Q`;
-                      })()
-                    : '2025년'}
+                  {currPeriodLabel}
                 </p>
                 <div style={{ width: 110, height: 110 }}>
                   {getDonutData(currPeriod).length > 0 ? (
@@ -7025,10 +7028,10 @@ export default function FnFQ1_2026Dashboard() {
                 <tr className="bg-zinc-50 border-b border-zinc-200">
                   <th rowSpan={2} className="text-center px-2 py-1.5 font-semibold text-zinc-600 min-w-[65px] whitespace-nowrap border-r border-zinc-200">법인</th>
                   <th colSpan={2} className="text-center px-1 py-1 font-semibold text-zinc-600 border-r border-zinc-200">
-                    {incomeViewMode === 'quarter' ? '2024.4Q' : '2024'}
+                    {prevPeriodLabel}
                   </th>
                   <th colSpan={2} className="text-center px-1 py-1 font-semibold text-zinc-600 border-r border-zinc-200">
-                    {incomeViewMode === 'quarter' ? '2025.4Q' : '2025'}
+                    {currPeriodLabel}
                   </th>
                   <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-zinc-600 min-w-[55px] border-r border-zinc-200">차이</th>
                   <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-zinc-600 min-w-[40px] whitespace-nowrap">YoY</th>
@@ -7483,7 +7486,7 @@ export default function FnFQ1_2026Dashboard() {
                 <div className="flex justify-around mt-4">
                   <div className="text-center">
                     <p className="text-xs font-medium text-zinc-500 mb-2">
-                      {incomeViewMode === 'quarter' ? '2024.4Q' : '2024년'}
+                      {prevPeriodLabel}
                     </p>
                     <div style={{ width: 110, height: 110 }}>
                       {getNonOpDonutData(prevPeriod).length > 0 ? (
@@ -7510,7 +7513,7 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                   <div className="text-center">
                     <p className="text-xs font-medium text-zinc-500 mb-2">
-                      {incomeViewMode === 'quarter' ? '2025.4Q' : '2025년'}
+                      {currPeriodLabel}
                     </p>
                     <div style={{ width: 110, height: 110 }}>
                       {getNonOpDonutData(currPeriod).length > 0 ? (
@@ -7558,10 +7561,10 @@ export default function FnFQ1_2026Dashboard() {
                     <tr className="bg-zinc-50 border-b border-zinc-200">
                       <th rowSpan={2} className="text-center px-2 py-1.5 font-semibold text-zinc-600 min-w-[65px] whitespace-nowrap border-r border-zinc-200">법인</th>
                       <th colSpan={2} className="text-center px-1 py-1 font-semibold text-zinc-600 border-r border-zinc-200">
-                        {incomeViewMode === 'quarter' ? '2024.4Q' : '2024'}
+                        {prevPeriodLabel}
                       </th>
                       <th colSpan={2} className="text-center px-1 py-1 font-semibold text-zinc-600 border-r border-zinc-200">
-                        {incomeViewMode === 'quarter' ? '2025.4Q' : '2025'}
+                        {currPeriodLabel}
                       </th>
                       <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-zinc-600 min-w-[55px] border-r border-zinc-200">차이</th>
                       <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-zinc-600 min-w-[40px] whitespace-nowrap">YoY</th>
