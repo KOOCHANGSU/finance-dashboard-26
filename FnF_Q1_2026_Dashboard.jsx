@@ -5575,28 +5575,34 @@ export default function FnFQ1_2026Dashboard() {
                             ))}
                           </div>
 
-                          {/* ══ 메인: 좌(차트 2개 세로) + 우(분석 3구분) ══ */}
-                          <div className="grid grid-cols-5 divide-x divide-zinc-100">
+                          {/* ══ 메인: 좌(차트 2개 세로) + 우(분석 3구분) — 반반(50/50) ══ */}
+                          <div className="grid grid-cols-2 divide-x divide-zinc-100">
 
                             {/* 좌: 손익 추이 (상) + 자본구조 추이 (하) */}
-                            <div className="col-span-3 divide-y divide-zinc-100">
+                            <div className="divide-y divide-zinc-100">
 
-                              {/* 손익 추이 */}
+                              {/* 손익 추이 — 전 법인 동일 색상 */}
                               <div className="p-4">
                                 <div className="flex items-center justify-between mb-2">
                                   <p className="text-[11px] font-semibold text-zinc-700">손익 추이 (억원)</p>
                                   <div className="flex items-center gap-2.5 text-[10px] text-zinc-500">
-                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm" style={{ background: color, opacity: 0.35 }}></span>매출</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-indigo-400 opacity-50"></span>매출</span>
                                     <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-teal-500"></span>영업이익</span>
-                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t border-dashed border-zinc-400"></span>순이익</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t border-dashed border-slate-400"></span>순이익</span>
                                   </div>
                                 </div>
-                                <div className="h-36 w-full">
+                                {(() => {
+                                  // 법인 규모별 Y축 포맷 (억 단위)
+                                  const allVals = series.flatMap(s => [s.매출액, s.영업이익, s.당기순이익]).filter(v => v != null);
+                                  const maxAbs = Math.max(...allVals.map(Math.abs), 1);
+                                  const yFmt = v => maxAbs >= 1000 ? `${(v/1000).toFixed(1)}천` : `${formatNumber(v)}`;
+                                  return (
+                                <div className="h-40 w-full">
                                   <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={series} margin={{ top: 8, right: 10, left: -8, bottom: 0 }}>
+                                    <ComposedChart data={series} margin={{ top: 8, right: 12, left: -4, bottom: 0 }}>
                                       <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
-                                      <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
-                                      <YAxis tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
+                                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
+                                      <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={yFmt} width={40} />
                                       <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} content={({ active, payload, label }) => {
                                         if (!active || !payload?.length) return null;
                                         return (
@@ -5614,38 +5620,46 @@ export default function FnFQ1_2026Dashboard() {
                                           </div>
                                         );
                                       }} />
-                                      <Bar dataKey="매출액" name="매출" fill={color} fillOpacity={0.2} maxBarSize={20} radius={[2,2,0,0]} />
-                                      <Line type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} connectNulls
+                                      {/* 고정 색상: 매출=인디고, 영업이익=틸, 순이익=슬레이트 */}
+                                      <Bar dataKey="매출액" name="매출" fill="#6366f1" fillOpacity={0.25} maxBarSize={22} radius={[2,2,0,0]} />
+                                      <Line type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2.5} connectNulls
                                         dot={(props) => {
                                           const { cx, cy, value } = props;
                                           if (value == null || cx == null || cy == null) return <g key={`dot-op-${cx}-${cy}`} />;
-                                          return <circle key={`dot-op-${cx}-${cy}`} cx={cx} cy={cy} r={3} fill={value >= 0 ? '#0d9488' : '#f43f5e'} stroke="white" strokeWidth={1.5} />;
+                                          return <circle key={`dot-op-${cx}-${cy}`} cx={cx} cy={cy} r={3.5} fill={value >= 0 ? '#0d9488' : '#f43f5e'} stroke="white" strokeWidth={1.5} />;
                                         }}
-                                        activeDot={{ r: 4, strokeWidth: 2 }}
+                                        activeDot={{ r: 5, strokeWidth: 2 }}
                                       />
-                                      <Line type="monotone" dataKey="당기순이익" name="순이익" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
+                                      <Line type="monotone" dataKey="당기순이익" name="순이익" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" dot={{ r: 2.5, fill: '#64748b', stroke: 'white', strokeWidth: 1 }} connectNulls />
                                       <ReferenceLine y={0} stroke="#e11d48" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.4} />
                                     </ComposedChart>
                                   </ResponsiveContainer>
                                 </div>
+                                  );
+                                })()}
                               </div>
 
-                              {/* 자본구조 추이 */}
+                              {/* 자본구조 추이 — 전 법인 동일 색상 */}
                               <div className="p-4">
                                 <div className="flex items-center justify-between mb-2">
                                   <p className="text-[11px] font-semibold text-zinc-700">자본구조 추이 (억원)</p>
                                   <div className="flex items-center gap-2.5 text-[10px] text-zinc-500">
-                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-emerald-400 opacity-70"></span>자본</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-emerald-500 opacity-60"></span>자본</span>
                                     <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-rose-400 opacity-60"></span>부채</span>
-                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-indigo-400"></span>자산</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-violet-500"></span>자산</span>
                                   </div>
                                 </div>
-                                <div className="h-36 w-full">
+                                {(() => {
+                                  const bsVals = series.flatMap(s => [s.자산총계, s.자본총계, s.부채총계]).filter(v => v != null);
+                                  const bsMax = Math.max(...bsVals.map(Math.abs), 1);
+                                  const bsFmt = v => bsMax >= 1000 ? `${(v/1000).toFixed(1)}천` : `${formatNumber(v)}`;
+                                  return (
+                                <div className="h-40 w-full">
                                   <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={series} margin={{ top: 8, right: 10, left: -8, bottom: 0 }}>
+                                    <ComposedChart data={series} margin={{ top: 8, right: 12, left: -4, bottom: 0 }}>
                                       <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
-                                      <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
-                                      <YAxis tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
+                                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
+                                      <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={bsFmt} width={40} />
                                       <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} content={({ active, payload, label }) => {
                                         if (!active || !payload?.length) return null;
                                         const assetItem = payload.find(p => p.dataKey === '자산총계');
@@ -5674,18 +5688,21 @@ export default function FnFQ1_2026Dashboard() {
                                           </div>
                                         );
                                       }} />
-                                      <Bar dataKey="자본총계" name="자본" stackId="bs" fill="#0d9488" fillOpacity={0.55} maxBarSize={20} />
-                                      <Bar dataKey="부채총계" name="부채" stackId="bs" fill="#f43f5e" fillOpacity={0.45} maxBarSize={20} radius={[2,2,0,0]} />
-                                      <Line type="monotone" dataKey="자산총계" name="자산" stroke="#6366f1" strokeWidth={2} dot={{ r: 2, fill: '#6366f1', stroke: 'white', strokeWidth: 1 }} connectNulls />
+                                      {/* 고정 색상: 자본=에메랄드, 부채=로즈, 자산=바이올렛 */}
+                                      <Bar dataKey="자본총계" name="자본" stackId="bs" fill="#10b981" fillOpacity={0.5} maxBarSize={22} />
+                                      <Bar dataKey="부채총계" name="부채" stackId="bs" fill="#f43f5e" fillOpacity={0.45} maxBarSize={22} radius={[2,2,0,0]} />
+                                      <Line type="monotone" dataKey="자산총계" name="자산" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3, fill: '#7c3aed', stroke: 'white', strokeWidth: 1.5 }} connectNulls />
                                     </ComposedChart>
                                   </ResponsiveContainer>
                                 </div>
+                                  );
+                                })()}
                               </div>
 
                             </div>{/* /left charts */}
 
                             {/* 우: 분석 — 긍정적 / 부정적 / 종합분석 */}
-                            <div className="col-span-2 p-4 flex flex-col gap-3">
+                            <div className="p-4 flex flex-col gap-3">
 
                               {/* 긍정적 */}
                               {analysis.pos.length > 0 && (
