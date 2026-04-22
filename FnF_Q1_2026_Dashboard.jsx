@@ -4793,8 +4793,7 @@ export default function FnFQ1_2026Dashboard() {
                 <div>
                   <p className="text-[11px] font-semibold text-zinc-700 mb-1">
                     ① 연도별 실적추이 — 분기별 구성 (단위: 억원)
-                    {plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 미완분기 포함</span>}
-                  </p>
+                                  </p>
                   <p className="text-[10px] text-zinc-400 mb-2">
                     <span className="inline-block w-3 h-3 rounded-sm bg-amber-100 border border-amber-300 mr-1 align-middle" />연간 최고 영업이익률 분기 &nbsp;·&nbsp;
                     <span className="inline-block w-3 h-3 rounded-sm bg-blue-50 border border-blue-200 mr-1 align-middle" />동분기 중 최고 연도
