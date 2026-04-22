@@ -4277,11 +4277,11 @@ export default function FnFQ1_2026Dashboard() {
         const diff = card.value - card.prevValue;
         const isPositive = diff >= 0;
         return (
-          <div key={idx} className={`bg-white rounded-lg border border-zinc-200 border-l-4 ${leftBorderColor} shadow-sm p-5 hover:shadow-md transition-shadow duration-200`}>
+          <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
             {/* 헤더: 제목과 증감 박스 */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest">{card.title}</span>
-              <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">{card.title}</span>
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
                 isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
               }`}>
                 {diff !== 0 ? `YoY ${isPositive ? '+' : ''}${diff.toFixed(1)}%p` : '-'}
@@ -4289,13 +4289,13 @@ export default function FnFQ1_2026Dashboard() {
             </div>
 
             {/* 당년 수치 */}
-            <div className="flex items-baseline gap-1 mb-3">
-              <span className="text-3xl font-black text-zinc-900 tracking-tight">{card.value.toFixed(1)}</span>
+            <div className="flex items-baseline gap-1 mb-2">
+              <span className="text-2xl font-bold text-zinc-900 tracking-tight">{card.value.toFixed(1)}</span>
               <span className="text-sm font-normal text-zinc-400">%</span>
             </div>
 
             {/* 비교 기간 수치 */}
-            <div className="mb-3">
+            <div className="mb-2">
               <span className="text-[10px] text-zinc-400">{card.compareLabel || '전년'} {card.prevValue.toFixed(1)}%</span>
               {diff !== 0 && (
                 <span className={`ml-1 font-bold text-[10px] ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -4336,11 +4336,11 @@ export default function FnFQ1_2026Dashboard() {
       }
       
       return (
-        <div key={idx} className={`bg-white rounded-lg border border-zinc-200 border-l-4 ${leftBorderColor} shadow-sm p-5 hover:shadow-md transition-shadow duration-200`}>
+        <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
           {/* 헤더: 제목과 증감률 박스 */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-widest">{card.title}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">{card.title}</span>
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
               isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
             }`}>
               {change != 0 ? `YoY ${isPositive ? '+' : ''}${change}%` : '-'}
@@ -4348,13 +4348,13 @@ export default function FnFQ1_2026Dashboard() {
           </div>
 
           {/* 당년 수치 */}
-          <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-3xl font-black text-zinc-900 tracking-tight">{formatted.number}</span>
+          <div className="flex items-baseline gap-1 mb-2">
+            <span className="text-2xl font-bold text-zinc-900 tracking-tight">{formatted.number}</span>
             <span className="text-sm font-normal text-zinc-400">{formatted.unit}</span>
           </div>
 
           {/* 비교 기간 수치 및 차액 (한 줄) */}
-          <div className="mb-3">
+          <div className="mb-2">
             <span className="text-[10px] text-zinc-400">{card.compareLabel || '전년'} {formattedPrev.number.replace('억원', '억')}억원</span>
             {diff !== 0 && (
               <span className={`ml-1 font-bold text-[10px] ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
