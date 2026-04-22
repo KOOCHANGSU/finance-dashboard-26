@@ -7764,6 +7764,139 @@ export default function FnFQ1_2026Dashboard() {
               );
             })()}
             
+            {/* 이자수익 상세 — 26.1Q vs 25.1Q 비교 (구성상세 하단) */}
+            {selectedNonOpAccount === '이자손익' && (
+              <div className="mt-4">
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="bg-zinc-50 px-3 py-2 border-b border-zinc-200 flex justify-between items-center">
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-800">이자수익 상세</span>
+                      <span className="text-xs text-zinc-500 ml-2">26.1Q vs 25.1Q 비교</span>
+                    </div>
+                    <span className="text-xs text-zinc-500">단위: 백만원</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
+                          <th colSpan={2} className="text-left px-3 py-2 font-semibold border-r border-zinc-200">구분</th>
+                          <th colSpan={3} className="text-center px-3 py-2 font-semibold border-r border-zinc-200 text-blue-700 bg-blue-50">25.1Q</th>
+                          <th colSpan={3} className="text-center px-3 py-2 font-semibold text-emerald-700 bg-emerald-50">26.1Q</th>
+                        </tr>
+                        <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
+                          <th className="text-left px-3 py-1.5 font-medium border-r border-zinc-100" colSpan={2}>항목</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">기말잔액</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">이자수익</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-200">수익률</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">기말잔액</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">이자수익</th>
+                          <th className="text-right px-2 py-1.5 font-medium">수익률</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td rowSpan={3} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-100 align-top">예금</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">보통</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">41,449</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">49</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">1.1%</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">282,597</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">383</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">1.6%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">수익성</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">31,090</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">445</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2.9%</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">254,175</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">1,339</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">2.2%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-zinc-50 font-medium">
+                          <td className="px-2 py-1.5 text-zinc-700 border-r border-zinc-200">계</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">72,539</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-800 border-r border-zinc-100">494</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2.5%</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">536,772</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-emerald-700 border-r border-zinc-100">1,722</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">2.0%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">신탁 (자사주 매입용)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">6,540</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">37</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400">—</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">대여금</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">39,765</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">392</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">4.6%</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">56,368</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">880</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">4.6%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-100">리스</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">보증금/전대</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">21,516</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">179</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">3.3%</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">18,285</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">135</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">2.9%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-blue-50 font-semibold">
+                          <td colSpan={2} className="px-3 py-1.5 text-blue-800 border-r border-zinc-200">OC 별도 계</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">140,360</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-800 border-r border-zinc-100">1,102</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">611,425</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-800 border-r border-zinc-100">2,737</td>
+                          <td className="text-right px-2 py-1.5"></td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td rowSpan={2} className="px-3 py-1.5 text-zinc-600 border-r border-zinc-100 align-top text-[10px] leading-tight">기타<br/>(연결<br/>조정)</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">관계사 대여금</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-100">(39,765)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">(392)</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-100">(56,368)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">(880)</td>
+                          <td className="text-right px-2 py-1.5"></td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 hover:bg-zinc-50">
+                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 229, 홍 40, 엔 20, ST 15)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">304</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 131, 홍 42, 엔 20, ST 5)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">199</td>
+                          <td className="text-right px-2 py-1.5"></td>
+                        </tr>
+                        <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200">
+                          <td colSpan={2} className="px-3 py-2 text-emerald-800 border-r border-zinc-200">연결 합계</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-100 text-sm">1,014</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-100 text-sm">2,057</td>
+                          <td className="text-right px-2 py-2"></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-200 text-[10px] text-zinc-500">
+                    ※ 기말잔액 단위: 백만원 | 수익률: 연환산(x4) 기준 | 연결조정 관계사 대여금은 내부거래 제거
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 외환손익 상세 — FY26 1Q FNF 외환손익 */}
             {selectedNonOpAccount === '외환손익' && (
               <div className="mt-4">
