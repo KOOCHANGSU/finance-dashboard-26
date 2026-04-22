@@ -5553,7 +5553,7 @@ export default function FnFQ1_2026Dashboard() {
                       const analysis = genAnalysis(entity, series);
 
                       return (
-                        <div key={entity} className="border border-zinc-100 rounded-xl overflow-hidden bg-white">
+                        <div key={entity} className="border-2 border-zinc-800 rounded-xl overflow-hidden bg-white shadow-sm">
                           {/* 법인 헤더 */}
                           <div className="flex items-center px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
                             <span className="text-[13px] font-bold" style={{ color }}>{entity}</span>
@@ -5781,7 +5781,7 @@ export default function FnFQ1_2026Dashboard() {
                       ];
 
                       return (
-                        <div key={entity} className="border border-zinc-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                        <div key={entity} className="border-2 border-zinc-800 rounded-xl overflow-hidden bg-white shadow-sm">
                           {/* 법인 헤더 */}
                           <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
                             <span className="text-[12px] font-bold" style={{ color }}>{entity} — 손상평가 모니터링</span>
