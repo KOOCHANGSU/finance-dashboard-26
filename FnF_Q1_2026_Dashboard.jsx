@@ -567,6 +567,8 @@ export default function FnFQ1_2026Dashboard() {
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
   const [selectedPeriod, setSelectedPeriod] = useState('2026_Q1'); // 선택된 조회기간 ('2026_Q1' ~ '2026_Q4')
   const [summaryKpiMode, setSummaryKpiMode] = useState('quarter'); // 'quarter' | 'cumulative' - 손익 요약 카드 보기 모드
+  const [isEntitySubTab, setIsEntitySubTab] = useState('연결'); // 손익계산서 탭 서브탭: '연결' | entity key
+  const [bsEntitySubTab, setBsEntitySubTab] = useState('연결'); // 재무상태표 탭 서브탭: '연결' | entity key
   const [balanceKpiMode, setBalanceKpiMode] = useState('yearEnd'); // 'sameQuarter' | 'yearEnd' - 재무상태 요약 카드 보기 모드
   const [incomeEditMode, setIncomeEditMode] = useState(false); // 영업 섹션 증감 분석 편집 모드
   const [nonOpEditMode, setNonOpEditMode] = useState(false); // 영업외 섹션 증감 분석 편집 모드
@@ -2715,7 +2717,7 @@ export default function FnFQ1_2026Dashboard() {
     { id: 'summary', label: '전체요약', icon: '📊' },
     { id: 'income', label: '손익계산서', icon: '📈' },
     { id: 'balance', label: '재무상태표', icon: '💰' },
-    { id: 'entity', label: '법인별', icon: '🏢' },
+    { id: 'entity', label: '법인별', icon: '🏢', hidden: true },
   ];
 
   // ============================================
@@ -6884,8 +6886,51 @@ export default function FnFQ1_2026Dashboard() {
       );
     };
 
+    const isEntitySubTabList = [
+      { id: '연결', label: '연결' },
+      { id: 'OC(국내)', label: 'OC(국내)' },
+      { id: '중국', label: '중국' },
+      { id: '홍콩', label: '홍콩' },
+      { id: 'ST미국', label: 'ST미국' },
+      { id: '엔터테인먼트', label: '엔터' },
+      { id: '베트남', label: '베트남' },
+      { id: '기타(연결조정)', label: '기타' },
+    ];
+
+    const isSubTabBar = (
+      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {isEntitySubTabList.map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setIsEntitySubTab(tab.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
+                isEntitySubTab === tab.id
+                  ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
+                  : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (isEntitySubTab !== '연결') {
+      return (
+        <div className="space-y-4">
+          {isSubTabBar}
+          {renderEntityStatementsTab({ forceEntity: isEntitySubTab, forceMode: 'is' })}
+        </div>
+      );
+    }
+
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
+        {isSubTabBar}
+        <div className="space-y-6">
         {/* ========== 섹션 1: 영업 실적 (매출액 ~ 영업이익) ========== */}
         <div>
           <div className="flex items-center gap-3 mb-3">
@@ -8300,6 +8345,7 @@ export default function FnFQ1_2026Dashboard() {
           </>
           )}
         </div>
+        </div>
       </div>
     );
   };
@@ -8729,8 +8775,51 @@ export default function FnFQ1_2026Dashboard() {
     const donutData2024 = getBSDonutData(bsPrevPeriod);
     const donutData2025 = getBSDonutData(bsCurrentPeriod);
 
+    const bsEntitySubTabList = [
+      { id: '연결', label: '연결' },
+      { id: 'OC(국내)', label: 'OC(국내)' },
+      { id: '중국', label: '중국' },
+      { id: '홍콩', label: '홍콩' },
+      { id: 'ST미국', label: 'ST미국' },
+      { id: '엔터테인먼트', label: '엔터' },
+      { id: '베트남', label: '베트남' },
+      { id: '기타(연결조정)', label: '기타' },
+    ];
+
+    const bsSubTabBar = (
+      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {bsEntitySubTabList.map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setBsEntitySubTab(tab.id)}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
+                bsEntitySubTab === tab.id
+                  ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
+                  : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (bsEntitySubTab !== '연결') {
+      return (
+        <div className="space-y-4">
+          {bsSubTabBar}
+          {renderEntityStatementsTab({ forceEntity: bsEntitySubTab, forceMode: 'bs' })}
+        </div>
+      );
+    }
+
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
+        {bsSubTabBar}
+        <div className="space-y-6">
         {/* 재무상태표 테이블 & 법인별 구성 */}
         <div className="flex flex-col xl:flex-row gap-4">
           {/* 좌측: 재무상태표 테이블 */}
@@ -9536,13 +9625,14 @@ export default function FnFQ1_2026Dashboard() {
           )}
         </>
       </div>
+      </div>
     );
   };
 
   // ============================================
   // 법인별 손익/재무상태표 탭
   // ============================================
-  const renderEntityStatementsTab = () => {
+  const renderEntityStatementsTab = ({ forceEntity = null, forceMode = 'all' } = {}) => {
     const q = Number((selectedPeriod?.split('_')?.[1] || 'Q1').replace('Q', '')) || 1;
     const period25 = `2025_${q}Q`;
     const period26 = `2026_${q}Q`;
@@ -9556,7 +9646,10 @@ export default function FnFQ1_2026Dashboard() {
       { label: '베트남', key: '베트남' },
       { label: '기타(연결조정)', key: '기타(연결조정)' },
     ];
-    const selectedEntityKey = entityTabs.find((t) => t.label === selectedEntityTab)?.key || 'OC(국내)';
+    const selectedEntityKey = forceEntity || entityTabs.find((t) => t.label === selectedEntityTab)?.key || 'OC(국내)';
+    const displayEntityName = forceEntity
+      ? (entityTabs.find(t => t.key === forceEntity)?.label || forceEntity)
+      : selectedEntityTab;
     const entityKeyAliases = {
       'OC(국내)': ['OC(국내)', 'F&F', 'F&F '],
       중국: ['중국', 'F&F Shanghai', 'F&F Shanghai '],
@@ -9973,27 +10066,9 @@ export default function FnFQ1_2026Dashboard() {
       </thead>
     );
 
-    return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {entityTabs.map((tab) => (
-              <button
-                key={tab.label}
-                type="button"
-                onClick={() => setSelectedEntityTab(tab.label)}
-                className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
-                  selectedEntityTab === tab.label
-                    ? 'bg-zinc-900 text-white border-zinc-900'
-                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
+    // IS 섹션 JSX (영업 + 영업외)
+    const entityISSections = (
+      <>
         <div>
           <div className="flex items-center gap-3 mb-3">
             <button
@@ -10015,7 +10090,7 @@ export default function FnFQ1_2026Dashboard() {
           {entityStmtOpExpanded && (
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-                <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 손익계산서 (영업)</h3>
+                <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 손익계산서 (영업)</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -10052,7 +10127,7 @@ export default function FnFQ1_2026Dashboard() {
           {entityStmtNonOpExpanded && (
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-                <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 손익계산서 (영업외)</h3>
+                <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 손익계산서 (영업외)</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -10063,11 +10138,15 @@ export default function FnFQ1_2026Dashboard() {
             </div>
           )}
         </div>
+      </>
+    );
 
-        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-            <h3 className="text-sm font-semibold text-zinc-900">{selectedEntityTab} 재무상태표</h3>
-          </div>
+    // BS 섹션 JSX
+    const entityBSSection = (
+      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+          <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 재무상태표</h3>
+        </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -10120,7 +10199,40 @@ export default function FnFQ1_2026Dashboard() {
               </tbody>
             </table>
           </div>
+      </div>
+    );
+
+    // 서브탭 선택 시 IS/BS만 보여주는 모드
+    if (forceMode === 'is') {
+      return <div className="space-y-6">{entityISSections}</div>;
+    }
+    if (forceMode === 'bs') {
+      return <div className="space-y-6">{entityBSSection}</div>;
+    }
+
+    // 법인별 탭 전체 뷰 (IS + BS + 서브탭 바)
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {entityTabs.map((tab) => (
+              <button
+                key={tab.label}
+                type="button"
+                onClick={() => setSelectedEntityTab(tab.label)}
+                className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                  selectedEntityTab === tab.label
+                    ? 'bg-zinc-900 text-white border-zinc-900'
+                    : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
+        {entityISSections}
+        {entityBSSection}
       </div>
     );
   };
@@ -10180,7 +10292,7 @@ export default function FnFQ1_2026Dashboard() {
         <div className="bg-zinc-100 border-b border-zinc-200">
           <div className="max-w-screen-2xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="inline-flex p-1 bg-zinc-100 rounded-xl border border-zinc-200">
-              {tabs.map((tab) => (
+              {tabs.filter(t => !t.hidden).map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
