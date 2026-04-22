@@ -44,7 +44,8 @@
       "Bash(grep -v \"^\\\\s*//\")",
       "Bash(node -e ' *)",
       "Bash(git commit -m 'Fix: 손익계산서 맵핑표 기준으로 수수료/감가상각비 계산 수정 *)",
-      "Bash(git commit -m 'Add: 기타손익 구성상세 입력 테이블 추가 *)"
+      "Bash(git commit -m 'Add: 기타손익 구성상세 입력 테이블 추가 *)",
+      "Bash(git commit -m 'Fix: 영업외손익 맵핑표 일치 수정 *)"
     ]
   }
 }

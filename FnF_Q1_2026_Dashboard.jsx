@@ -423,6 +423,12 @@ const buildConsolidatedISLookup = (rows, year) => {
         lookup[period].지분법손익 = Math.round(equityGain - equityLoss);
       }
     }
+    // CSV의 영업외손익 행은 VI.영업외손익 + VII.지분법손익 합산값 → 지분법 제거하여 VI만 분리
+    if (lookup[period].영업외손익 !== undefined && lookup[period].지분법손익 !== undefined) {
+      lookup[period].영업외손익 = Math.round(
+        Number(lookup[period].영업외손익) - Number(lookup[period].지분법손익)
+      );
+    }
     if (lookup[period].외환손익 === undefined) {
       const fxGain = Number(lookup[period].__외환차익 || 0) + Number(lookup[period].__외화환산이익 || 0);
       const fxLoss = Number(lookup[period].__외환차손 || 0) + Number(lookup[period].__외화환산손실 || 0);
@@ -452,7 +458,20 @@ const buildConsolidatedISLookup = (rows, year) => {
         lookup[period].이자손익 = Math.round(interestIncome - interestExpense);
       }
     }
-    if (lookup[period].기타손익 === undefined) {
+    // 기타손익 = 영업외손익(VI pure) - 외환 - 선물환 - 금융상품 - 이자 - 배당 - 기부금 (잔차)
+    // → 종속기업투자주식처분이익 등 accountMap에 없는 대형 일회성 계정도 자동 포함
+    if (lookup[period].영업외손익 !== undefined) {
+      lookup[period].기타손익 = Math.round(
+        Number(lookup[period].영업외손익 || 0) -
+        Number(lookup[period].외환손익 || 0) -
+        Number(lookup[period].선물환손익 || 0) -
+        Number(lookup[period].금융상품손익 || 0) -
+        Number(lookup[period].이자손익 || 0) -
+        Number(lookup[period].배당수익 || 0) -
+        Number(lookup[period].기부금 || 0)
+      );
+    } else if (false) {
+      // 아래는 사용 안함 (잔차 방식으로 대체)
       const miscGain = Number(lookup[period].__잡이익 || 0);
       const miscLoss = Number(lookup[period].__잡손실 || 0);
       if (miscGain !== 0 || miscLoss !== 0) {
