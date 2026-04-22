@@ -4970,16 +4970,18 @@ export default function FnFQ1_2026Dashboard() {
                   <p className="text-[12px] font-semibold text-zinc-700 mb-1.5">
                     ① 연도별 실적추이 — 분기별 구성 <span className="font-normal text-zinc-400 text-[11px]">(단위: 억원)</span>
                   </p>
-                  <p className="text-[10px] text-zinc-400 mb-2">
-                    <span className="inline-block w-3 h-3 rounded-sm bg-amber-100 border border-amber-300 mr-1 align-middle" />연간 최고 영업이익률 분기 &nbsp;·&nbsp;
-                    <span className="inline-block w-3 h-3 rounded-sm bg-blue-50 border border-blue-200 mr-1 align-middle" />동분기 중 최고 연도
-                  </p>
                   {(() => {
                     const qs = ['1Q','2Q','3Q','4Q'];
-                    // 분기별 컬럼 최고 매출액 (동분기 중 최고 연도 하이라이트용)
-                    const colMaxSales = {};
+                    // 동분기 중 최고 영업이익률 연도
+                    const colBestRate = {};
                     qs.forEach(q => {
-                      colMaxSales[q] = Math.max(...plTrendData.yearly.map(y => y[q+'매출'] || 0));
+                      let bestRate = -Infinity;
+                      plTrendData.yearly.forEach(y => {
+                        const s = y[q+'매출'] || 0; const o = y[q+'영업이익'] || 0;
+                        const r = s > 0 ? o / s : -Infinity;
+                        if (r > bestRate) bestRate = r;
+                      });
+                      colBestRate[q] = bestRate;
                     });
                     const fmt = v => v > 0 ? formatNumber(Math.round(v)) : '-';
                     const fmtR = (op, sales) => sales > 0 ? (op / sales * 100).toFixed(1) + '%' : '-';
@@ -5019,14 +5021,15 @@ export default function FnFQ1_2026Dashboard() {
                                   {qs.map(q => {
                                     const s = y[q+'매출'] || 0;
                                     const o = y[q+'영업이익'] || 0;
+                                    const rate = s > 0 ? o / s : -Infinity;
+                                    // 연도 내 최고 분기 OR 동분기 최고 연도 → 굵은 빨간색
                                     const isBestQ = q === bestQ && s > 0;
-                                    const isColBest = s > 0 && s === colMaxSales[q];
-                                    const bg = isBestQ ? 'bg-amber-50' : isColBest ? 'bg-blue-50' : '';
-                                    const rateColor = isBestQ ? 'text-amber-700 font-bold' : '';
+                                    const isColBest = s > 0 && Math.abs(rate - colBestRate[q]) < 0.0001;
+                                    const highlight = (isBestQ || isColBest) ? 'font-bold text-red-600' : 'text-zinc-600';
                                     return [
-                                      <td key={q+'s'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${bg}`}>{fmt(s)}</td>,
-                                      <td key={q+'o'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${bg}`}>{fmt(o)}</td>,
-                                      <td key={q+'r'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${bg} ${rateColor}`}>{fmtR(o,s)}</td>,
+                                      <td key={q+'s'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${highlight}`}>{fmt(s)}</td>,
+                                      <td key={q+'o'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${highlight}`}>{fmt(o)}</td>,
+                                      <td key={q+'r'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${highlight}`}>{fmtR(o,s)}</td>,
                                     ];
                                   })}
                                   {/* 합계 */}
@@ -5548,35 +5551,13 @@ export default function FnFQ1_2026Dashboard() {
                     {subData.map(({ entity, series, latest }) => {
                       const color = subColors[entity] || '#6366f1';
                       const analysis = genAnalysis(entity, series);
-                      {/* 최신 분기 KPI 미니카드 */}
-                      const kpiCards = [
-                        { label: '매출', val: latest.매출액, unit: '억', color: 'text-zinc-800' },
-                        { label: '영업손익', val: latest.영업이익, unit: '억', color: latest.영업이익 != null ? (latest.영업이익 >= 0 ? 'text-emerald-600' : 'text-rose-600') : 'text-zinc-400' },
-                        { label: '순손익', val: latest.당기순이익, unit: '억', color: latest.당기순이익 != null ? (latest.당기순이익 >= 0 ? 'text-emerald-600' : 'text-rose-600') : 'text-zinc-400' },
-                        { label: '자산', val: latest.자산총계, unit: '억', color: 'text-indigo-600' },
-                        { label: '자본', val: latest.자본총계, unit: '억', color: latest.자본총계 != null ? (latest.자본총계 > 0 ? 'text-emerald-600' : 'text-rose-600') : 'text-zinc-400' },
-                      ];
 
                       return (
                         <div key={entity} className="border border-zinc-100 rounded-xl overflow-hidden bg-white">
                           {/* 법인 헤더 */}
-                          <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
+                          <div className="flex items-center px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
                             <span className="text-[13px] font-bold" style={{ color }}>{entity}</span>
-                            <span className="text-[10px] text-zinc-400 font-medium">26.1Q 기준</span>
                           </div>
-                          {/* KPI 미니카드 행 */}
-                          <div className="grid grid-cols-5 divide-x divide-zinc-100 border-b border-zinc-100">
-                            {kpiCards.map((k, ki) => (
-                              <div key={ki} className="px-3 py-2 text-center">
-                                <div className="text-[10px] text-zinc-500 font-medium mb-0.5">{k.label}</div>
-                                <div className={`text-[13px] font-bold tabular-nums ${k.color}`}>
-                                  {k.val != null ? formatNumber(k.val) : '—'}
-                                </div>
-                                <div className="text-[10px] text-zinc-400">{k.val != null ? k.unit : ''}</div>
-                              </div>
-                            ))}
-                          </div>
-
                           {/* ══ 메인: 좌(차트 2개 세로) + 우(분석 3구분) — 반반(50/50) ══ */}
                           <div className="grid grid-cols-2 divide-x divide-zinc-100">
 
@@ -5771,44 +5752,6 @@ export default function FnFQ1_2026Dashboard() {
                       );
                     })}
 
-                    {/* 비교 요약 테이블 */}
-                    <div>
-                      <p className="text-[12px] font-semibold text-zinc-700 mb-2">최신 분기 비교 (26.1Q 기준, 억원)</p>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-[11px] border-collapse min-w-[480px]">
-                          <thead>
-                            <tr className="bg-zinc-100 text-zinc-600">
-                              <th className="text-left py-2 px-3 font-semibold border border-zinc-200">법인</th>
-                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">자산</th>
-                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">부채</th>
-                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">자본</th>
-                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">매출액</th>
-                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">영업손익</th>
-                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">당기순손익</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {subData.map(({ entity, latest }, ri) => {
-                              const color = subColors[entity] || '#6366f1';
-                              const fmtVal = v => v != null ? formatNumber(v) : '—';
-                              const opColor = latest.영업이익 != null ? (latest.영업이익 >= 0 ? 'text-zinc-800' : 'text-rose-600') : 'text-zinc-400';
-                              const niColor = latest.당기순이익 != null ? (latest.당기순이익 >= 0 ? 'text-zinc-800' : 'text-rose-600') : 'text-zinc-400';
-                              return (
-                                <tr key={ri} className="border-b border-zinc-100 hover:bg-zinc-50">
-                                  <td className="py-2 px-3 font-semibold border border-zinc-200" style={{ color }}>{entity}</td>
-                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.자산총계)}</td>
-                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.부채총계)}</td>
-                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.자본총계)}</td>
-                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.매출액)}</td>
-                                  <td className={`text-right py-2 px-3 tabular-nums border border-zinc-200 font-semibold ${opColor}`}>{fmtVal(latest.영업이익)}</td>
-                                  <td className={`text-right py-2 px-3 tabular-nums border border-zinc-200 font-medium ${niColor}`}>{fmtVal(latest.당기순이익)}</td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -6603,13 +6546,31 @@ export default function FnFQ1_2026Dashboard() {
       return typeof v === 'number' ? v : 0;
     };
 
+    // 계정 별칭 맵 (IS 클릭 시 entityCsvLookup 조회용)
+    const isAccountAliasesForPanel = {
+      판매비와관리비: ['판매비와관리비', '판관비'],
+      수수료: ['수수료', '지급수수료'],
+      법인세비용차감전순이익: ['법인세비용차감전순이익', '세전이익'],
+    };
+
     const getBaseEntityBreakdown = (accountKey, period) => {
-      // 우선 해당 period 값이 있으면 사용, 없으면 같은 연도의 Year 값을 기준(특히 4Q)으로 사용
+      // 1. entityData 하드코딩 우선
       const direct = entityData?.[accountKey]?.[period];
       if (direct && Object.keys(direct).length > 0) return direct;
 
       const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
-      return entityData?.[accountKey]?.[fallbackPeriod] || {};
+      const fromEntityData = entityData?.[accountKey]?.[fallbackPeriod];
+      if (fromEntityData && Object.keys(fromEntityData).length > 0) return fromEntityData;
+
+      // 2. entityCsvLookup.is 폴백 (2026년 등 entityData에 없는 기간)
+      const csvPeriodKey = fallbackPeriod.replace(/_1Q_Year$/, '_1Q'); // e.g. '2026_1Q'
+      const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
+      for (const ak of tryKeys) {
+        const csvKey = normalizeAccount(ak);
+        const csvData = entityCsvLookup?.is?.[csvPeriodKey]?.[csvKey];
+        if (csvData && Object.keys(csvData).length > 0) return csvData;
+      }
+      return {};
     };
 
     const getAlignedEntityBreakdown = (accountKey, period) => {
@@ -6906,7 +6867,11 @@ export default function FnFQ1_2026Dashboard() {
               type="button"
               onClick={() => setIsEntitySubTab(tab.id)}
               className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
-                isEntitySubTab === tab.id
+                tab.id === '연결'
+                  ? isEntitySubTab === '연결'
+                    ? 'bg-red-600 text-white border-red-600'
+                    : 'bg-white text-red-600 border-red-300 hover:bg-red-50'
+                  : isEntitySubTab === tab.id
                   ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
                   : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
               }`}
@@ -8795,7 +8760,11 @@ export default function FnFQ1_2026Dashboard() {
               type="button"
               onClick={() => setBsEntitySubTab(tab.id)}
               className={`px-3 py-1.5 text-sm font-medium rounded-md border transition-colors ${
-                bsEntitySubTab === tab.id
+                tab.id === '연결'
+                  ? bsEntitySubTab === '연결'
+                    ? 'bg-red-600 text-white border-red-600'
+                    : 'bg-white text-red-600 border-red-300 hover:bg-red-50'
+                  : bsEntitySubTab === tab.id
                   ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
                   : 'bg-white text-zinc-700 border-zinc-300 hover:bg-zinc-50'
               }`}
