@@ -5396,7 +5396,7 @@ export default function FnFQ1_2026Dashboard() {
 
           {/* 자회사 현황 */}
           {(() => {
-            const subEntities = ['중국', '홍콩', '베트남', '엔터테인먼트', 'ST미국'];
+            const subEntities = ['중국', '홍콩', '엔터테인먼트', 'ST미국', '베트남'];
             const subColors   = { '중국': '#6366f1', '홍콩': '#f59e0b', '베트남': '#10b981', '엔터테인먼트': '#f43f5e', 'ST미국': '#0ea5e9' };
             const subPeriods  = ['2024_1Q','2024_2Q','2024_3Q','2024_4Q','2025_1Q','2025_2Q','2025_3Q','2025_4Q','2026_1Q'];
 
