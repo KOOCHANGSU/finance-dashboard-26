@@ -4795,56 +4795,77 @@ export default function FnFQ1_2026Dashboard() {
                     ① 연도별 실적추이 — 분기별 구성 (단위: 억원)
                     {plTrendData.yearly.some(y => y.quarters < 4) && <span className="text-[10px] text-amber-600 ml-1">* 미완분기 포함</span>}
                   </p>
-                  <p className="text-[10px] text-zinc-400 mb-2">색상 진할수록 해당 분기 매출 높음 · <span className="text-red-500 font-medium">빨간색</span> = 동분기 중 최고 연도</p>
-                  <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={plTrendData.yearly} margin={{ top: 8, right: 44, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                        <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#71717a" />
-                        <YAxis yAxisId="left" tick={{ fontSize: 10 }} stroke="#71717a" tickFormatter={(v) => `${formatNumber(v)}`} />
-                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} stroke="#f59e0b" tickFormatter={(v) => `${v}%`} domain={[0, 40]} />
-                        <Tooltip
-                          content={({ active, payload, label }) => {
-                            if (!active || !payload?.length) return null;
-                            return (
-                              <div className="bg-white border border-zinc-200 rounded-lg shadow-lg px-3 py-2 text-[11px] min-w-[160px]">
-                                <div className="font-semibold text-zinc-700 mb-1">{label}</div>
-                                {payload.map((p, i) => (
-                                  <div key={i} className="flex justify-between gap-3" style={{ color: p.color === '#ef4444' || p.fill === '#ef4444' ? '#ef4444' : p.color }}>
-                                    <span>{p.name}</span>
-                                    <span className="tabular-nums font-medium">{typeof p.value === 'number' && p.name !== '영업이익률' ? `${formatNumber(p.value)}억` : `${p.value}%`}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar yAxisId="left" dataKey="1Q매출" name="1Q" stackId="revenue" maxBarSize={52}>
-                          {plTrendData.yearly.map((entry, i) => (
-                            <Cell key={`1q-${i}`} fill={getQuarterFill('1Q', entry['1Q매출'] || 0)} />
-                          ))}
-                        </Bar>
-                        <Bar yAxisId="left" dataKey="2Q매출" name="2Q" stackId="revenue" maxBarSize={52}>
-                          {plTrendData.yearly.map((entry, i) => (
-                            <Cell key={`2q-${i}`} fill={getQuarterFill('2Q', entry['2Q매출'] || 0)} />
-                          ))}
-                        </Bar>
-                        <Bar yAxisId="left" dataKey="3Q매출" name="3Q" stackId="revenue" maxBarSize={52}>
-                          {plTrendData.yearly.map((entry, i) => (
-                            <Cell key={`3q-${i}`} fill={getQuarterFill('3Q', entry['3Q매출'] || 0)} />
-                          ))}
-                        </Bar>
-                        <Bar yAxisId="left" dataKey="4Q매출" name="4Q" stackId="revenue" radius={[4, 4, 0, 0]} maxBarSize={52}>
-                          {plTrendData.yearly.map((entry, i) => (
-                            <Cell key={`4q-${i}`} fill={getQuarterFill('4Q', entry['4Q매출'] || 0)} />
-                          ))}
-                        </Bar>
-                        <Line yAxisId="left" type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2.5} dot={{ r: 4 }} />
-                        <Line yAxisId="right" type="monotone" dataKey="영업이익률" name="영업이익률" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" dot={{ r: 3 }} />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <p className="text-[10px] text-zinc-400 mb-2">
+                    <span className="inline-block w-3 h-3 rounded-sm bg-amber-100 border border-amber-300 mr-1 align-middle" />연간 최고 영업이익률 분기 &nbsp;·&nbsp;
+                    <span className="inline-block w-3 h-3 rounded-sm bg-blue-50 border border-blue-200 mr-1 align-middle" />동분기 중 최고 연도
+                  </p>
+                  {(() => {
+                    const qs = ['1Q','2Q','3Q','4Q'];
+                    // 분기별 컬럼 최고 매출액 (동분기 중 최고 연도 하이라이트용)
+                    const colMaxSales = {};
+                    qs.forEach(q => {
+                      colMaxSales[q] = Math.max(...plTrendData.yearly.map(y => y[q+'매출'] || 0));
+                    });
+                    const fmt = v => v > 0 ? formatNumber(Math.round(v)) : '-';
+                    const fmtR = (op, sales) => sales > 0 ? (op / sales * 100).toFixed(1) + '%' : '-';
+                    return (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[10px] border-collapse">
+                          <thead>
+                            <tr className="bg-zinc-100">
+                              <th rowSpan="2" className="text-center py-1.5 px-2 border border-zinc-200 font-bold text-zinc-600 w-10">연도</th>
+                              {[...qs, '합계'].map(q => (
+                                <th key={q} colSpan="3" className={`text-center py-1 px-1 border border-zinc-200 font-bold ${q === '합계' ? 'bg-zinc-200 text-zinc-700' : 'text-blue-700'}`}>{q}</th>
+                              ))}
+                            </tr>
+                            <tr className="bg-zinc-50 text-zinc-500">
+                              {[...qs, '합계'].flatMap(q => [
+                                <th key={q+'s'} className="text-right py-1 px-1.5 border border-zinc-200 font-medium whitespace-nowrap">매출액</th>,
+                                <th key={q+'o'} className="text-right py-1 px-1.5 border border-zinc-200 font-medium whitespace-nowrap">영업이익</th>,
+                                <th key={q+'r'} className="text-right py-1 px-1.5 border border-zinc-200 font-medium whitespace-nowrap">이익률</th>,
+                              ])}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {plTrendData.yearly.map(y => {
+                              // 해당 연도의 최고 영업이익률 분기
+                              const bestQ = qs.reduce((best, q) => {
+                                const s = y[q+'매출'] || 0; const o = y[q+'영업이익'] || 0;
+                                const r = s > 0 ? o / s : -Infinity;
+                                const bs = best ? (y[best+'매출']||0) : 0;
+                                const bo = best ? (y[best+'영업이익']||0) : 0;
+                                const br = bs > 0 ? bo / bs : -Infinity;
+                                return r > br ? q : best;
+                              }, null);
+                              const yearShort = y.name.replace('20','').replace('년','년');
+                              return (
+                                <tr key={y.name} className="hover:bg-zinc-50/80 border-b border-zinc-100">
+                                  <td className="text-center py-1.5 px-1 border border-zinc-200 font-bold text-zinc-700">{yearShort}</td>
+                                  {qs.map(q => {
+                                    const s = y[q+'매출'] || 0;
+                                    const o = y[q+'영업이익'] || 0;
+                                    const isBestQ = q === bestQ && s > 0;
+                                    const isColBest = s > 0 && s === colMaxSales[q];
+                                    const bg = isBestQ ? 'bg-amber-50' : isColBest ? 'bg-blue-50' : '';
+                                    const rateColor = isBestQ ? 'text-amber-700 font-bold' : '';
+                                    return [
+                                      <td key={q+'s'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${bg}`}>{fmt(s)}</td>,
+                                      <td key={q+'o'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${bg}`}>{fmt(o)}</td>,
+                                      <td key={q+'r'} className={`text-right py-1.5 px-2 border border-zinc-100 tabular-nums ${bg} ${rateColor}`}>{fmtR(o,s)}</td>,
+                                    ];
+                                  })}
+                                  {/* 합계 */}
+                                  <td className="text-right py-1.5 px-2 border border-zinc-200 tabular-nums bg-zinc-50 font-medium">{fmt(y.매출액)}</td>
+                                  <td className="text-right py-1.5 px-2 border border-zinc-200 tabular-nums bg-zinc-50 font-medium">{fmt(y.영업이익)}</td>
+                                  <td className="text-right py-1.5 px-2 border border-zinc-200 tabular-nums bg-zinc-50 font-medium text-teal-700">{y.영업이익률 > 0 ? y.영업이익률.toFixed(1)+'%' : '-'}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
                   {yearlyInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
                       <div className="flex items-center justify-between">
