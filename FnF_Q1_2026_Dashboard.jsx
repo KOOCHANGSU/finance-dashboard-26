@@ -6563,17 +6563,27 @@ export default function FnFQ1_2026Dashboard() {
     };
 
     const getBaseEntityBreakdown = (accountKey, period) => {
-      // 1. entityData 하드코딩 우선
+      const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
+      const csvPeriodKey = fallbackPeriod.replace(/_\dQ_Year$/, match => match.replace('_Year', ''));
+      const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
+
+      // 2026 이후: normalizeYearDataset가 2025 데이터를 클론하므로 CSV를 우선 사용
+      const isCurrentOrFuture = period.startsWith('2026') || period.startsWith('2027');
+      if (isCurrentOrFuture) {
+        for (const ak of tryKeys) {
+          const csvKey = normalizeAccount(ak);
+          const csvData = entityCsvLookup?.is?.[csvPeriodKey]?.[csvKey];
+          if (csvData && Object.keys(csvData).length > 0) return csvData;
+        }
+      }
+
+      // 2025 이하: entityData 하드코딩 우선 (정확히 큐레이션된 데이터)
       const direct = entityData?.[accountKey]?.[period];
       if (direct && Object.keys(direct).length > 0) return direct;
-
-      const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
       const fromEntityData = entityData?.[accountKey]?.[fallbackPeriod];
       if (fromEntityData && Object.keys(fromEntityData).length > 0) return fromEntityData;
 
-      // 2. entityCsvLookup.is 폴백 (2026년 등 entityData에 없는 기간)
-      const csvPeriodKey = fallbackPeriod.replace(/_1Q_Year$/, '_1Q'); // e.g. '2026_1Q'
-      const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
+      // 최종: CSV 폴백
       for (const ak of tryKeys) {
         const csvKey = normalizeAccount(ak);
         const csvData = entityCsvLookup?.is?.[csvPeriodKey]?.[csvKey];
