@@ -8497,6 +8497,204 @@ export default function FnFQ1_2026Dashboard() {
                 <p className="text-xs text-zinc-400">* 4Q 분기(3개월) 기준 | 선물환 계약: CNY 기준 USD/KRW 환헤지 | 평가손익은 연 누적기준 0</p>
               </div>
             )}
+
+            {/* ─── 기타손익 구성상세 입력 테이블 ─── */}
+            {selectedNonOpAccount === '기타손익' && (() => {
+              const MISC_ITEMS = [
+                { key: '잡이익',       label: '잡이익',          sign: 1  },
+                { key: '잡손실',       label: '잡손실',          sign: -1 },
+                { key: '수수료수익',   label: '수수료수익',       sign: 1  },
+                { key: '임대료수익',   label: '임대료수익',       sign: 1  },
+                { key: '유형자산처분이익', label: '유형자산처분이익', sign: 1  },
+                { key: '유형자산처분손실', label: '유형자산처분손실', sign: -1 },
+                { key: '대손충당금환입',   label: '대손충당금환입',   sign: 1  },
+                { key: '기타의대손상각비', label: '기타의대손상각비', sign: -1 },
+                { key: '소송충당부채',     label: '소송충당부채전입', sign: -1 },
+                { key: '기타',             label: '기타',             sign: 1  },
+              ];
+
+              const editKey = (item, period) => `miscDetail_${item}_${period}`;
+              const getVal = (item, period) => {
+                const v = incomeEditData?.[editKey(item, period)];
+                return (v !== undefined && v !== '' && !isNaN(Number(v))) ? Number(v) : null;
+              };
+              const getDisp = (item, period) => {
+                const v = getVal(item, period);
+                return v !== null ? v : 0;
+              };
+
+              // 입력된 항목 합계
+              const calcTotal = (period) =>
+                MISC_ITEMS.reduce((s, it) => s + (getVal(it.key, period) !== null ? getVal(it.key, period) : 0), 0);
+
+              const actualTotal = (period) => (incomeStatementData[period]?.기타손익 || 0) / 100; // 백만원 → 억원
+
+              const [miscEditMode, setMiscEditMode] = React.useState(false);
+              const [miscDraft, setMiscDraft] = React.useState({});
+
+              const startEdit = () => {
+                const d = {};
+                MISC_ITEMS.forEach(it => {
+                  [currPeriod, prevPeriod].forEach(p => {
+                    const v = getVal(it.key, p);
+                    if (v !== null) d[editKey(it.key, p)] = String(v);
+                  });
+                });
+                setMiscDraft(d);
+                setMiscEditMode(true);
+              };
+              const saveEdit = () => {
+                const updates = { ...incomeEditData };
+                MISC_ITEMS.forEach(it => {
+                  [currPeriod, prevPeriod].forEach(p => {
+                    const k = editKey(it.key, p);
+                    const v = miscDraft[k];
+                    if (v !== undefined && v !== '' && !isNaN(Number(v))) {
+                      updates[k] = Number(v);
+                    } else {
+                      delete updates[k];
+                    }
+                  });
+                });
+                setIncomeEditData(updates);
+                setMiscEditMode(false);
+              };
+              const resetAll = () => {
+                if (!window.confirm('기타손익 구성상세 입력 내용을 모두 초기화할까요?')) return;
+                const updates = { ...incomeEditData };
+                MISC_ITEMS.forEach(it => {
+                  [currPeriod, prevPeriod].forEach(p => { delete updates[editKey(it.key, p)]; });
+                });
+                setIncomeEditData(updates);
+                setMiscEditMode(false);
+              };
+
+              const hasAnyData = MISC_ITEMS.some(it => [currPeriod, prevPeriod].some(p => getVal(it.key, p) !== null));
+
+              return (
+                <div className="mt-4">
+                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="bg-zinc-50 px-3 py-2 border-b border-zinc-200 flex justify-between items-center">
+                      <div>
+                        <span className="text-sm font-semibold text-zinc-800">기타손익 구성상세</span>
+                        <span className="text-xs text-zinc-500 ml-2">{currPeriodLabel} vs {prevPeriodLabel} · 억원 단위 입력</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {!miscEditMode ? (
+                          <button onClick={startEdit}
+                            className="text-[11px] px-2 py-0.5 rounded border border-violet-300 text-violet-600 hover:bg-violet-50">
+                            ✏️ 편집
+                          </button>
+                        ) : (
+                          <>
+                            <button onClick={saveEdit}
+                              className="text-[11px] px-2 py-0.5 rounded border border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-medium">
+                              💾 저장
+                            </button>
+                            <button onClick={() => setMiscEditMode(false)}
+                              className="text-[11px] px-2 py-0.5 rounded border border-zinc-300 text-zinc-500 hover:bg-zinc-50">
+                              취소
+                            </button>
+                            <button onClick={resetAll}
+                              className="text-[11px] px-2 py-0.5 rounded border border-rose-300 text-rose-500 hover:bg-rose-50">
+                              초기화
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-[12px]">
+                        <thead>
+                          <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-600">
+                            <th className="text-left px-3 py-2 font-semibold border-r border-zinc-200 min-w-[130px]">구분</th>
+                            <th className="text-right px-3 py-2 font-semibold border-r border-zinc-200 min-w-[80px] text-blue-700 bg-blue-50">{prevPeriodLabel}</th>
+                            <th className="text-right px-3 py-2 font-semibold border-r border-zinc-200 min-w-[80px] text-emerald-700 bg-emerald-50">{currPeriodLabel}</th>
+                            <th className="text-right px-3 py-2 font-semibold min-w-[70px] text-zinc-500">차이</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {MISC_ITEMS.map((it) => {
+                            const prevV = getDisp(it.key, prevPeriod);
+                            const currV = getDisp(it.key, currPeriod);
+                            const diff = currV - prevV;
+                            const isIncome = it.sign > 0;
+                            return (
+                              <tr key={it.key} className="border-b border-zinc-100 hover:bg-zinc-50">
+                                <td className="px-3 py-1.5 text-zinc-700 border-r border-zinc-100">
+                                  <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${isIncome ? 'bg-emerald-400' : 'bg-rose-400'}`}/>
+                                  {it.label}
+                                  <span className="text-[10px] text-zinc-400 ml-1">{isIncome ? '(수익)' : '(비용)'}</span>
+                                </td>
+                                {/* 전기 */}
+                                <td className="px-2 py-1 border-r border-zinc-100">
+                                  {miscEditMode ? (
+                                    <input type="number" step="0.01" placeholder="0"
+                                      value={miscDraft[editKey(it.key, prevPeriod)] ?? ''}
+                                      onChange={e => setMiscDraft(d => ({ ...d, [editKey(it.key, prevPeriod)]: e.target.value }))}
+                                      className="w-full text-right text-[12px] border border-blue-200 rounded px-1 py-0.5 bg-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+                                  ) : (
+                                    <span className={`block text-right tabular-nums ${prevV !== 0 ? (isIncome ? 'text-emerald-700' : 'text-rose-600') : 'text-zinc-300'}`}>
+                                      {prevV !== 0 ? (prevV > 0 ? '+' : '') + prevV.toFixed(1) : '-'}
+                                    </span>
+                                  )}
+                                </td>
+                                {/* 당기 */}
+                                <td className="px-2 py-1 border-r border-zinc-100">
+                                  {miscEditMode ? (
+                                    <input type="number" step="0.01" placeholder="0"
+                                      value={miscDraft[editKey(it.key, currPeriod)] ?? ''}
+                                      onChange={e => setMiscDraft(d => ({ ...d, [editKey(it.key, currPeriod)]: e.target.value }))}
+                                      className="w-full text-right text-[12px] border border-emerald-200 rounded px-1 py-0.5 bg-emerald-50 focus:outline-none focus:ring-1 focus:ring-emerald-400"/>
+                                  ) : (
+                                    <span className={`block text-right tabular-nums font-medium ${currV !== 0 ? (isIncome ? 'text-emerald-700' : 'text-rose-600') : 'text-zinc-300'}`}>
+                                      {currV !== 0 ? (currV > 0 ? '+' : '') + currV.toFixed(1) : '-'}
+                                    </span>
+                                  )}
+                                </td>
+                                {/* 차이 */}
+                                <td className={`text-right px-2 py-1.5 tabular-nums ${diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-rose-600' : 'text-zinc-300'}`}>
+                                  {diff !== 0 ? (diff > 0 ? '+' : '') + diff.toFixed(1) : '-'}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {/* 합계 행 */}
+                          {hasAnyData && (() => {
+                            const tPrev = calcTotal(prevPeriod);
+                            const tCurr = calcTotal(currPeriod);
+                            const actual = actualTotal(currPeriod);
+                            const diff = tCurr - tPrev;
+                            const gap = actual - tCurr;
+                            return (
+                              <>
+                              <tr className="bg-zinc-50 font-semibold border-t border-zinc-200">
+                                <td className="px-3 py-1.5 text-zinc-800 border-r border-zinc-100">입력 합계</td>
+                                <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">{tPrev !== 0 ? tPrev.toFixed(1) : '-'}</td>
+                                <td className="text-right px-2 py-1.5 tabular-nums text-zinc-900 border-r border-zinc-100">{tCurr !== 0 ? tCurr.toFixed(1) : '-'}</td>
+                                <td className={`text-right px-2 py-1.5 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{diff !== 0 ? (diff > 0 ? '+' : '') + diff.toFixed(1) : '-'}</td>
+                              </tr>
+                              <tr className="bg-amber-50 text-[11px]">
+                                <td className="px-3 py-1 text-amber-700 border-r border-zinc-100">연결 기타손익 (참고)</td>
+                                <td className="text-right px-2 py-1 tabular-nums text-zinc-500 border-r border-zinc-100">{(actualTotal(prevPeriod)).toFixed(1)}</td>
+                                <td className="text-right px-2 py-1 tabular-nums text-amber-800 font-semibold border-r border-zinc-100">{actual.toFixed(1)}</td>
+                                <td className={`text-right px-2 py-1 tabular-nums font-medium ${Math.abs(gap) < 0.5 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {Math.abs(gap) < 0.5 ? '✓ 일치' : `미배분 ${gap.toFixed(1)}`}
+                                </td>
+                              </tr>
+                              </>
+                            );
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="text-[10px] text-zinc-400 px-3 py-1.5 bg-zinc-50 border-t border-zinc-100">
+                      * 억원 단위 직접 입력 · 수익 항목(+), 비용 항목(-)으로 순손익에 반영 · 저장 시 분석 노트에 보존
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           )}
           </>
