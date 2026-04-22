@@ -5558,114 +5558,100 @@ export default function FnFQ1_2026Dashboard() {
                       return (
                         <div key={entity} className="border border-zinc-100 rounded-xl overflow-hidden bg-white">
                           {/* 법인 헤더 */}
-                          <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100" style={{ background: `${color}10` }}>
-                            <span className="text-[11px] font-bold" style={{ color }}>{entity}</span>
-                            <span className="text-[9px] text-zinc-400">26.1Q 기준</span>
+                          <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
+                            <span className="text-[13px] font-bold" style={{ color }}>{entity}</span>
+                            <span className="text-[10px] text-zinc-400 font-medium">26.1Q 기준</span>
                           </div>
                           {/* KPI 미니카드 행 */}
                           <div className="grid grid-cols-5 divide-x divide-zinc-100 border-b border-zinc-100">
                             {kpiCards.map((k, ki) => (
-                              <div key={ki} className="px-2 py-1.5 text-center">
-                                <div className="text-[8px] text-zinc-400 mb-0.5">{k.label}</div>
-                                <div className={`text-[11px] font-bold tabular-nums ${k.color}`}>
+                              <div key={ki} className="px-3 py-2 text-center">
+                                <div className="text-[10px] text-zinc-500 font-medium mb-0.5">{k.label}</div>
+                                <div className={`text-[13px] font-bold tabular-nums ${k.color}`}>
                                   {k.val != null ? formatNumber(k.val) : '—'}
                                 </div>
-                                <div className="text-[8px] text-zinc-300">{k.val != null ? k.unit : ''}</div>
+                                <div className="text-[10px] text-zinc-400">{k.val != null ? k.unit : ''}</div>
                               </div>
                             ))}
                           </div>
-                          {/* 차트 영역 */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-zinc-100">
-                            {/* 손익 차트 — 매출(막대) + 영업이익(컬러선) + 순이익(점선) */}
-                            <div className="p-3">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-[9px] font-medium text-zinc-500">손익 추이 (억원)</p>
-                                <div className="flex items-center gap-2 text-[8px] text-zinc-400">
-                                  <span className="flex items-center gap-0.5"><span className="inline-block w-3 h-2 rounded-sm" style={{ background: color, opacity: 0.35 }}></span>매출</span>
-                                  <span className="flex items-center gap-0.5"><span className="inline-block w-4 border-t-2 border-emerald-500"></span>영업이익</span>
-                                  <span className="flex items-center gap-0.5"><span className="inline-block w-4 border-t border-dashed border-zinc-400"></span>순이익</span>
+
+                          {/* ══ 메인: 좌(차트 2개 세로) + 우(분석 3구분) ══ */}
+                          <div className="grid grid-cols-5 divide-x divide-zinc-100">
+
+                            {/* 좌: 손익 추이 (상) + 자본구조 추이 (하) */}
+                            <div className="col-span-3 divide-y divide-zinc-100">
+
+                              {/* 손익 추이 */}
+                              <div className="p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-[11px] font-semibold text-zinc-700">손익 추이 (억원)</p>
+                                  <div className="flex items-center gap-2.5 text-[10px] text-zinc-500">
+                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm" style={{ background: color, opacity: 0.35 }}></span>매출</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-teal-500"></span>영업이익</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t border-dashed border-zinc-400"></span>순이익</span>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="h-44 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <ComposedChart data={series} margin={{ top: 10, right: 10, left: -8, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
-                                    <YAxis tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
-                                    <Tooltip
-                                      cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                                      content={({ active, payload, label }) => {
+                                <div className="h-36 w-full">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={series} margin={{ top: 8, right: 10, left: -8, bottom: 0 }}>
+                                      <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
+                                      <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
+                                      <YAxis tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
+                                      <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} content={({ active, payload, label }) => {
                                         if (!active || !payload?.length) return null;
                                         return (
                                           <div className="bg-white border border-zinc-200 rounded-lg shadow-md px-3 py-2 text-[10px] min-w-[130px]">
                                             <div className="font-semibold text-zinc-700 mb-1.5 border-b border-zinc-100 pb-1">{label}</div>
                                             {payload.map((p, pi) => {
                                               const v = p.value;
-                                              const isNeg = v != null && v < 0;
                                               return (
                                                 <div key={pi} className="flex justify-between gap-3 mb-0.5">
                                                   <span className="text-zinc-500">{p.name}</span>
-                                                  <span className={`font-semibold tabular-nums ${isNeg ? 'text-rose-600' : 'text-zinc-800'}`}>
-                                                    {v != null ? `${formatNumber(v)}억` : '—'}
-                                                  </span>
+                                                  <span className={`font-semibold tabular-nums ${v != null && v < 0 ? 'text-rose-600' : 'text-zinc-800'}`}>{v != null ? `${formatNumber(v)}억` : '—'}</span>
                                                 </div>
                                               );
                                             })}
                                           </div>
                                         );
-                                      }}
-                                    />
-                                    {/* 매출 막대 */}
-                                    <Bar dataKey="매출액" name="매출" fill={color} fillOpacity={0.2} maxBarSize={22} radius={[2,2,0,0]} />
-                                    {/* 영업이익 — 양수/음수 별색 커스텀 도트 라인 */}
-                                    <Line
-                                      type="monotone"
-                                      dataKey="영업이익"
-                                      name="영업이익"
-                                      stroke="#0d9488"
-                                      strokeWidth={2}
-                                      connectNulls
-                                      dot={(props) => {
-                                        const { cx, cy, value } = props;
-                                        if (value == null || cx == null || cy == null) return <g key={`dot-op-${cx}-${cy}`} />;
-                                        const fill = value >= 0 ? '#0d9488' : '#f43f5e';
-                                        return <circle key={`dot-op-${cx}-${cy}`} cx={cx} cy={cy} r={3.5} fill={fill} stroke="white" strokeWidth={1.5} />;
-                                      }}
-                                      activeDot={{ r: 5, strokeWidth: 2 }}
-                                    />
-                                    {/* 순이익 점선 */}
-                                    <Line type="monotone" dataKey="당기순이익" name="순이익" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
-                                    {/* 기준선 0 */}
-                                    <ReferenceLine y={0} stroke="#e11d48" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.5} />
-                                  </ComposedChart>
-                                </ResponsiveContainer>
-                              </div>
-                            </div>
-                            {/* BS 차트 — 자본구조 스택 막대 */}
-                            <div className="p-3">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-[9px] font-medium text-zinc-500">자본구조 추이 (억원)</p>
-                                <div className="flex items-center gap-2 text-[8px] text-zinc-400">
-                                  <span className="flex items-center gap-0.5"><span className="inline-block w-3 h-2 rounded-sm bg-emerald-400 opacity-70"></span>자본</span>
-                                  <span className="flex items-center gap-0.5"><span className="inline-block w-3 h-2 rounded-sm bg-rose-400 opacity-60"></span>부채</span>
-                                  <span className="flex items-center gap-0.5"><span className="inline-block w-4 border-t-2 border-indigo-400"></span>자산</span>
+                                      }} />
+                                      <Bar dataKey="매출액" name="매출" fill={color} fillOpacity={0.2} maxBarSize={20} radius={[2,2,0,0]} />
+                                      <Line type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2} connectNulls
+                                        dot={(props) => {
+                                          const { cx, cy, value } = props;
+                                          if (value == null || cx == null || cy == null) return <g key={`dot-op-${cx}-${cy}`} />;
+                                          return <circle key={`dot-op-${cx}-${cy}`} cx={cx} cy={cy} r={3} fill={value >= 0 ? '#0d9488' : '#f43f5e'} stroke="white" strokeWidth={1.5} />;
+                                        }}
+                                        activeDot={{ r: 4, strokeWidth: 2 }}
+                                      />
+                                      <Line type="monotone" dataKey="당기순이익" name="순이익" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="4 3" dot={false} connectNulls />
+                                      <ReferenceLine y={0} stroke="#e11d48" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.4} />
+                                    </ComposedChart>
+                                  </ResponsiveContainer>
                                 </div>
                               </div>
-                              <div className="h-44 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <ComposedChart data={series} margin={{ top: 10, right: 10, left: -8, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
-                                    <YAxis tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
-                                    <Tooltip
-                                      cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                                      content={({ active, payload, label }) => {
+
+                              {/* 자본구조 추이 */}
+                              <div className="p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <p className="text-[11px] font-semibold text-zinc-700">자본구조 추이 (억원)</p>
+                                  <div className="flex items-center gap-2.5 text-[10px] text-zinc-500">
+                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-emerald-400 opacity-70"></span>자본</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-rose-400 opacity-60"></span>부채</span>
+                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-indigo-400"></span>자산</span>
+                                  </div>
+                                </div>
+                                <div className="h-36 w-full">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={series} margin={{ top: 8, right: 10, left: -8, bottom: 0 }}>
+                                      <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
+                                      <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
+                                      <YAxis tick={{ fontSize: 8, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
+                                      <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} content={({ active, payload, label }) => {
                                         if (!active || !payload?.length) return null;
                                         const assetItem = payload.find(p => p.dataKey === '자산총계');
                                         const debtItem  = payload.find(p => p.dataKey === '부채총계');
                                         const eqItem    = payload.find(p => p.dataKey === '자본총계');
-                                        const debtRatio = (eqItem?.value > 0 && debtItem?.value != null)
-                                          ? Math.round(debtItem.value / eqItem.value * 100) : null;
+                                        const debtRatio = (eqItem?.value > 0 && debtItem?.value != null) ? Math.round(debtItem.value / eqItem.value * 100) : null;
                                         return (
                                           <div className="bg-white border border-zinc-200 rounded-lg shadow-md px-3 py-2 text-[10px] min-w-[140px]">
                                             <div className="font-semibold text-zinc-700 mb-1.5 border-b border-zinc-100 pb-1">{label}</div>
@@ -5687,63 +5673,99 @@ export default function FnFQ1_2026Dashboard() {
                                             )}
                                           </div>
                                         );
-                                      }}
-                                    />
-                                    {/* 스택 막대: 자본 + 부채 */}
-                                    <Bar dataKey="자본총계" name="자본" stackId="bs" fill="#0d9488" fillOpacity={0.55} maxBarSize={22} />
-                                    <Bar dataKey="부채총계" name="부채" stackId="bs" fill="#f43f5e" fillOpacity={0.45} maxBarSize={22} radius={[2,2,0,0]} />
-                                    {/* 자산 라인 */}
-                                    <Line type="monotone" dataKey="자산총계" name="자산" stroke="#6366f1" strokeWidth={2} dot={{ r: 2.5, fill: '#6366f1', stroke: 'white', strokeWidth: 1 }} connectNulls />
-                                  </ComposedChart>
-                                </ResponsiveContainer>
+                                      }} />
+                                      <Bar dataKey="자본총계" name="자본" stackId="bs" fill="#0d9488" fillOpacity={0.55} maxBarSize={20} />
+                                      <Bar dataKey="부채총계" name="부채" stackId="bs" fill="#f43f5e" fillOpacity={0.45} maxBarSize={20} radius={[2,2,0,0]} />
+                                      <Line type="monotone" dataKey="자산총계" name="자산" stroke="#6366f1" strokeWidth={2} dot={{ r: 2, fill: '#6366f1', stroke: 'white', strokeWidth: 1 }} connectNulls />
+                                    </ComposedChart>
+                                  </ResponsiveContainer>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                          {/* AI 분석 */}
-                          <div className="mt-2.5 rounded-lg border px-3 py-2 text-[9px] leading-relaxed space-y-1.5" style={{
-                            borderColor: analysis.verdict === 'positive' ? '#d1fae5' : analysis.verdict === 'negative' ? '#fee2e2' : '#e4e4e7',
-                            background: analysis.verdict === 'positive' ? '#f0fdf4' : analysis.verdict === 'negative' ? '#fff7f7' : '#fafafa',
-                          }}>
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className={`text-[10px] font-bold ${analysis.verdict === 'positive' ? 'text-emerald-600' : analysis.verdict === 'negative' ? 'text-rose-600' : 'text-zinc-500'}`}>
-                                {analysis.verdict === 'positive' ? '▲ 긍정적' : analysis.verdict === 'negative' ? '▼ 부정적' : '◆ 복합적'}
-                              </span>
-                              <span className="text-zinc-400 text-[9px]">— AI 분석 의견</span>
-                            </div>
-                            {analysis.pos.map((t, i) => (
-                              <div key={`p${i}`} className="flex gap-1 text-emerald-700">
-                                <span className="shrink-0 font-bold text-emerald-500">✓</span><span>{t}</span>
-                              </div>
-                            ))}
-                            {analysis.neg.map((t, i) => (
-                              <div key={`n${i}`} className="flex gap-1 text-rose-700">
-                                <span className="shrink-0 font-bold text-rose-400">!</span><span>{t}</span>
-                              </div>
-                            ))}
-                            {analysis.neu.map((t, i) => (
-                              <div key={`u${i}`} className="flex gap-1 text-zinc-500">
-                                <span className="shrink-0">·</span><span>{t}</span>
-                              </div>
-                            ))}
-                          </div>
+
+                            </div>{/* /left charts */}
+
+                            {/* 우: 분석 — 긍정적 / 부정적 / 종합분석 */}
+                            <div className="col-span-2 p-4 flex flex-col gap-3">
+
+                              {/* 긍정적 */}
+                              {analysis.pos.length > 0 && (
+                                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-3 flex-1">
+                                  <p className="text-[11px] font-bold text-emerald-700 mb-2 flex items-center gap-1.5">
+                                    <span>▲</span><span>긍정적</span>
+                                  </p>
+                                  <ul className="space-y-2">
+                                    {analysis.pos.map((t, i) => (
+                                      <li key={i} className="flex gap-1.5 text-[11px] text-emerald-800 leading-relaxed">
+                                        <span className="shrink-0 font-bold text-emerald-500 mt-0.5">✓</span>
+                                        <span>{t}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* 부정적 */}
+                              {analysis.neg.length > 0 && (
+                                <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-3 flex-1">
+                                  <p className="text-[11px] font-bold text-rose-700 mb-2 flex items-center gap-1.5">
+                                    <span>▼</span><span>부정적</span>
+                                  </p>
+                                  <ul className="space-y-2">
+                                    {analysis.neg.map((t, i) => (
+                                      <li key={i} className="flex gap-1.5 text-[11px] text-rose-800 leading-relaxed">
+                                        <span className="shrink-0 font-bold text-rose-400 mt-0.5">!</span>
+                                        <span>{t}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* 종합분석 */}
+                              {analysis.neu.length > 0 && (
+                                <div className="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-3 flex-1">
+                                  <p className="text-[11px] font-bold text-zinc-600 mb-2 flex items-center gap-1.5">
+                                    <span>◆</span><span>종합분석</span>
+                                  </p>
+                                  <ul className="space-y-2">
+                                    {analysis.neu.map((t, i) => (
+                                      <li key={i} className="flex gap-1.5 text-[11px] text-zinc-600 leading-relaxed">
+                                        <span className="shrink-0 text-zinc-400 mt-0.5">·</span>
+                                        <span>{t}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* 긍정/부정 모두 없을 때 */}
+                              {analysis.pos.length === 0 && analysis.neg.length === 0 && analysis.neu.length === 0 && (
+                                <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-4 text-[11px] text-zinc-400 text-center">
+                                  데이터 로딩 중
+                                </div>
+                              )}
+
+                            </div>{/* /right analysis */}
+
+                          </div>{/* /main grid */}
                         </div>
                       );
                     })}
 
                     {/* 비교 요약 테이블 */}
                     <div>
-                      <p className="text-[11px] font-semibold text-zinc-600 mb-2">최신 분기 비교 (26.1Q 기준, 억원)</p>
+                      <p className="text-[12px] font-semibold text-zinc-700 mb-2">최신 분기 비교 (26.1Q 기준, 억원)</p>
                       <div className="overflow-x-auto">
-                        <table className="w-full text-[10px] border-collapse min-w-[480px]">
+                        <table className="w-full text-[11px] border-collapse min-w-[480px]">
                           <thead>
-                            <tr className="bg-zinc-50 text-zinc-500">
-                              <th className="text-left py-1.5 px-2 font-medium border border-zinc-100">법인</th>
-                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">자산</th>
-                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">부채</th>
-                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">자본</th>
-                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">매출액</th>
-                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">영업손익</th>
-                              <th className="text-right py-1.5 px-2 font-medium border border-zinc-100">당기순손익</th>
+                            <tr className="bg-zinc-100 text-zinc-600">
+                              <th className="text-left py-2 px-3 font-semibold border border-zinc-200">법인</th>
+                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">자산</th>
+                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">부채</th>
+                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">자본</th>
+                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">매출액</th>
+                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">영업손익</th>
+                              <th className="text-right py-2 px-3 font-semibold border border-zinc-200">당기순손익</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -5754,13 +5776,13 @@ export default function FnFQ1_2026Dashboard() {
                               const niColor = latest.당기순이익 != null ? (latest.당기순이익 >= 0 ? 'text-zinc-800' : 'text-rose-600') : 'text-zinc-400';
                               return (
                                 <tr key={ri} className="border-b border-zinc-100 hover:bg-zinc-50">
-                                  <td className="py-1.5 px-2 font-semibold border border-zinc-100" style={{ color }}>{entity}</td>
-                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.자산총계)}</td>
-                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.부채총계)}</td>
-                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.자본총계)}</td>
-                                  <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100">{fmtVal(latest.매출액)}</td>
-                                  <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-medium ${opColor}`}>{fmtVal(latest.영업이익)}</td>
-                                  <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 ${niColor}`}>{fmtVal(latest.당기순이익)}</td>
+                                  <td className="py-2 px-3 font-semibold border border-zinc-200" style={{ color }}>{entity}</td>
+                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.자산총계)}</td>
+                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.부채총계)}</td>
+                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.자본총계)}</td>
+                                  <td className="text-right py-2 px-3 tabular-nums border border-zinc-200">{fmtVal(latest.매출액)}</td>
+                                  <td className={`text-right py-2 px-3 tabular-nums border border-zinc-200 font-semibold ${opColor}`}>{fmtVal(latest.영업이익)}</td>
+                                  <td className={`text-right py-2 px-3 tabular-nums border border-zinc-200 font-medium ${niColor}`}>{fmtVal(latest.당기순이익)}</td>
                                 </tr>
                               );
                             })}
@@ -5797,118 +5819,148 @@ export default function FnFQ1_2026Dashboard() {
                       ];
 
                       return (
-                        <div key={entity} className="border border-zinc-100 rounded-lg p-3 bg-zinc-50/40">
-                          <p className="text-[11px] font-semibold mb-3" style={{ color }}>{entity} — 손상평가 모니터링</p>
-
-                          {/* 사업계획 입력 */}
-                          <div className="grid grid-cols-2 gap-3 mb-3">
-                            <div>
-                              <label className="text-[9px] text-zinc-400 block mb-1">26.1Q 분기 계획 매출 (억원)</label>
-                              <input
-                                type="number"
-                                value={imp.plan2025Sales || ''}
-                                onChange={e => setImpairmentData(prev => ({
-                                  ...prev,
-                                  [entity]: { ...prev[entity], plan2025Sales: Number(e.target.value) || 0 }
-                                }))}
-                                className="w-full border border-zinc-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-emerald-400"
-                                placeholder="예: 150"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[9px] text-zinc-400 block mb-1">26.1Q 분기 계획 영업이익 (억원)</label>
-                              <input
-                                type="number"
-                                value={imp.plan2025OpInc || ''}
-                                onChange={e => setImpairmentData(prev => ({
-                                  ...prev,
-                                  [entity]: { ...prev[entity], plan2025OpInc: Number(e.target.value) || 0 }
-                                }))}
-                                className="w-full border border-zinc-200 rounded px-2 py-1 text-[10px] focus:outline-none focus:border-emerald-400"
-                                placeholder="예: 10"
-                              />
-                            </div>
+                        <div key={entity} className="border border-zinc-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                          {/* 법인 헤더 */}
+                          <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
+                            <span className="text-[12px] font-bold" style={{ color }}>{entity} — 손상평가 모니터링</span>
+                            <span className="text-[10px] text-zinc-400">26.1Q 기준</span>
                           </div>
 
-                          {/* 계획 vs 실적 차트 */}
-                          <p className="text-[9px] text-zinc-400 mb-1">매출 · 영업손익 추이 및 계획 비교 (억원)</p>
-                          <div className="h-36 w-full mb-3">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <ComposedChart data={planVsActualData} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                                <XAxis dataKey="name" tick={{ fontSize: 8 }} stroke="#a1a1aa" />
-                                <YAxis tick={{ fontSize: 8 }} stroke="#a1a1aa" tickFormatter={v => formatNumber(v)} />
-                                <Tooltip content={({ active, payload, label }) => {
-                                  if (!active || !payload?.length) return null;
-                                  return (
-                                    <div className="bg-white border border-zinc-200 rounded shadow px-2 py-1.5 text-[9px]">
-                                      <div className="font-semibold mb-0.5">{label}</div>
-                                      {payload.map((p, pi) => <div key={pi} style={{ color: p.color || p.stroke }}>{p.name}: <span className="font-medium">{p.value != null ? `${formatNumber(p.value)}억` : '—'}</span></div>)}
+                          {/* ══ 메인: 좌(입력+차트+달성률) + 우(긍정/모니터링) ══ */}
+                          <div className="grid grid-cols-5 divide-x divide-zinc-100">
+
+                            {/* 좌: 계획 입력 + 차트 + 달성률 */}
+                            <div className="col-span-3 p-4 space-y-3">
+
+                              {/* 사업계획 입력 */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-[10px] font-semibold text-zinc-500 block mb-1">26.1Q 분기 계획 매출 (억원)</label>
+                                  <input
+                                    type="number"
+                                    value={imp.plan2025Sales || ''}
+                                    onChange={e => setImpairmentData(prev => ({
+                                      ...prev,
+                                      [entity]: { ...prev[entity], plan2025Sales: Number(e.target.value) || 0 }
+                                    }))}
+                                    className="w-full border border-zinc-200 rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+                                    placeholder="예: 150"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10px] font-semibold text-zinc-500 block mb-1">26.1Q 분기 계획 영업이익 (억원)</label>
+                                  <input
+                                    type="number"
+                                    value={imp.plan2025OpInc || ''}
+                                    onChange={e => setImpairmentData(prev => ({
+                                      ...prev,
+                                      [entity]: { ...prev[entity], plan2025OpInc: Number(e.target.value) || 0 }
+                                    }))}
+                                    className="w-full border border-zinc-200 rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+                                    placeholder="예: 10"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* 계획 vs 실적 차트 */}
+                              <div>
+                                <p className="text-[10px] font-semibold text-zinc-500 mb-1.5">매출 · 영업손익 추이 및 계획 비교 (억원)</p>
+                                <div className="h-40 w-full">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={planVsActualData} margin={{ top: 6, right: 10, left: -8, bottom: 0 }}>
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" vertical={false} />
+                                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                                      <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={v => formatNumber(v)} width={36} />
+                                      <Tooltip content={({ active, payload, label }) => {
+                                        if (!active || !payload?.length) return null;
+                                        return (
+                                          <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-2 text-[10px]">
+                                            <div className="font-semibold text-zinc-700 mb-1 pb-1 border-b border-zinc-100">{label}</div>
+                                            {payload.map((p, pi) => (
+                                              <div key={pi} className="flex justify-between gap-3" style={{ color: p.color || p.stroke }}>
+                                                <span>{p.name}</span>
+                                                <span className="font-semibold">{p.value != null ? `${formatNumber(p.value)}억` : '—'}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        );
+                                      }} />
+                                      <Legend wrapperStyle={{ fontSize: 9 }} />
+                                      <Bar dataKey="실적매출" name="실적 매출" fill={color} opacity={0.35} maxBarSize={22} radius={[2,2,0,0]} />
+                                      <Bar dataKey="계획매출" name="계획 매출" fill="#94a3b8" opacity={0.4} maxBarSize={22} radius={[2,2,0,0]} />
+                                      <Line type="monotone" dataKey="실적영업이익" name="실적 영업이익" stroke={color} strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                                      <Line type="monotone" dataKey="계획영업이익" name="계획 영업이익" stroke="#94a3b8" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 2 }} connectNulls />
+                                    </ComposedChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+
+                              {/* 계획 달성률 */}
+                              {(imp.plan2025Sales > 0 || imp.plan2025OpInc > 0) && actual26_1Q && (
+                                <div className="grid grid-cols-2 gap-2">
+                                  {imp.plan2025Sales > 0 && actual26_1Q.매출액 != null && (
+                                    <div className={`rounded-lg px-3 py-2 text-center border ${actual26_1Q.매출액 >= imp.plan2025Sales ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                                      <div className="text-[10px] text-zinc-500 mb-0.5">매출 달성률</div>
+                                      <div className={`text-base font-bold tabular-nums ${actual26_1Q.매출액 >= imp.plan2025Sales ? 'text-emerald-700' : 'text-rose-600'}`}>
+                                        {Math.round(actual26_1Q.매출액 / imp.plan2025Sales * 100)}%
+                                      </div>
+                                      <div className="text-[10px] text-zinc-400">{formatNumber(actual26_1Q.매출액)} / {formatNumber(imp.plan2025Sales)}억</div>
                                     </div>
-                                  );
-                                }} />
-                                <Legend wrapperStyle={{ fontSize: 8 }} />
-                                <Bar dataKey="실적매출" name="실적 매출" fill={color} opacity={0.35} maxBarSize={22} radius={[2,2,0,0]} />
-                                <Bar dataKey="계획매출" name="계획 매출" fill="#94a3b8" opacity={0.4} maxBarSize={22} radius={[2,2,0,0]} />
-                                <Line type="monotone" dataKey="실적영업이익" name="실적 영업이익" stroke={color} strokeWidth={2} dot={{ r: 3 }} connectNulls />
-                                <Line type="monotone" dataKey="계획영업이익" name="계획 영업이익" stroke="#94a3b8" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 2 }} connectNulls />
-                              </ComposedChart>
-                            </ResponsiveContainer>
-                          </div>
-
-                          {/* 계획 달성률 표시 */}
-                          {(imp.plan2025Sales > 0 || imp.plan2025OpInc > 0) && actual26_1Q && (
-                            <div className="grid grid-cols-2 gap-2 mb-3">
-                              {imp.plan2025Sales > 0 && actual26_1Q.매출액 != null && (
-                                <div className={`rounded px-2.5 py-1.5 text-center ${actual26_1Q.매출액 >= imp.plan2025Sales ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100'}`}>
-                                  <div className="text-[9px] text-zinc-400">매출 달성률</div>
-                                  <div className={`text-sm font-bold tabular-nums ${actual26_1Q.매출액 >= imp.plan2025Sales ? 'text-emerald-700' : 'text-rose-600'}`}>
-                                    {Math.round(actual26_1Q.매출액 / imp.plan2025Sales * 100)}%
-                                  </div>
-                                  <div className="text-[9px] text-zinc-400">{formatNumber(actual26_1Q.매출액)} / {formatNumber(imp.plan2025Sales)}억</div>
+                                  )}
+                                  {imp.plan2025OpInc !== 0 && actual26_1Q.영업이익 != null && (
+                                    <div className={`rounded-lg px-3 py-2 text-center border ${actual26_1Q.영업이익 >= imp.plan2025OpInc ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                                      <div className="text-[10px] text-zinc-500 mb-0.5">영업이익 달성률</div>
+                                      <div className={`text-base font-bold tabular-nums ${actual26_1Q.영업이익 >= imp.plan2025OpInc ? 'text-emerald-700' : 'text-rose-600'}`}>
+                                        {Math.round(actual26_1Q.영업이익 / imp.plan2025OpInc * 100)}%
+                                      </div>
+                                      <div className="text-[10px] text-zinc-400">{formatNumber(actual26_1Q.영업이익)} / {formatNumber(imp.plan2025OpInc)}억</div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
-                              {imp.plan2025OpInc !== 0 && actual26_1Q.영업이익 != null && imp.plan2025OpInc !== 0 && (
-                                <div className={`rounded px-2.5 py-1.5 text-center ${actual26_1Q.영업이익 >= imp.plan2025OpInc ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100'}`}>
-                                  <div className="text-[9px] text-zinc-400">영업이익 달성률</div>
-                                  <div className={`text-sm font-bold tabular-nums ${actual26_1Q.영업이익 >= imp.plan2025OpInc ? 'text-emerald-700' : 'text-rose-600'}`}>
-                                    {imp.plan2025OpInc !== 0 ? Math.round(actual26_1Q.영업이익 / imp.plan2025OpInc * 100) : '—'}%
-                                  </div>
-                                  <div className="text-[9px] text-zinc-400">{formatNumber(actual26_1Q.영업이익)} / {formatNumber(imp.plan2025OpInc)}억</div>
-                                </div>
-                              )}
-                            </div>
-                          )}
 
-                          {/* 긍정적 사항 / 모니터링 사항 편집 */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[9px] font-semibold text-emerald-700 block mb-1">✅ 긍정적 사항</label>
-                              <textarea
-                                value={imp.positives || ''}
-                                onChange={e => setImpairmentData(prev => ({
-                                  ...prev,
-                                  [entity]: { ...prev[entity], positives: e.target.value }
-                                }))}
-                                rows={4}
-                                className="w-full border border-zinc-200 rounded px-2 py-1.5 text-[10px] text-zinc-700 leading-relaxed resize-none focus:outline-none focus:border-emerald-400"
-                                placeholder={"예)\n· 신규 브랜드 런칭 효과 가시화\n· 온라인 채널 성장률 +15%\n· 주요 거래처 계약 연장"}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[9px] font-semibold text-rose-700 block mb-1">⚠️ 모니터링 사항</label>
-                              <textarea
-                                value={imp.monitoring || ''}
-                                onChange={e => setImpairmentData(prev => ({
-                                  ...prev,
-                                  [entity]: { ...prev[entity], monitoring: e.target.value }
-                                }))}
-                                rows={4}
-                                className="w-full border border-zinc-200 rounded px-2 py-1.5 text-[10px] text-zinc-700 leading-relaxed resize-none focus:outline-none focus:border-rose-400"
-                                placeholder={"예)\n· 영업이익 계획 대비 미달 지속\n· 현지 경기 침체 영향 모니터링\n· 환율 변동 리스크"}
-                              />
-                            </div>
-                          </div>
+                            </div>{/* /left */}
+
+                            {/* 우: 긍정적 사항 + 모니터링 사항 */}
+                            <div className="col-span-2 p-4 flex flex-col gap-3">
+
+                              {/* 긍정적 사항 */}
+                              <div className="flex-1 flex flex-col">
+                                <label className="text-[11px] font-bold text-emerald-700 block mb-1.5 flex items-center gap-1">
+                                  <span>✅</span><span>긍정적 사항</span>
+                                </label>
+                                <textarea
+                                  value={imp.positives || ''}
+                                  onChange={e => setImpairmentData(prev => ({
+                                    ...prev,
+                                    [entity]: { ...prev[entity], positives: e.target.value }
+                                  }))}
+                                  className="flex-1 w-full border border-emerald-100 bg-emerald-50/40 rounded-lg px-3 py-2 text-[11px] text-zinc-700 leading-relaxed resize-none focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+                                  placeholder={"· 신규 브랜드 런칭 효과 가시화\n· 온라인 채널 성장률 +15%\n· 주요 거래처 계약 연장"}
+                                  rows={5}
+                                />
+                              </div>
+
+                              {/* 모니터링 사항 */}
+                              <div className="flex-1 flex flex-col">
+                                <label className="text-[11px] font-bold text-rose-700 block mb-1.5 flex items-center gap-1">
+                                  <span>⚠️</span><span>모니터링 사항</span>
+                                </label>
+                                <textarea
+                                  value={imp.monitoring || ''}
+                                  onChange={e => setImpairmentData(prev => ({
+                                    ...prev,
+                                    [entity]: { ...prev[entity], monitoring: e.target.value }
+                                  }))}
+                                  className="flex-1 w-full border border-rose-100 bg-rose-50/40 rounded-lg px-3 py-2 text-[11px] text-zinc-700 leading-relaxed resize-none focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-200"
+                                  placeholder={"· 영업이익 계획 대비 미달 지속\n· 현지 경기 침체 영향 모니터링\n· 환율 변동 리스크"}
+                                  rows={5}
+                                />
+                              </div>
+
+                            </div>{/* /right */}
+
+                          </div>{/* /main grid */}
                         </div>
                       );
                     })}
