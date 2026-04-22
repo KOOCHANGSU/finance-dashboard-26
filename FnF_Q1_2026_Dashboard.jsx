@@ -604,6 +604,8 @@ export default function FnFQ1_2026Dashboard() {
   const [balanceKpiMode, setBalanceKpiMode] = useState('yearEnd'); // 'sameQuarter' | 'yearEnd' - 재무상태 요약 카드 보기 모드
   const [incomeEditMode, setIncomeEditMode] = useState(false); // 영업 섹션 증감 분석 편집 모드
   const [nonOpEditMode, setNonOpEditMode] = useState(false); // 영업외 섹션 증감 분석 편집 모드
+  const [entityAmtInputMode, setEntityAmtInputMode] = useState(false); // 법인별 금액 직접입력 모드
+  const [entityAmtDraft, setEntityAmtDraft] = useState({}); // 법인별 금액 임시 입력값 (억원)
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
   const [hiddenEntityCards, setHiddenEntityCards] = useState(() => {
     // localStorage에서 숨겨진 법인 카드 목록 로드
@@ -6690,8 +6692,9 @@ export default function FnFQ1_2026Dashboard() {
       });
 
       // 2. 전기나 당기 중 하나라도 데이터가 있고, 그 기간의 비중이 3% 이상이면 개별로 유지
+      // MERGED_ENTITY_LABEL('기타(연결조정)')은 step4에서 잔차로 계산하므로 여기서 skip
       for (const name of allKeys) {
-        if (MAJOR_ENTITIES.includes(name) || name === '연결조정' || name === '기타') continue;
+        if (MAJOR_ENTITIES.includes(name) || name === '연결조정' || name === '기타' || name === MERGED_ENTITY_LABEL) continue;
 
         const prevVal = alignedPrev[name] || 0;
         const currVal = alignedCurr[name] || 0;
@@ -7626,10 +7629,75 @@ export default function FnFQ1_2026Dashboard() {
                 return (
               <>
               <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
-                <h3 className="text-sm font-semibold text-zinc-900 mb-0.5">
-                  {nonOperatingItems.find(i => i.key === selectedNonOpAccount)?.label || selectedNonOpAccount} 법인별 구성
-                </h3>
+                <div className="flex items-center justify-between mb-0.5">
+                  <h3 className="text-sm font-semibold text-zinc-900">
+                    {nonOperatingItems.find(i => i.key === selectedNonOpAccount)?.label || selectedNonOpAccount} 법인별 구성
+                  </h3>
+                  {/* 직접입력 버튼: 기타손익 등 CSV 미제공 계정 */}
+                  {hideDonutChart && (
+                    <div className="flex gap-1">
+                      {!entityAmtInputMode ? (
+                        <button
+                          onClick={() => {
+                            // 기존 저장값으로 draft 초기화
+                            const draft = {};
+                            ALL_PANEL_ENTITIES.forEach(entity => {
+                              const key = `amtOverride_${selectedNonOpAccount}_${entity}_${currPeriod}`;
+                              const val = incomeEditData?.[key];
+                              if (val !== undefined && val !== '') draft[entity] = String(val);
+                            });
+                            setEntityAmtDraft(draft);
+                            setEntityAmtInputMode(true);
+                          }}
+                          className="text-[11px] px-2 py-0.5 rounded border border-violet-300 text-violet-600 hover:bg-violet-50"
+                        >✏️ 직접입력</button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              // 저장: draft → incomeEditData
+                              const updates = { ...incomeEditData };
+                              ALL_PANEL_ENTITIES.forEach(entity => {
+                                const key = `amtOverride_${selectedNonOpAccount}_${entity}_${currPeriod}`;
+                                const v = entityAmtDraft[entity];
+                                if (v !== undefined && v !== '' && !isNaN(Number(v))) {
+                                  updates[key] = Number(v);
+                                } else {
+                                  delete updates[key];
+                                }
+                              });
+                              setIncomeEditData(updates);
+                              setEntityAmtInputMode(false);
+                            }}
+                            className="text-[11px] px-2 py-0.5 rounded border border-emerald-400 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 font-medium"
+                          >💾 저장</button>
+                          <button
+                            onClick={() => { setEntityAmtInputMode(false); setEntityAmtDraft({}); }}
+                            className="text-[11px] px-2 py-0.5 rounded border border-zinc-300 text-zinc-500 hover:bg-zinc-50"
+                          >취소</button>
+                          {/* 초기화 버튼 */}
+                          <button
+                            onClick={() => {
+                              if (!window.confirm('입력한 법인별 금액을 모두 초기화할까요?')) return;
+                              const updates = { ...incomeEditData };
+                              ALL_PANEL_ENTITIES.forEach(entity => {
+                                delete updates[`amtOverride_${selectedNonOpAccount}_${entity}_${currPeriod}`];
+                              });
+                              setIncomeEditData(updates);
+                              setEntityAmtInputMode(false);
+                              setEntityAmtDraft({});
+                            }}
+                            className="text-[11px] px-2 py-0.5 rounded border border-rose-300 text-rose-500 hover:bg-rose-50"
+                          >초기화</button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <p className="text-xs text-zinc-400">{periodLabel} 기준 법인별 {hideDonutChart ? '금액' : '비중'}</p>
+                {entityAmtInputMode && hideDonutChart && (
+                  <p className="text-[11px] text-violet-500 mt-1">✏️ {currPeriodLabel} 법인별 금액을 억원 단위로 입력하세요 (음수 가능)</p>
+                )}
                 
                 {/* 도넛 차트 영역 - 영업외손익 하위 계정은 숨김 */}
                 {!hideDonutChart && (
@@ -7782,15 +7850,34 @@ export default function FnFQ1_2026Dashboard() {
                           <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-600 font-medium' : 'text-zinc-400'}`}>
                             {selectedNonOpAccount === '법인세비용' ? effectiveTaxRatePrev : `${prevRatio}%`}
                           </td>
+                          {/* 당기 금액: 직접입력 모드면 input, 아니면 표시값 */}
+                          {entityAmtInputMode && hideDonutChart && row.entity !== '기타(연결조정)' ? (
+                            <td className="px-1 py-1" colSpan={2}>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  placeholder="억원"
+                                  value={entityAmtDraft[row.entity] ?? ''}
+                                  onChange={(e) => setEntityAmtDraft(prev => ({ ...prev, [row.entity]: e.target.value }))}
+                                  className="w-full text-right text-xs border border-violet-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-violet-400 bg-violet-50"
+                                />
+                                <span className="text-[10px] text-zinc-400 whitespace-nowrap">억원</span>
+                              </div>
+                            </td>
+                          ) : (
+                            <>
                           <td className="text-right px-1 py-1.5 text-zinc-900 font-medium tabular-nums">{formatNumber(row.currVal)}</td>
                           <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${selectedNonOpAccount === '법인세비용' ? 'text-blue-600 font-medium' : 'text-zinc-500'}`}>
                             {selectedNonOpAccount === '법인세비용' ? effectiveTaxRateCurr : `${row.ratio}%`}
                           </td>
+                            </>
+                          )}
                           <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {diff >= 0 ? '+' : ''}{formatNumber(diff)}
+                            {entityAmtInputMode && hideDonutChart ? '-' : (diff >= 0 ? '+' : '') + formatNumber(diff)}
                           </td>
                           <td className={`text-right px-1 py-1.5 font-medium tabular-nums whitespace-nowrap ${parseFloat(row.change) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {row.change !== '-' ? `${parseFloat(row.change) >= 0 ? '+' : ''}${row.change}%` : '-'}
+                            {entityAmtInputMode && hideDonutChart ? '-' : (row.change !== '-' ? `${parseFloat(row.change) >= 0 ? '+' : ''}${row.change}%` : '-')}
                           </td>
                         </tr>
                         );

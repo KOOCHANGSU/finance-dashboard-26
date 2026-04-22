@@ -40,7 +40,8 @@
       "Bash(head -5 src/main.jsx)",
       "Bash(head -5 src/main.tsx)",
       "Bash(grep -c \"이자수익 상세\" dist/assets/index-*.js)",
-      "Bash(ls \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\public\\\\\"*.csv 2>/dev/null; ls \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.claude\\\\worktrees\\\\crazy-moser\\\\public\\\\\"*.csv)"
+      "Bash(ls \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\public\\\\\"*.csv 2>/dev/null; ls \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.claude\\\\worktrees\\\\crazy-moser\\\\public\\\\\"*.csv)",
+      "Bash(grep -v \"^\\\\s*//\")"
     ]
   }
 }
