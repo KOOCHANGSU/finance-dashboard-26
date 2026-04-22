@@ -223,6 +223,38 @@ const buildEntityQuarterLookup = (rows, year) => {
         }
       });
     }
+    // 파생 계정: 인건비 = 급여 + 퇴직급여 (법인별)
+    const salaryByEntity = lookup[period]['급여'];
+    const retirementByEntity = lookup[period]['퇴직급여'];
+    if (salaryByEntity || retirementByEntity) {
+      if (!lookup[period]['인건비']) lookup[period]['인건비'] = {};
+      Object.keys(entityCols).forEach((entity) => {
+        const s = salaryByEntity?.[entity] || 0;
+        const r = retirementByEntity?.[entity] || 0;
+        if (s !== 0 || r !== 0) {
+          lookup[period]['인건비'][entity] = Math.round(s + r);
+        }
+      });
+    }
+    // 파생 계정: 기타판관비 = 판매비와관리비 - 인건비 - 광고선전비 - 수수료 - 감가상각비 (법인별)
+    const sgaByEntity = lookup[period]['판매비와관리비'] || lookup[period]['판관비'];
+    const laborByEntity = lookup[period]['인건비'];
+    const adByEntity = lookup[period]['광고선전비'];
+    const feeByEntity = lookup[period]['수수료'] || lookup[period]['지급수수료'];
+    const depByEntity = lookup[period]['감가상각비'];
+    if (sgaByEntity) {
+      if (!lookup[period]['기타판관비']) lookup[period]['기타판관비'] = {};
+      Object.keys(entityCols).forEach((entity) => {
+        const sga = sgaByEntity?.[entity] || 0;
+        const labor = laborByEntity?.[entity] || 0;
+        const ad = adByEntity?.[entity] || 0;
+        const fee = feeByEntity?.[entity] || 0;
+        const dep = depByEntity?.[entity] || 0;
+        if (sga !== 0) {
+          lookup[period]['기타판관비'][entity] = Math.round(sga - labor - ad - fee - dep);
+        }
+      });
+    }
   });
   return lookup;
 };
@@ -6562,7 +6594,27 @@ export default function FnFQ1_2026Dashboard() {
       법인세비용차감전순이익: ['법인세비용차감전순이익', '세전이익'],
     };
 
+    // 법인별 수동 입력 오버라이드 조회 (편집모드에서 사용자가 직접 입력한 금액)
+    const ALL_PANEL_ENTITIES = ['OC(국내)', '중국', '홍콩', 'ST미국', '엔터테인먼트', '베트남', '기타(연결조정)'];
+    const getEntityAmountOverrides = (accountKey, period) => {
+      const result = {};
+      let hasAny = false;
+      ALL_PANEL_ENTITIES.forEach(entity => {
+        const key = `amtOverride_${accountKey}_${entity}_${period}`;
+        const val = incomeEditData?.[key];
+        if (val !== undefined && val !== '' && !isNaN(Number(val))) {
+          result[entity] = Math.round(Number(val) * 100); // 억원 → 백만원
+          hasAny = true;
+        }
+      });
+      return hasAny ? result : null;
+    };
+
     const getBaseEntityBreakdown = (accountKey, period) => {
+      // 0. 사용자 수동 입력 오버라이드 최우선
+      const overrides = getEntityAmountOverrides(accountKey, period);
+      if (overrides) return overrides;
+
       const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
       const csvPeriodKey = fallbackPeriod.replace(/_\dQ_Year$/, match => match.replace('_Year', ''));
       const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
