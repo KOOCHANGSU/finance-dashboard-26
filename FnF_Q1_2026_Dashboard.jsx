@@ -11004,12 +11004,12 @@ export default function FnFQ1_2026Dashboard() {
     const entityIsThead = (
       <thead>
         <tr className="bg-zinc-100 border-b-2 border-zinc-300">
-          <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
+          <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
-          <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
+          <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
         </tr>
       </thead>
     );
@@ -11089,7 +11089,9 @@ export default function FnFQ1_2026Dashboard() {
       </>
     );
 
-    // BS 섹션 JSX
+    // BS 섹션 JSX — 동분기(25.1Q) + 전기말(25.4Q) + 당기(26.1Q) 3열 비교
+    const bsSameQPeriod = period25;   // 동분기: 2025_1Q
+    const bsYearEndPeriod = bsPeriod25; // 전기말: 2025_4Q
     const entityBSSection = (
       <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
@@ -11097,24 +11099,44 @@ export default function FnFQ1_2026Dashboard() {
         </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
+              <colgroup>
+                <col style={{minWidth:'130px'}} />
+                <col style={{minWidth:'95px'}} />
+                <col style={{minWidth:'95px'}} />
+                <col style={{minWidth:'95px'}} />
+                <col style={{minWidth:'90px'}} />
+                <col style={{minWidth:'70px'}} />
+                <col style={{minWidth:'168px'}} />
+              </colgroup>
               <thead>
                 <tr className="bg-zinc-100 border-b-2 border-zinc-300">
-                  <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(bsPeriod25)}</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
-                  <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200">과목</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-500 border-r border-zinc-200">
+                    <div className="text-[10px] font-medium text-zinc-400">동분기</div>
+                    <div>{getBsPeriodLabel(bsSameQPeriod)}</div>
+                  </th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200">
+                    <div className="text-[10px] font-medium text-zinc-400">전기말</div>
+                    <div>{getBsPeriodLabel(bsYearEndPeriod)}</div>
+                  </th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200">
+                    <div className="text-[10px] font-medium text-zinc-500">당기</div>
+                    <div>{getBsPeriodLabel(period26)}</div>
+                  </th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200">증감액<br/><span className="text-[10px] font-normal text-zinc-400">vs전기말</span></th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200">증감률<br/><span className="text-[10px] font-normal text-zinc-400">vs전기말</span></th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-l border-zinc-200">증감분석</th>
                 </tr>
               </thead>
               <tbody>
                 {entityBalanceItems.map((item, idx) => {
-                  const val25 = valBS(item.key, bsPeriod25);
+                  const valSameQ = valBS(item.key, bsSameQPeriod);
+                  const valYearEnd = valBS(item.key, bsYearEndPeriod);
                   const val26 = valBS(item.key, period26);
                   const isTotalItem = item.key.includes('총계');
-                  if (!isTotalItem && val25 === 0 && val26 === 0) return null;
-                  const diff = val26 - val25;
-                  const change = calculateYoY(val26, val25);
+                  if (!isTotalItem && valSameQ === 0 && valYearEnd === 0 && val26 === 0) return null;
+                  const diff = val26 - valYearEnd;   // 전기말 대비 증감
+                  const change = calculateYoY(val26, valYearEnd);
                   const highlightClass =
                     item.highlight === 'blue'
                       ? 'bg-blue-50/50'
@@ -11125,12 +11147,11 @@ export default function FnFQ1_2026Dashboard() {
                           : '';
                   return (
                     <tr key={`ebs-${item.key}-${idx}`} className={`border-b border-zinc-100 ${highlightClass}`}>
-                      <td
-                        className={`px-3 py-2 border-r border-zinc-200 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-600'} ${item.depth === 1 ? 'pl-6' : ''}`}
-                      >
+                      <td className={`px-3 py-2 border-r border-zinc-200 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-600'} ${item.depth === 1 ? 'pl-6' : ''}`}>
                         {item.label}
                       </td>
-                      <td className="text-right px-3 py-2 text-zinc-500 border-r border-zinc-200 tabular-nums">{formatNumber(val25)}</td>
+                      <td className="text-right px-3 py-2 text-zinc-400 border-r border-zinc-200 tabular-nums">{valSameQ !== 0 ? formatNumber(valSameQ) : '-'}</td>
+                      <td className="text-right px-3 py-2 text-zinc-500 border-r border-zinc-200 tabular-nums">{formatNumber(valYearEnd)}</td>
                       <td className={`text-right px-3 py-2 border-r border-zinc-200 tabular-nums ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-700'}`}>
                         {formatNumber(val26)}
                       </td>
