@@ -243,7 +243,7 @@ const buildEntityQuarterLookup = (rows, year) => {
     const fwdTradeLossByEntity = lookup[period]['파생상품거래손실'];
     if (fwdGainByEntity || fwdTradeGainByEntity || fwdLossByEntity || fwdTradeLossByEntity) {
       if (!lookup[period]['선물환손익']) lookup[period]['선물환손익'] = {};
-      Object.keys(entityCols).forEach((entity) => {
+      [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
         const g1 = fwdGainByEntity?.[entity] || 0;
         const g2 = fwdTradeGainByEntity?.[entity] || 0;
         const l1 = fwdLossByEntity?.[entity] || 0;
@@ -258,7 +258,7 @@ const buildEntityQuarterLookup = (rows, year) => {
     const retirementByEntity = lookup[period]['퇴직급여'];
     if (salaryByEntity || retirementByEntity) {
       if (!lookup[period]['인건비']) lookup[period]['인건비'] = {};
-      Object.keys(entityCols).forEach((entity) => {
+      [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
         const s = salaryByEntity?.[entity] || 0;
         const r = retirementByEntity?.[entity] || 0;
         if (s !== 0 || r !== 0) {
@@ -271,7 +271,7 @@ const buildEntityQuarterLookup = (rows, year) => {
     const deliveryByEntity = lookup[period]['운반비'];
     if (feeRawByEntity || deliveryByEntity) {
       if (!lookup[period]['수수료']) lookup[period]['수수료'] = {};
-      Object.keys(entityCols).forEach((entity) => {
+      [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
         const f = feeRawByEntity?.[entity] || 0;
         const d = deliveryByEntity?.[entity] || 0;
         if (f !== 0 || d !== 0) lookup[period]['수수료'][entity] = Math.round(f + d);
@@ -281,7 +281,7 @@ const buildEntityQuarterLookup = (rows, year) => {
     const intanDepByEntity = lookup[period]['무형자산상각비'];
     if (intanDepByEntity) {
       if (!lookup[period]['감가상각비']) lookup[period]['감가상각비'] = {};
-      Object.keys(entityCols).forEach((entity) => {
+      [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
         const d = lookup[period]['감가상각비']?.[entity] || 0;
         const id = intanDepByEntity?.[entity] || 0;
         if (d !== 0 || id !== 0) lookup[period]['감가상각비'][entity] = Math.round(d + id);
@@ -295,7 +295,7 @@ const buildEntityQuarterLookup = (rows, year) => {
     const depByEntity = lookup[period]['감가상각비'];
     if (sgaByEntity) {
       if (!lookup[period]['기타판관비']) lookup[period]['기타판관비'] = {};
-      Object.keys(entityCols).forEach((entity) => {
+      [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
         const sga = sgaByEntity?.[entity] || 0;
         const labor = laborByEntity?.[entity] || 0;
         const ad = adByEntity?.[entity] || 0;
