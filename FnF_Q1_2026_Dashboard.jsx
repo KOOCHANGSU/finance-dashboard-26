@@ -8229,24 +8229,24 @@ export default function FnFQ1_2026Dashboard() {
                           <td className="text-right px-2 py-1.5"></td>
                         </tr>
                         <tr className="border-b border-zinc-200 hover:bg-zinc-50">
-                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200 align-top">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
+                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200 align-top">연결 법인<br/><span className="text-zinc-400">중국·홍콩·엔터·ST미국</span></td>
                           <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
-                            중 229<br/>홍 40 / 엔 20<br/>ST 15
+                            중국 229<br/>홍콩 40 / 엔터 20<br/>ST미국 15
                           </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">304</td>
                           <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
-                            중 131<br/>홍 42 / 엔 20<br/>ST 5
+                            중국 131<br/>홍콩 42 / 엔터 20<br/>ST미국 5
                           </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600">199</td>
                         </tr>
                         <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200">
                           <td colSpan={2} className="px-3 py-2 text-emerald-800 border-r border-zinc-200">연결 합계</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
-                          <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-100 text-sm">1,014</td>
-                          <td className="text-right px-2 py-2 border-r border-zinc-200"></td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
-                          <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-100 text-sm">2,057</td>
-                          <td className="text-right px-2 py-2"></td>
+                          <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-200 text-sm">1,014</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 tabular-nums text-emerald-700 text-sm">2,057</td>
                         </tr>
                       </tbody>
                     </table>
@@ -8359,13 +8359,13 @@ export default function FnFQ1_2026Dashboard() {
                           <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">(880)</td>
                         </tr>
                         <tr className="border-b border-zinc-200 hover:bg-zinc-50">
-                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200 align-top">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
+                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200 align-top">연결 법인<br/><span className="text-zinc-400">중국·홍콩·엔터·ST미국</span></td>
                           <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
-                            중 1,013<br/>홍 201 / 엔 237<br/>ST 213
+                            중국 1,013<br/>홍콩 201 / 엔터 237<br/>ST미국 213
                           </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">1,665</td>
                           <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
-                            중 1,380<br/>홍 165 / 엔 299<br/>ST 524
+                            중국 1,380<br/>홍콩 165 / 엔터 299<br/>ST미국 524
                           </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600">2,368</td>
                         </tr>
