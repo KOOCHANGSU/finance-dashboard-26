@@ -807,13 +807,12 @@ export default function FnFQ1_2026Dashboard() {
     const recalc = () => {
       const hH = mainHeaderRef.current?.getBoundingClientRect().height ?? 0;
       const tH = tabNavRef.current?.getBoundingClientRect().height ?? 0;
+      // entityTab = 메인헤더 + 탭네비 아래 → IS/BS 서브탭 바 sticky 기준
+      // thead = entityTab + 서브탭 바 높이(48px 고정값) → 열 제목이 서브탭 바 아래 고정
       const eH = entityTabRef.current?.getBoundingClientRect().height ?? 0;
-      const iH = isSubTabRef.current?.getBoundingClientRect().height ?? 0;
-      const bH = bsSubTabRef.current?.getBoundingClientRect().height ?? 0;
-      // sub-tab bar가 마운트됐지만 getBoundingClientRect()=0인 경우 52px 보정
-      // (overflow-x-auto 내부에서 측정이 0으로 나오는 엣지케이스 방어)
-      const hasSubTab = isSubTabRef.current !== null || bsSubTabRef.current !== null || entityTabRef.current !== null;
-      const subH = Math.max(eH, iH, bH, hasSubTab ? 52 : 0);
+      const iH = isSubTabRef.current ? 48 : 0;  // 마운트 여부만 체크, 고정값 사용
+      const bH = bsSubTabRef.current ? 48 : 0;  // 마운트 여부만 체크, 고정값 사용
+      const subH = Math.max(eH, iH, bH);
       setStickyTop(prev => {
         const next = { tabNav: hH, entityTab: hH + tH, thead: hH + tH + subH };
         if (prev.tabNav === next.tabNav && prev.entityTab === next.entityTab && prev.thead === next.thead) return prev;
@@ -822,7 +821,7 @@ export default function FnFQ1_2026Dashboard() {
     };
     recalc();
     const ro = new ResizeObserver(recalc);
-    [mainHeaderRef, tabNavRef, entityTabRef, isSubTabRef, bsSubTabRef].forEach(r => {
+    [mainHeaderRef, tabNavRef, entityTabRef].forEach(r => {
       if (r.current) ro.observe(r.current);
     });
     return () => ro.disconnect();
