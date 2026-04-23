@@ -11214,26 +11214,10 @@ export default function FnFQ1_2026Dashboard() {
       <div className="max-w-screen-2xl mx-auto p-4">
         {/* 탭 컨텐츠 */}
         <div>
-          {activeTab === 'summary' && (
-            <TabErrorBoundary tabName="전체요약">
-              {renderSummaryTab()}
-            </TabErrorBoundary>
-          )}
-          {activeTab === 'income' && (
-            <TabErrorBoundary tabName="손익계산서">
-              {renderIncomeTab()}
-            </TabErrorBoundary>
-          )}
-          {activeTab === 'balance' && (
-            <TabErrorBoundary tabName="재무상태표">
-              {renderBalanceSheetTab()}
-            </TabErrorBoundary>
-          )}
-          {activeTab === 'entity' && (
-            <TabErrorBoundary tabName="법인별">
-              {renderEntityStatementsTab()}
-            </TabErrorBoundary>
-          )}
+          {activeTab === 'summary' && (() => { try { const c = renderSummaryTab(); return <TabErrorBoundary tabName="전체요약">{c}</TabErrorBoundary>; } catch(e) { return <div className="p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg m-4"><p className="font-bold text-lg mb-2">전체요약 오류 (동기)</p><pre className="text-xs whitespace-pre-wrap">{e.message}{'\n'}{e.stack}</pre></div>; } })()}
+          {activeTab === 'income' && (() => { try { const c = renderIncomeTab(); return <TabErrorBoundary tabName="손익계산서">{c}</TabErrorBoundary>; } catch(e) { return <div className="p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg m-4"><p className="font-bold text-lg mb-2">손익계산서 오류 (동기)</p><pre className="text-xs whitespace-pre-wrap">{e.message}{'\n'}{e.stack}</pre></div>; } })()}
+          {activeTab === 'balance' && (() => { try { const c = renderBalanceSheetTab(); return <TabErrorBoundary tabName="재무상태표">{c}</TabErrorBoundary>; } catch(e) { return <div className="p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg m-4"><p className="font-bold text-lg mb-2">재무상태표 오류 (동기)</p><pre className="text-xs whitespace-pre-wrap">{e.message}{'\n'}{e.stack}</pre></div>; } })()}
+          {activeTab === 'entity' && (() => { try { const c = renderEntityStatementsTab(); return <TabErrorBoundary tabName="법인별">{c}</TabErrorBoundary>; } catch(e) { return <div className="p-8 bg-red-50 border border-red-200 text-red-700 rounded-lg m-4"><p className="font-bold text-lg mb-2">법인별 오류 (동기)</p><pre className="text-xs whitespace-pre-wrap">{e.message}{'\n'}{e.stack}</pre></div>; } })()}
         </div>
 
         {/* 푸터 */}
