@@ -465,6 +465,10 @@ const buildConsolidatedISLookup = (rows, year) => {
     기타손익: '기타손익',
     잡이익: '__잡이익',
     잡손실: '__잡손실',
+    투자부동산처분이익: '__투자부동산처분이익',
+    투자부동산처분손실: '__투자부동산처분손실',
+    유형자산처분이익: '__유형자산처분이익',
+    유형자산처분손실: '__유형자산처분손실',
     // (3)금융상품손익: 당기손익-공정가치측정 계정 + 단기매매증권 계정
     단기매매증권평가이익: '__단매평가이익',
     단기매매증권처분이익: '__단매처분이익',
@@ -8609,31 +8613,33 @@ export default function FnFQ1_2026Dashboard() {
             {/* ─── 기타손익 구성상세 입력 테이블 ─── */}
             {selectedNonOpAccount === '기타손익' && (() => {
               const MISC_ITEMS = [
-                { key: '잡이익',       label: '잡이익',          sign: 1  },
-                { key: '잡손실',       label: '잡손실',          sign: -1 },
-                { key: '수수료수익',   label: '수수료수익',       sign: 1  },
-                { key: '임대료수익',   label: '임대료수익',       sign: 1  },
-                { key: '유형자산처분이익', label: '유형자산처분이익', sign: 1  },
-                { key: '유형자산처분손실', label: '유형자산처분손실', sign: -1 },
-                { key: '대손충당금환입',   label: '대손충당금환입',   sign: 1  },
-                { key: '기타의대손상각비', label: '기타의대손상각비', sign: -1 },
-                { key: '소송충당부채',     label: '소송충당부채전입', sign: -1 },
-                { key: '기타',             label: '기타',             sign: 1  },
+                { key: '잡이익',            label: '잡이익',             sign: 1,  csvRaw: '__잡이익'  },
+                { key: '잡손실',            label: '잡손실',             sign: -1, csvRaw: '__잡손실'  },
+                { key: '투자부동산처분이익', label: '투자부동산처분이익', sign: 1,  csvRaw: '__투자부동산처분이익' },
+                { key: '투자부동산처분손실', label: '투자부동산처분손실', sign: -1, csvRaw: '__투자부동산처분손실' },
+                { key: '유형자산처분이익',  label: '유형자산처분이익',   sign: 1,  csvRaw: '__유형자산처분이익'  },
+                { key: '유형자산처분손실',  label: '유형자산처분손실',   sign: -1, csvRaw: '__유형자산처분손실' },
+                { key: '수수료수익',        label: '수수료수익',         sign: 1  },
+                { key: '임대료수익',        label: '임대료수익',         sign: 1  },
+                { key: '대손충당금환입',    label: '대손충당금환입',     sign: 1  },
+                { key: '기타의대손상각비',  label: '기타의대손상각비',   sign: -1 },
+                { key: '소송충당부채',      label: '소송충당부채전입',   sign: -1 },
+                { key: '기타',              label: '기타',               sign: 1  },
               ];
 
               const editKey = (item, period) => `miscDetail_${item}_${period}`;
 
-              // CSV 연결 합계 조회 헬퍼 (entityCsvLookup.income → 전 법인 합산)
-              const getCsvMiscVal = (itemKey, period) => {
-                // 잡이익·잡손실은 incomeStatementData의 __ 접두사 키로 우선 조회
+              // CSV 연결 합계 조회 헬퍼
+              const getCsvMiscVal = (it, period) => {
                 const isData = incomeStatementData?.[period];
-                if (itemKey === '잡이익' && isData?.__잡이익 !== undefined)
-                  return Math.round(Number(isData.__잡이익) / 10) / 10; // 백만원 → 억원 1dp
-                if (itemKey === '잡손실' && isData?.__잡손실 !== undefined)
-                  return Math.round(Number(isData.__잡손실) / 10) / 10;
-                // 그 외: entityCsvLookup.income에서 전 법인 합산
-                const csvKey = normalizeAccount(itemKey);
-                const entityMap = entityCsvLookup?.income?.[period]?.[csvKey];
+                // csvRaw 접두사 키가 있으면 incomeStatementData에서 직접 조회 (백만원 → 억원)
+                if (it.csvRaw && isData?.[it.csvRaw] !== undefined) {
+                  const raw = Number(isData[it.csvRaw]);
+                  return raw !== 0 ? Math.round(raw / 10) / 10 : null;
+                }
+                // 그 외: entityCsvLookup.is에서 전 법인 합산 (백만원 → 억원)
+                const csvKey = normalizeAccount(it.key);
+                const entityMap = entityCsvLookup?.is?.[period]?.[csvKey];
                 if (entityMap) {
                   const total = Object.values(entityMap).reduce((s, v) => s + Number(v || 0), 0);
                   if (total !== 0) return Math.round(total / 10) / 10;
@@ -8643,19 +8649,19 @@ export default function FnFQ1_2026Dashboard() {
 
               const getVal = (item, period) => {
                 // 1) 수동 입력 우선
-                const v = incomeEditData?.[editKey(item, period)];
+                const v = incomeEditData?.[editKey(item.key, period)];
                 if (v !== undefined && v !== '' && !isNaN(Number(v))) return Number(v);
                 // 2) CSV 자동값
                 return getCsvMiscVal(item, period);
               };
-              const getDisp = (item, period) => {
-                const v = getVal(item, period);
+              const getDisp = (it, period) => {
+                const v = getVal(it, period);
                 return v !== null ? v : 0;
               };
 
               // 입력된 항목 합계
               const calcTotal = (period) =>
-                MISC_ITEMS.reduce((s, it) => s + (getVal(it.key, period) !== null ? getVal(it.key, period) : 0), 0);
+                MISC_ITEMS.reduce((s, it) => s + (getVal(it, period) !== null ? getVal(it, period) : 0), 0);
 
               const actualTotal = (period) => (incomeStatementData[period]?.기타손익 || 0) / 100; // 백만원 → 억원
 
@@ -8663,7 +8669,7 @@ export default function FnFQ1_2026Dashboard() {
                 const d = {};
                 MISC_ITEMS.forEach(it => {
                   [currPeriod, prevPeriod].forEach(p => {
-                    const v = getVal(it.key, p);
+                    const v = getVal(it, p);
                     if (v !== null) d[editKey(it.key, p)] = String(v);
                   });
                 });
@@ -8696,7 +8702,7 @@ export default function FnFQ1_2026Dashboard() {
                 setMiscEditMode(false);
               };
 
-              const hasAnyData = MISC_ITEMS.some(it => [currPeriod, prevPeriod].some(p => getVal(it.key, p) !== null));
+              const hasAnyData = MISC_ITEMS.some(it => [currPeriod, prevPeriod].some(p => getVal(it, p) !== null));
 
               return (
                 <div className="mt-4">
@@ -8712,8 +8718,8 @@ export default function FnFQ1_2026Dashboard() {
                           <button onClick={() => {
                             const header = `구분\t${prevPeriodLabel}\t${currPeriodLabel}\t차이`;
                             const rows = MISC_ITEMS.map(it => {
-                              const p = getDisp(it.key, prevPeriod);
-                              const c = getDisp(it.key, currPeriod);
+                              const p = getDisp(it, prevPeriod);
+                              const c = getDisp(it, currPeriod);
                               return `${it.label}\t${p !== 0 ? p.toFixed(1) : '-'}\t${c !== 0 ? c.toFixed(1) : '-'}\t${(c - p) !== 0 ? (c - p > 0 ? '+' : '') + (c - p).toFixed(1) : '-'}`;
                             });
                             const totalRow = `합계\t${calcTotal(prevPeriod).toFixed(1)}\t${calcTotal(currPeriod).toFixed(1)}\t${(calcTotal(currPeriod) - calcTotal(prevPeriod)).toFixed(1)}`;
@@ -8759,8 +8765,8 @@ export default function FnFQ1_2026Dashboard() {
                         </thead>
                         <tbody>
                           {MISC_ITEMS.map((it) => {
-                            const prevV = getDisp(it.key, prevPeriod);
-                            const currV = getDisp(it.key, currPeriod);
+                            const prevV = getDisp(it, prevPeriod);
+                            const currV = getDisp(it, currPeriod);
                             const diff = currV - prevV;
                             const isIncome = it.sign > 0;
                             return (
