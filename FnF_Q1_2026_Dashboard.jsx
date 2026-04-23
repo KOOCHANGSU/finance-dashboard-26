@@ -930,6 +930,8 @@ export default function FnFQ1_2026Dashboard() {
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
+  // EPS(주당순이익) 데이터 — EPS.csv 로드
+  const [epsData, setEpsData] = useState({ curr: 0, prev: 0, currAdj: 0, prevAdj: 0 });
   const [impairmentData, setImpairmentData] = useState(() => loadFromStorage(STORAGE_KEYS.IMPAIRMENT) || {
     엔터테인먼트: { plan2025Sales: 0, plan2025OpInc: 0, positives: '', monitoring: '' },
     ST미국: { plan2025Sales: 0, plan2025OpInc: 0, positives: '', monitoring: '' },
@@ -1134,6 +1136,32 @@ export default function FnFQ1_2026Dashboard() {
     }
     loadPlTrend();
     return () => { cancelled = true; };
+  }, []);
+
+  // EPS.csv 로드
+  useEffect(() => {
+    async function loadEPS() {
+      try {
+        const text = await fetchCsvTextWithFallback('/EPS.csv');
+        const rows = parseCsvText(text);
+        // CSV 구조: 구분 / 26.1Q / 25.1Q
+        // 3번째 행(index 2+1=3): 보통주기본주당이익
+        // 두 블록 (전체 / 조정)
+        const parseVal = (v) => Number(String(v ?? '0').replace(/[,\s]/g, '')) || 0;
+        let curr = 0, prev = 0, currAdj = 0, prevAdj = 0;
+        let block = 0;
+        for (let i = 0; i < rows.length; i++) {
+          const label = String(rows[i][0] ?? '').trim();
+          if (label === '구분') { block++; continue; }
+          if (label === '보통주기본주당이익') {
+            if (block === 1) { curr = parseVal(rows[i][1]); prev = parseVal(rows[i][2]); }
+            else if (block === 2) { currAdj = parseVal(rows[i][1]); prevAdj = parseVal(rows[i][2]); }
+          }
+        }
+        setEpsData({ curr, prev, currAdj, prevAdj });
+      } catch { /* EPS 로드 실패 시 0 유지 */ }
+    }
+    loadEPS();
   }, []);
 
   useEffect(() => {
@@ -4621,16 +4649,27 @@ export default function FnFQ1_2026Dashboard() {
         ratePrev: operatingMarginPrev,
         compareLabel: incomeCompareLabel
       },
-      { 
-        title: '당기순이익', 
-        value: Math.round(netIncomeCurr / 100), 
-        prevValue: Math.round(netIncomePrev / 100), 
+      {
+        title: '당기순이익',
+        value: Math.round(netIncomeCurr / 100),
+        prevValue: Math.round(netIncomePrev / 100),
         iconColor: 'bg-violet-500',
         hasRate: true,
         rateLabel: '당기순이익률',
         rateCurr: netMarginCurr,
         ratePrev: netMarginPrev,
         compareLabel: incomeCompareLabel
+      },
+      {
+        title: 'EPS (주당순이익)',
+        value: epsData.curr,
+        prevValue: epsData.prev,
+        iconColor: 'bg-indigo-500',
+        hasRate: false,
+        compareLabel: incomeCompareLabel,
+        isEPS: true,
+        epsAdj: epsData.currAdj,
+        epsPrevAdj: epsData.prevAdj,
       },
     ];
 
@@ -4694,8 +4733,60 @@ export default function FnFQ1_2026Dashboard() {
         'bg-amber-500': 'border-l-amber-500',
         'bg-rose-500': 'border-l-rose-500',
         'bg-cyan-500': 'border-l-cyan-500',
+        'bg-indigo-500': 'border-l-indigo-500',
       };
       const leftBorderColor = iconColorBorderMap[card.iconColor] || 'border-l-zinc-300';
+
+      // EPS 타입 카드 (원 단위, 조정 EPS 서브텍스트)
+      if (card.isEPS) {
+        const epsChange = card.prevValue !== 0
+          ? ((card.value - card.prevValue) / Math.abs(card.prevValue) * 100).toFixed(1)
+          : 0;
+        const epsIsPositive = parseFloat(epsChange) >= 0;
+        const epsDiff = card.value - card.prevValue;
+        const formatEPS = (v) => v > 0 ? Number(v).toLocaleString('ko-KR') : '-';
+        return (
+          <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">{card.title}</span>
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
+                epsIsPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+              }`}>
+                {epsChange != 0 ? `YoY ${epsIsPositive ? '+' : ''}${epsChange}%` : '-'}
+              </span>
+            </div>
+            {/* 당기 EPS */}
+            <div className="flex items-baseline gap-1 mb-2">
+              <span className="text-2xl font-bold text-zinc-900 tracking-tight">{formatEPS(card.value)}</span>
+              <span className="text-sm font-normal text-zinc-400">원</span>
+            </div>
+            {/* 비교 기간 */}
+            <div className="mb-1">
+              <span className="text-[10px] text-zinc-400">{card.compareLabel || '전년'} {formatEPS(card.prevValue)}원</span>
+              {epsDiff !== 0 && (
+                <span className={`ml-1 font-bold text-[10px] ${epsDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {epsDiff >= 0 ? '+' : ''}{Number(epsDiff).toLocaleString('ko-KR')}원
+                </span>
+              )}
+            </div>
+            {/* 조정 EPS (투자부동산 제외) */}
+            {card.epsAdj > 0 && (
+              <div className="pt-2 border-t border-zinc-100 mt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-400">조정EPS (투자부동산 제외)</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-zinc-700 font-semibold">{formatEPS(card.epsAdj)}원</span>
+                    {card.epsPrevAdj > 0 && (
+                      <span className="text-zinc-400 text-[10px]">/ {formatEPS(card.epsPrevAdj)}원</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
       // 퍼센트 타입 카드 (ROE 등)
       if (card.isPercent) {
         const diff = card.value - card.prevValue;
@@ -5120,7 +5211,7 @@ export default function FnFQ1_2026Dashboard() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-5 gap-4">
             {incomeCards.map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
