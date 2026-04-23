@@ -799,12 +799,16 @@ export default function FnFQ1_2026Dashboard() {
   const tabNavRef = React.useRef(null);
   const entityTabRef = React.useRef(null);
   // ResizeObserver로 각 요소 높이 변화 감지 → sticky top 값 갱신
+  // ※ 함수형 setState로 이전값과 동일할 때 prev 반환 → 무한 리렌더 방지
   React.useLayoutEffect(() => {
     const recalc = () => {
       const hH = mainHeaderRef.current?.getBoundingClientRect().height ?? 0;
       const tH = tabNavRef.current?.getBoundingClientRect().height ?? 0;
       const eH = entityTabRef.current?.getBoundingClientRect().height ?? 0;
-      setStickyTop({ tabNav: hH, entityTab: hH + tH, thead: hH + tH + eH });
+      setStickyTop(prev => {
+        if (prev.tabNav === hH && prev.entityTab === hH + tH && prev.thead === hH + tH + eH) return prev;
+        return { tabNav: hH, entityTab: hH + tH, thead: hH + tH + eH };
+      });
     };
     recalc();
     const ro = new ResizeObserver(recalc);
