@@ -807,11 +807,13 @@ export default function FnFQ1_2026Dashboard() {
     const recalc = () => {
       const hH = mainHeaderRef.current?.getBoundingClientRect().height ?? 0;
       const tH = tabNavRef.current?.getBoundingClientRect().height ?? 0;
-      const subH = Math.max(
-        entityTabRef.current?.getBoundingClientRect().height ?? 0,
-        isSubTabRef.current?.getBoundingClientRect().height ?? 0,
-        bsSubTabRef.current?.getBoundingClientRect().height ?? 0,
-      );
+      const eH = entityTabRef.current?.getBoundingClientRect().height ?? 0;
+      const iH = isSubTabRef.current?.getBoundingClientRect().height ?? 0;
+      const bH = bsSubTabRef.current?.getBoundingClientRect().height ?? 0;
+      // sub-tab bar가 마운트됐지만 getBoundingClientRect()=0인 경우 52px 보정
+      // (overflow-x-auto 내부에서 측정이 0으로 나오는 엣지케이스 방어)
+      const hasSubTab = isSubTabRef.current !== null || bsSubTabRef.current !== null || entityTabRef.current !== null;
+      const subH = Math.max(eH, iH, bH, hasSubTab ? 52 : 0);
       setStickyTop(prev => {
         const next = { tabNav: hH, entityTab: hH + tH, thead: hH + tH + subH };
         if (prev.tabNav === next.tabNav && prev.entityTab === next.entityTab && prev.thead === next.thead) return prev;
