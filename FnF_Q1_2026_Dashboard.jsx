@@ -840,13 +840,13 @@ export default function FnFQ1_2026Dashboard() {
   // ResizeObserver로 각 요소 높이 변화 감지 → sticky top 값 갱신
   // ※ 함수형 setState로 이전값과 동일할 때 prev 반환 → 무한 리렌더 방지
   // ※ entityTabRef / isSubTabRef / bsSubTabRef 중 실제 마운트된 것만 높이 기여
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     const recalc = () => {
-      const hH = mainHeaderRef.current?.getBoundingClientRect().height ?? 0;
-      const tH = tabNavRef.current?.getBoundingClientRect().height ?? 0;
+      const hH = Math.round(mainHeaderRef.current?.getBoundingClientRect().height ?? 0);
+      const tH = Math.round(tabNavRef.current?.getBoundingClientRect().height ?? 0);
       // entityTab = 메인헤더 + 탭네비 아래 → IS/BS 서브탭 바 sticky 기준
       // thead = entityTab + 서브탭 바 높이(48px 고정값) → 열 제목이 서브탭 바 아래 고정
-      const eH = entityTabRef.current?.getBoundingClientRect().height ?? 0;
+      const eH = Math.round(entityTabRef.current?.getBoundingClientRect().height ?? 0);
       const iH = isSubTabRef.current ? 48 : 0;  // 마운트 여부만 체크, 고정값 사용
       const bH = bsSubTabRef.current ? 48 : 0;  // 마운트 여부만 체크, 고정값 사용
       const subH = Math.max(eH, iH, bH);
@@ -856,13 +856,14 @@ export default function FnFQ1_2026Dashboard() {
         return next;
       });
     };
-    recalc();
+    // requestAnimationFrame으로 비동기 측정 → 동기 루프 방지
+    const raf = requestAnimationFrame(recalc);
     const ro = new ResizeObserver(recalc);
     [mainHeaderRef, tabNavRef, entityTabRef].forEach(r => {
       if (r.current) ro.observe(r.current);
     });
-    return () => ro.disconnect();
-  });  // 의존성 없음 → 매 렌더마다 재측정 (ref mount 타이밍 커버)
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [activeTab]);  // activeTab 변경시에만 재측정 → 무한루프 방지
   const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
   const [entityStmtOpExpanded, setEntityStmtOpExpanded] = useState(true);
   const [entityStmtNonOpExpanded, setEntityStmtNonOpExpanded] = useState(true);
