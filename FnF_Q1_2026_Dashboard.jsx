@@ -5464,92 +5464,96 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                 </div>
 
-                {/* ══ Row 2: ② 추세분석 차트 (좌) + 시사점·리스크·개선방향 (우) ══ */}
+                {/* ══ Row 2: ② 추세분석 ══ */}
                 {nwcTrendData.length > 0 && (
-                <div className="grid grid-cols-5 gap-5 items-start">
+                <div className="space-y-3">
 
-                  {/* 좌: ② 추세 분석 차트 */}
-                  <div className="col-span-2">
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2">
-                      ② 추세 분석
-                      <span className="font-normal text-zinc-400 text-[10px] ml-1">(24.1Q~26.1Q)</span>
-                    </p>
-                    <p className="text-[10px] text-zinc-400 mb-1">DSO · DIO · DPO (일수)</p>
-                    <div className="h-52 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                          <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" />
-                          <YAxis tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}일`} domain={[0, 'auto']} />
-                          <Tooltip content={({ active, payload, label }) => {
-                            if (!active || !payload?.length) return null;
-                            return (
-                              <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-2 text-[10px]">
-                                <div className="font-semibold mb-1 text-zinc-700">{label}</div>
-                                {payload.map((p, i) => (
-                                  <div key={i} className="flex justify-between gap-3" style={{ color: p.color }}>
-                                    <span>{p.name}</span>
-                                    <span className="font-bold">{p.value != null ? `${p.value}일` : '—'}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          }} />
-                          <Legend wrapperStyle={{ fontSize: 10 }} />
-                          <Line type="monotone" dataKey="DSO" name="DSO" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
-                          <Line type="monotone" dataKey="DIO" name="DIO" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-                          <Line type="monotone" dataKey="DPO" name="DPO" stroke="#10b981" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  {/* 우: 추세분석 시사점 + 리스크 & 이상징후 + 개선 방향 */}
-                  <div className="col-span-3 space-y-3">
-
-                    {/* 추세 분석 시사점 */}
-                    {nwcTrendInsights.length > 0 && (
-                      <div className="rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
-                        <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
-                        <ul className="space-y-1">
-                          {nwcTrendInsights.map((t, i) => (
-                            <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
-                              <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
-                              <span>{t}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {/* 리스크 & 이상징후 */}
-                    <div>
-                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전년동기 YoY 대비)</span></p>
-                      <ul className="space-y-1.5">
-                        {nwcRisks.map((r, i) => (
-                          <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
-                            r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                            r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                            r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
-                            'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                          }`}>{r.text}</li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* 개선 방향 */}
-                    <div>
-                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">개선 방향</p>
-                      <ul className="space-y-1.5">
-                        {nwcSolutions.map((s, i) => (
-                          <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
-                            <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
-                            <span>{s}</span>
+                  {/* 추세 분석 시사점 — 전체 너비 (상단) */}
+                  {nwcTrendInsights.length > 0 && (
+                    <div className="rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
+                      <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
+                      <ul className="space-y-1">
+                        {nwcTrendInsights.map((t, i) => (
+                          <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
+                            <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
+                            <span>{t}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
+                  )}
 
+                  {/* 차트(좌) + 리스크·개선방향(우) — 동일 너비 2열 */}
+                  <div className="grid grid-cols-2 gap-5 items-start">
+
+                    {/* 좌: ② 추세 분석 차트 */}
+                    <div>
+                      <p className="text-[12px] font-semibold text-zinc-700 mb-2">
+                        ② 추세 분석
+                        <span className="font-normal text-zinc-400 text-[10px] ml-1">(24.1Q~26.1Q)</span>
+                      </p>
+                      <p className="text-[10px] text-zinc-400 mb-1">DSO · DIO · DPO (일수)</p>
+                      <div className="h-52 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                            <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" />
+                            <YAxis tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}일`} domain={[0, 'auto']} />
+                            <Tooltip content={({ active, payload, label }) => {
+                              if (!active || !payload?.length) return null;
+                              return (
+                                <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-2 text-[10px]">
+                                  <div className="font-semibold mb-1 text-zinc-700">{label}</div>
+                                  {payload.map((p, i) => (
+                                    <div key={i} className="flex justify-between gap-3" style={{ color: p.color }}>
+                                      <span>{p.name}</span>
+                                      <span className="font-bold">{p.value != null ? `${p.value}일` : '—'}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            }} />
+                            <Legend wrapperStyle={{ fontSize: 10 }} />
+                            <Line type="monotone" dataKey="DSO" name="DSO" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                            <Line type="monotone" dataKey="DIO" name="DIO" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                            <Line type="monotone" dataKey="DPO" name="DPO" stroke="#10b981" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* 우: 리스크 & 이상징후 + 개선 방향 */}
+                    <div className="space-y-3">
+
+                      {/* 리스크 & 이상징후 */}
+                      <div>
+                        <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전년동기 YoY 대비)</span></p>
+                        <ul className="space-y-1.5">
+                          {nwcRisks.map((r, i) => (
+                            <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
+                              r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
+                              r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                              r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
+                              'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                            }`}>{r.text}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* 개선 방향 */}
+                      <div>
+                        <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">개선 방향</p>
+                        <ul className="space-y-1.5">
+                          {nwcSolutions.map((s, i) => (
+                            <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
+                              <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
+                              <span>{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
                 )}
