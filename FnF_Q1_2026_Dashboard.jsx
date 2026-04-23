@@ -10843,7 +10843,8 @@ export default function FnFQ1_2026Dashboard() {
     const valIS = (key, period) => Number(getISRaw(key, period) ?? 0);
     const valBS = (key, period) => Number(getBSRaw(key, period) ?? 0);
 
-    const entityReasonKey = (stmt, rowKey) => `${selectedPeriod}::${selectedEntityTab}::${stmt}::${rowKey}`;
+    // selectedEntityKey 사용 → forceEntity 모드에서도 법인별 분리 저장
+    const entityReasonKey = (stmt, rowKey) => `${selectedPeriod}::${selectedEntityKey}::${stmt}::${rowKey}`;
 
     const setEntityReason = (stmt, rowKey, text) => {
       const k = entityReasonKey(stmt, rowKey);
@@ -10858,15 +10859,22 @@ export default function FnFQ1_2026Dashboard() {
 
     const getEntityReason = (stmt, rowKey) => entityStmtReasons[entityReasonKey(stmt, rowKey)] || '';
 
+    // 자산총계·부채총계·자본총계는 증감사유 입력 불필요 → 비활성화
+    const NO_REASON_KEYS = new Set(['자산총계', '부채총계', '자본총계']);
+
     const renderReasonCell = (stmt, rowKey) => (
       <td className="align-top px-2 py-1.5 border-l border-zinc-200 min-w-[168px] max-w-[min(280px,36vw)]">
-        <textarea
-          value={getEntityReason(stmt, rowKey)}
-          onChange={(e) => setEntityReason(stmt, rowKey, e.target.value)}
-          rows={2}
-          placeholder="증감 사유 입력"
-          className="w-full text-xs text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1.5 resize-y min-h-[2.5rem] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 focus:bg-white"
-        />
+        {NO_REASON_KEYS.has(rowKey) ? (
+          <div className="w-full h-[2.5rem] bg-zinc-100 rounded-md border border-zinc-200" />
+        ) : (
+          <textarea
+            value={getEntityReason(stmt, rowKey)}
+            onChange={(e) => setEntityReason(stmt, rowKey, e.target.value)}
+            rows={2}
+            placeholder="증감 사유 입력"
+            className="w-full text-xs text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1.5 resize-y min-h-[2.5rem] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 focus:bg-white"
+          />
+        )}
       </td>
     );
 
