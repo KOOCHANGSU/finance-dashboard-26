@@ -4769,17 +4769,15 @@ export default function FnFQ1_2026Dashboard() {
                 </span>
               )}
             </div>
-            {/* 조정 EPS (투자부동산 제외) */}
+            {/* 조정 EPS (투자부동산처분이익 제외) */}
             {card.epsAdj > 0 && (
-              <div className="pt-2 border-t border-zinc-100 mt-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-400">조정EPS (투자부동산 제외)</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-zinc-700 font-semibold">{formatEPS(card.epsAdj)}원</span>
-                    {card.epsPrevAdj > 0 && (
-                      <span className="text-zinc-400 text-[10px]">/ {formatEPS(card.epsPrevAdj)}원</span>
-                    )}
-                  </div>
+              <div className="pt-2 border-t border-zinc-200 mt-1 bg-indigo-50 rounded-b-lg -mx-4 -mb-4 px-4 pb-3 pt-2">
+                <div className="text-[10px] font-medium text-indigo-500 mb-1">투자부동산처분이익 제외</div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-lg font-bold text-indigo-700">{formatEPS(card.epsAdj)}<span className="text-xs font-normal ml-0.5">원</span></span>
+                  {card.epsPrevAdj > 0 && (
+                    <span className="text-[10px] text-indigo-400">전년 동분기 {formatEPS(card.epsPrevAdj)}원</span>
+                  )}
                 </div>
               </div>
             )}
