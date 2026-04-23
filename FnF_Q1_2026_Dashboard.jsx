@@ -899,6 +899,8 @@ export default function FnFQ1_2026Dashboard() {
   const [fxRateData, setFxRateData] = useState([]);
   const [fxVisible, setFxVisible] = useState({ USD: true, CNY: true, HKD: false, EUR: false, TWD: false });
   const [entityBsCompareMode, setEntityBsCompareMode] = useState('prevYearEnd'); // 법인별 BS 비교모드: 'sameQuarter' | 'prevYearEnd'
+  const [entityIsViewMode, setEntityIsViewMode] = useState('quarter'); // 법인별 IS 보기모드: 'quarter' (분기) | 'annual' (누적)
+  const [entityAnalysisEditMode, setEntityAnalysisEditMode] = useState(false); // 법인별 증감분석 편집 모드
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
   const [hiddenEntityCards, setHiddenEntityCards] = useState(() => {
     // localStorage에서 숨겨진 법인 카드 목록 로드
@@ -1257,8 +1259,11 @@ export default function FnFQ1_2026Dashboard() {
             saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
           }
           if (data.entityStmtReasons) {
-            setEntityStmtReasons(data.entityStmtReasons);
-            saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
+            // localStorage 데이터를 우선 보존 (Redis 덮어쓰기 방지)
+            const localReasons = loadFromStorage(STORAGE_KEYS.ENTITY_STMT_REASONS);
+            const merged = { ...data.entityStmtReasons, ...localReasons };
+            setEntityStmtReasons(merged);
+            saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, merged);
           }
           if (data.hiddenEntityCards) {
             setHiddenEntityCards(data.hiddenEntityCards);
@@ -1268,7 +1273,7 @@ export default function FnFQ1_2026Dashboard() {
             setHiddenDetailSections(data.hiddenDetailSections);
             localStorage.setItem('fnf_q1_2026_hidden_detail_sections', JSON.stringify(data.hiddenDetailSections));
           }
-          
+
           setAiLastUpdated(data.lastUpdated);
           console.log('[Redis Sync] 데이터 로드 완료, lastUpdated:', data.lastUpdated);
         } else {
@@ -1559,8 +1564,10 @@ export default function FnFQ1_2026Dashboard() {
           saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
         }
         if (data.entityStmtReasons) {
-          setEntityStmtReasons(data.entityStmtReasons);
-          saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
+          const localReasons = loadFromStorage(STORAGE_KEYS.ENTITY_STMT_REASONS);
+          const merged = { ...data.entityStmtReasons, ...localReasons };
+          setEntityStmtReasons(merged);
+          saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, merged);
         }
         if (data.hiddenEntityCards) {
           setHiddenEntityCards(data.hiddenEntityCards);
@@ -1696,8 +1703,10 @@ export default function FnFQ1_2026Dashboard() {
           saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
         }
         if (data.entityStmtReasons) {
-          setEntityStmtReasons(data.entityStmtReasons);
-          saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
+          const localReasons = loadFromStorage(STORAGE_KEYS.ENTITY_STMT_REASONS);
+          const merged = { ...data.entityStmtReasons, ...localReasons };
+          setEntityStmtReasons(merged);
+          saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, merged);
         }
         if (data.hiddenEntityCards) {
           setHiddenEntityCards(data.hiddenEntityCards);
@@ -10574,8 +10583,13 @@ export default function FnFQ1_2026Dashboard() {
   // ============================================
   const renderEntityStatementsTab = ({ forceEntity = null, forceMode = 'all' } = {}) => {
     const q = Number((selectedPeriod?.split('_')?.[1] || 'Q1').replace('Q', '')) || 1;
-    const period25 = `2025_${q}Q`;
-    const period26 = `2026_${q}Q`;
+    // 분기(3개월) or 누적(연간) 기간 키
+    const period25 = entityIsViewMode === 'annual'
+      ? (q === 4 ? '2025_Year' : `2025_${q}Q_Year`)
+      : `2025_${q}Q`;
+    const period26 = entityIsViewMode === 'annual'
+      ? (q === 4 ? '2026_Year' : `2026_${q}Q_Year`)
+      : `2026_${q}Q`;
     // 법인별 BS 비교 기간: 동분기(전년 동분기) or 전기말(25.4Q)
     const bsPeriod25 = entityBsCompareMode === 'sameQuarter' ? period25 : '2025_4Q';
     const entityTabs = [
@@ -10919,21 +10933,29 @@ export default function FnFQ1_2026Dashboard() {
     // 자산총계·부채총계·자본총계는 증감사유 입력 불필요 → 비활성화
     const NO_REASON_KEYS = new Set(['자산총계', '부채총계', '자본총계']);
 
-    const renderReasonCell = (stmt, rowKey) => (
-      <td className="align-top px-2 py-1.5 border-l border-zinc-200 min-w-[168px] max-w-[min(280px,36vw)]">
-        {NO_REASON_KEYS.has(rowKey) ? (
-          <div className="w-full h-[2.5rem] bg-zinc-100 rounded-md border border-zinc-200" />
-        ) : (
-          <textarea
-            value={getEntityReason(stmt, rowKey)}
-            onChange={(e) => setEntityReason(stmt, rowKey, e.target.value)}
-            rows={2}
-            placeholder="증감분석 입력"
-            className="w-full text-xs text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1.5 resize-y min-h-[2.5rem] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 focus:bg-white"
-          />
-        )}
-      </td>
-    );
+    const renderReasonCell = (stmt, rowKey) => {
+      const text = getEntityReason(stmt, rowKey);
+      const isDisabled = NO_REASON_KEYS.has(rowKey);
+      return (
+        <td className="align-top px-2 py-1.5 border-l border-zinc-200 min-w-[168px] max-w-[min(300px,38vw)]">
+          {isDisabled ? (
+            <div className="w-full h-[2rem] bg-zinc-100 rounded border border-zinc-200" />
+          ) : entityAnalysisEditMode ? (
+            <textarea
+              value={text}
+              onChange={(e) => setEntityReason(stmt, rowKey, e.target.value)}
+              rows={2}
+              placeholder="증감분석 입력"
+              className="w-full text-xs text-zinc-700 bg-white border border-blue-300 rounded-md px-2 py-1.5 resize-y min-h-[2.5rem] focus:outline-none focus:ring-1 focus:ring-blue-400"
+            />
+          ) : (
+            <p className="text-xs text-zinc-600 px-1 py-1 min-h-[2rem] whitespace-pre-wrap">
+              {text || <span className="text-zinc-300">—</span>}
+            </p>
+          )}
+        </td>
+      );
+    };
 
     const calcRateDisplay = (numerator, denominator) => {
       if (!denominator || denominator === 0) return '-';
@@ -11003,17 +11025,40 @@ export default function FnFQ1_2026Dashboard() {
       );
     };
 
-    const entityIsThead = (
+    // IS thead는 isP25Label/isP26Label 사용 (분기/누적 모드 반영)
+    const makeEntityIsThead = (p25Label, p26Label) => (
       <thead>
         <tr className="bg-zinc-100 border-b-2 border-zinc-300">
           <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
-          <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
-          <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{p25Label}</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{p26Label}</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
           <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
         </tr>
       </thead>
+    );
+
+    // IS 섹션 기간 라벨 (분기/누적 모드별)
+    const isP25Label = entityIsViewMode === 'annual'
+      ? (q === 4 ? '2025년' : `2025.1~${q}Q`)
+      : `2025.${q}Q`;
+    const isP26Label = entityIsViewMode === 'annual'
+      ? (q === 4 ? '2026년' : `2026.1~${q}Q`)
+      : `2026.${q}Q`;
+
+    // IS 분기/누적 토글 버튼 (두 섹션 공용)
+    const entityIsToggle = (
+      <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
+        <button type="button"
+          onClick={() => setEntityIsViewMode('quarter')}
+          className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${entityIsViewMode === 'quarter' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+        >분기(3개월)</button>
+        <button type="button"
+          onClick={() => setEntityIsViewMode('annual')}
+          className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${entityIsViewMode === 'annual' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+        >누적(연간)</button>
+      </div>
     );
 
     // IS 섹션 JSX (영업 + 영업외)
@@ -11039,12 +11084,27 @@ export default function FnFQ1_2026Dashboard() {
           </div>
           {entityStmtOpExpanded && (
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+              <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 손익계산서 (영업)</h3>
+                <div className="flex items-center gap-2">
+                  {/* 증감분석 편집/완료 버튼 */}
+                  {entityAnalysisEditMode ? (
+                    <button type="button"
+                      onClick={() => { setEntityAnalysisEditMode(false); saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, entityStmtReasons); saveAllSettingsToServer(); }}
+                      className="px-3 py-1 text-xs font-medium rounded-md bg-[#1e3a5f] text-white border border-[#1e3a5f] hover:bg-[#162d4a] transition-colors"
+                    >편집완료</button>
+                  ) : (
+                    <button type="button"
+                      onClick={() => setEntityAnalysisEditMode(true)}
+                      className="px-3 py-1 text-xs font-medium rounded-md bg-white text-zinc-700 border border-zinc-300 hover:bg-zinc-50 transition-colors"
+                    >증감분석 편집</button>
+                  )}
+                  {entityIsToggle}
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  {entityIsThead}
+                  {makeEntityIsThead(isP25Label, isP26Label)}
                   <tbody>{entityOperatingItems.map((item, idx) => renderEntityIncomeRow(item, idx))}</tbody>
                 </table>
               </div>
@@ -11076,12 +11136,26 @@ export default function FnFQ1_2026Dashboard() {
           </div>
           {entityStmtNonOpExpanded && (
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
+              <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 손익계산서 (영업외)</h3>
+                <div className="flex items-center gap-2">
+                  {entityAnalysisEditMode ? (
+                    <button type="button"
+                      onClick={() => { setEntityAnalysisEditMode(false); saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, entityStmtReasons); saveAllSettingsToServer(); }}
+                      className="px-3 py-1 text-xs font-medium rounded-md bg-[#1e3a5f] text-white border border-[#1e3a5f] hover:bg-[#162d4a] transition-colors"
+                    >편집완료</button>
+                  ) : (
+                    <button type="button"
+                      onClick={() => setEntityAnalysisEditMode(true)}
+                      className="px-3 py-1 text-xs font-medium rounded-md bg-white text-zinc-700 border border-zinc-300 hover:bg-zinc-50 transition-colors"
+                    >증감분석 편집</button>
+                  )}
+                  {entityIsToggle}
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  {entityIsThead}
+                  {makeEntityIsThead(isP25Label, isP26Label)}
                   <tbody>{entityNonOperatingItems.map((item, idx) => renderEntityIncomeRow(item, idx))}</tbody>
                 </table>
               </div>
@@ -11095,28 +11169,32 @@ export default function FnFQ1_2026Dashboard() {
     const entityBSSection = (
       <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 재무상태표</h3>
-            {/* 동분기/전기말 토글 */}
-            <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
-              <button
-                type="button"
-                onClick={() => setEntityBsCompareMode('sameQuarter')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${
-                  entityBsCompareMode === 'sameQuarter'
-                    ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700'
-                }`}
-              >동분기</button>
-              <button
-                type="button"
-                onClick={() => setEntityBsCompareMode('prevYearEnd')}
-                className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${
-                  entityBsCompareMode === 'prevYearEnd'
-                    ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700'
-                }`}
-              >전기말</button>
+            <div className="flex items-center gap-2">
+              {/* 증감분석 편집/완료 버튼 */}
+              {entityAnalysisEditMode ? (
+                <button type="button"
+                  onClick={() => { setEntityAnalysisEditMode(false); saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, entityStmtReasons); saveAllSettingsToServer(); }}
+                  className="px-3 py-1 text-xs font-medium rounded-md bg-[#1e3a5f] text-white border border-[#1e3a5f] hover:bg-[#162d4a] transition-colors"
+                >편집완료</button>
+              ) : (
+                <button type="button"
+                  onClick={() => setEntityAnalysisEditMode(true)}
+                  className="px-3 py-1 text-xs font-medium rounded-md bg-white text-zinc-700 border border-zinc-300 hover:bg-zinc-50 transition-colors"
+                >증감분석 편집</button>
+              )}
+              {/* 동분기/전기말 토글 */}
+              <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
+                <button type="button"
+                  onClick={() => setEntityBsCompareMode('sameQuarter')}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${entityBsCompareMode === 'sameQuarter' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                >동분기</button>
+                <button type="button"
+                  onClick={() => setEntityBsCompareMode('prevYearEnd')}
+                  className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${entityBsCompareMode === 'prevYearEnd' ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                >전기말</button>
+              </div>
             </div>
           </div>
         </div>
