@@ -8121,7 +8121,17 @@ export default function FnFQ1_2026Dashboard() {
                     <span className="text-xs text-zinc-500">단위: 백만원</span>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-[11px]">
+                    <table className="w-full text-[11px]" style={{tableLayout:'fixed', minWidth:'640px'}}>
+                      <colgroup>
+                        <col style={{width:'72px'}} />
+                        <col style={{width:'110px'}} />
+                        <col style={{width:'90px'}} />
+                        <col style={{width:'80px'}} />
+                        <col style={{width:'70px'}} />
+                        <col style={{width:'90px'}} />
+                        <col style={{width:'80px'}} />
+                        <col style={{width:'70px'}} />
+                      </colgroup>
                       <thead>
                         <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
                           <th colSpan={2} className="text-left px-3 py-2 font-semibold border-r border-zinc-200">구분</th>
@@ -8215,13 +8225,15 @@ export default function FnFQ1_2026Dashboard() {
                           <td className="text-right px-2 py-1.5"></td>
                         </tr>
                         <tr className="border-b border-zinc-200 hover:bg-zinc-50">
-                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 229, 홍 40, 엔 20, ST 15)</td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">304</td>
-                          <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 131, 홍 42, 엔 20, ST 5)</td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">199</td>
-                          <td className="text-right px-2 py-1.5"></td>
+                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200 align-top">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
+                          <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
+                            중 229<br/>홍 40 / 엔 20<br/>ST 15
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">304</td>
+                          <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
+                            중 131<br/>홍 42 / 엔 20<br/>ST 5
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600">199</td>
                         </tr>
                         <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200">
                           <td colSpan={2} className="px-3 py-2 text-emerald-800 border-r border-zinc-200">연결 합계</td>
@@ -8254,7 +8266,17 @@ export default function FnFQ1_2026Dashboard() {
                     <span className="text-xs text-zinc-500">단위: 백만원</span>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-[11px]">
+                    <table className="w-full text-[11px]" style={{tableLayout:'fixed', minWidth:'640px'}}>
+                      <colgroup>
+                        <col style={{width:'72px'}} />
+                        <col style={{width:'110px'}} />
+                        <col style={{width:'90px'}} />
+                        <col style={{width:'80px'}} />
+                        <col style={{width:'70px'}} />
+                        <col style={{width:'90px'}} />
+                        <col style={{width:'80px'}} />
+                        <col style={{width:'70px'}} />
+                      </colgroup>
                       <thead>
                         <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
                           <th colSpan={2} className="text-left px-3 py-2 font-semibold border-r border-zinc-200">구분</th>
@@ -8333,12 +8355,14 @@ export default function FnFQ1_2026Dashboard() {
                           <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">(880)</td>
                         </tr>
                         <tr className="border-b border-zinc-200 hover:bg-zinc-50">
-                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 1,013, 홍 201, 엔 237, ST 213)</td>
-                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200 align-top">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
+                          <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
+                            중 1,013<br/>홍 201 / 엔 237<br/>ST 213
+                          </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">1,665</td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 1,380, 홍 165, 엔 299, ST 524)</td>
-                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
+                            중 1,380<br/>홍 165 / 엔 299<br/>ST 524
+                          </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600">2,368</td>
                         </tr>
                         {/* 연결 합계 */}
@@ -8598,9 +8622,31 @@ export default function FnFQ1_2026Dashboard() {
               ];
 
               const editKey = (item, period) => `miscDetail_${item}_${period}`;
+
+              // CSV 연결 합계 조회 헬퍼 (entityCsvLookup.income → 전 법인 합산)
+              const getCsvMiscVal = (itemKey, period) => {
+                // 잡이익·잡손실은 incomeStatementData의 __ 접두사 키로 우선 조회
+                const isData = incomeStatementData?.[period];
+                if (itemKey === '잡이익' && isData?.__잡이익 !== undefined)
+                  return Math.round(Number(isData.__잡이익) / 10) / 10; // 백만원 → 억원 1dp
+                if (itemKey === '잡손실' && isData?.__잡손실 !== undefined)
+                  return Math.round(Number(isData.__잡손실) / 10) / 10;
+                // 그 외: entityCsvLookup.income에서 전 법인 합산
+                const csvKey = normalizeAccount(itemKey);
+                const entityMap = entityCsvLookup?.income?.[period]?.[csvKey];
+                if (entityMap) {
+                  const total = Object.values(entityMap).reduce((s, v) => s + Number(v || 0), 0);
+                  if (total !== 0) return Math.round(total / 10) / 10;
+                }
+                return null;
+              };
+
               const getVal = (item, period) => {
+                // 1) 수동 입력 우선
                 const v = incomeEditData?.[editKey(item, period)];
-                return (v !== undefined && v !== '' && !isNaN(Number(v))) ? Number(v) : null;
+                if (v !== undefined && v !== '' && !isNaN(Number(v))) return Number(v);
+                // 2) CSV 자동값
+                return getCsvMiscVal(item, period);
               };
               const getDisp = (item, period) => {
                 const v = getVal(item, period);
