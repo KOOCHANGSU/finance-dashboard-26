@@ -306,6 +306,92 @@ const buildEntityQuarterLookup = (rows, year) => {
         }
       });
     }
+    // ── 영업외 파생 계정 (법인별) ──────────────────────────────────────────
+    // (1) 외환손익 = 외화환산이익 + 외환차익 − 외화환산손실 − 외환차손
+    {
+      const g1 = lookup[period]['외화환산이익'];
+      const g2 = lookup[period]['외환차익'];
+      const l1 = lookup[period]['외화환산손실'];
+      const l2 = lookup[period]['외환차손'];
+      if (g1 || g2 || l1 || l2) {
+        if (!lookup[period]['외환손익']) lookup[period]['외환손익'] = {};
+        [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
+          const v = (g1?.[entity] || 0) + (g2?.[entity] || 0) - (l1?.[entity] || 0) - (l2?.[entity] || 0);
+          if (v !== 0) lookup[period]['외환손익'][entity] = Math.round(v);
+        });
+      }
+    }
+    // (2) 이자손익 = 이자수익 − 이자비용
+    {
+      const inc = lookup[period]['이자수익'];
+      const exp = lookup[period]['이자비용'];
+      if (inc || exp) {
+        if (!lookup[period]['이자손익']) lookup[period]['이자손익'] = {};
+        [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
+          const v = (inc?.[entity] || 0) - (exp?.[entity] || 0);
+          if (v !== 0) lookup[period]['이자손익'][entity] = Math.round(v);
+        });
+      }
+    }
+    // (3) 기타손익 = 잡이익 − 잡손실
+    {
+      const gain = lookup[period]['잡이익'];
+      const loss = lookup[period]['잡손실'];
+      if (gain || loss) {
+        if (!lookup[period]['기타손익']) lookup[period]['기타손익'] = {};
+        [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
+          const v = (gain?.[entity] || 0) - (loss?.[entity] || 0);
+          if (v !== 0) lookup[period]['기타손익'][entity] = Math.round(v);
+        });
+      }
+    }
+    // (4) 금융상품손익 = (당기손익공정가치금융자산 평가/처분 이익 + 단기매매증권 평가/처분 이익)
+    //                  − (당기손익공정가치금융자산 평가/처분 손실)
+    {
+      const fg1 = lookup[period]['당기손익공정가치측정금융자산평가이익'] || lookup[period]['당기손익인식금융자산처분이익'];
+      const fg2 = lookup[period]['단기매매증권평가이익'];
+      const fg3 = lookup[period]['단기매매증권처분이익'];
+      const fl1 = lookup[period]['당기손익공정가치측정금융자산평가손실'] || lookup[period]['당기손익인식금융자산처분손실'];
+      if (fg1 || fg2 || fg3 || fl1) {
+        if (!lookup[period]['금융상품손익']) lookup[period]['금융상품손익'] = {};
+        [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
+          const v = (fg1?.[entity] || 0) + (fg2?.[entity] || 0) + (fg3?.[entity] || 0) - (fl1?.[entity] || 0);
+          if (v !== 0) lookup[period]['금융상품손익'][entity] = Math.round(v);
+        });
+      }
+    }
+    // (5) 지분법손익 = 지분법이익 − 지분법손실
+    {
+      const gain = lookup[period]['지분법이익'];
+      const loss = lookup[period]['지분법손실'];
+      if (gain || loss) {
+        if (!lookup[period]['지분법손익']) lookup[period]['지분법손익'] = {};
+        [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
+          const v = (gain?.[entity] || 0) - (loss?.[entity] || 0);
+          if (v !== 0) lookup[period]['지분법손익'][entity] = Math.round(v);
+        });
+      }
+    }
+    // (6) 영업외손익 (net) = 외환손익 + 선물환손익 + 금융상품손익 + 이자손익 + 배당수익 + 기부금 + 기타손익
+    {
+      const components = ['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '배당금수익', '기부금', '기타손익'];
+      const hasAny = components.some(k => lookup[period][k]);
+      if (hasAny) {
+        if (!lookup[period]['영업외손익']) lookup[period]['영업외손익'] = {};
+        [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
+          // 배당수익/배당금수익 중복 방지
+          const divid = (lookup[period]['배당수익']?.[entity] || 0) || (lookup[period]['배당금수익']?.[entity] || 0);
+          const v = (lookup[period]['외환손익']?.[entity] || 0)
+                  + (lookup[period]['선물환손익']?.[entity] || 0)
+                  + (lookup[period]['금융상품손익']?.[entity] || 0)
+                  + (lookup[period]['이자손익']?.[entity] || 0)
+                  + divid
+                  + (lookup[period]['기부금']?.[entity] || 0)
+                  + (lookup[period]['기타손익']?.[entity] || 0);
+          if (v !== 0) lookup[period]['영업외손익'][entity] = Math.round(v);
+        });
+      }
+    }
   });
   return lookup;
 };
@@ -6717,6 +6803,12 @@ export default function FnFQ1_2026Dashboard() {
       판매비와관리비: ['판매비와관리비', '판관비'],
       수수료: ['수수료', '지급수수료'],
       법인세비용차감전순이익: ['법인세비용차감전순이익', '세전이익'],
+      // 영업외 계정 alias
+      외환손익: ['외환손익', '외화환산이익', '외환차익'],
+      이자손익: ['이자손익', '이자수익'],
+      배당수익: ['배당수익', '배당금수익'],
+      기타손익: ['기타손익', '잡이익'],
+      영업외손익: ['영업외손익', '영업외수익'],
     };
 
     // 법인별 수동 입력 오버라이드 조회 (편집모드에서 사용자가 직접 입력한 금액)
