@@ -11125,10 +11125,7 @@ export default function FnFQ1_2026Dashboard() {
               <thead>
                 <tr className="bg-zinc-100 border-b-2 border-zinc-300">
                   <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">
-                    <div className="text-[10px] font-normal text-zinc-400">{entityBsCompareMode === 'sameQuarter' ? '동분기' : '전기말'}</div>
-                    {getBsPeriodLabel(bsPeriod25)}
-                  </th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(bsPeriod25)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
