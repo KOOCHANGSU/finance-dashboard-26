@@ -8624,6 +8624,167 @@ export default function FnFQ1_2026Dashboard() {
               </div>
             )}
 
+            {/* 이자비용 상세 — 26.1Q vs 25.1Q 비교 */}
+            {selectedNonOpAccount === '이자손익' && (
+              <div className="mt-3">
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="bg-zinc-50 px-3 py-2 border-b border-zinc-200 flex justify-between items-center">
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-800">이자비용 상세</span>
+                      <span className="text-xs text-zinc-500 ml-2">26.1Q vs 25.1Q 비교</span>
+                    </div>
+                    <span className="text-xs text-zinc-500">단위: 백만원</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
+                          <th colSpan={2} className="text-left px-3 py-2 font-semibold border-r border-zinc-200">구분</th>
+                          <th colSpan={3} className="text-center px-3 py-2 font-semibold border-r border-zinc-200 text-blue-700 bg-blue-50">25.1Q</th>
+                          <th colSpan={3} className="text-center px-3 py-2 font-semibold text-emerald-700 bg-emerald-50">26.1Q</th>
+                        </tr>
+                        <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
+                          <th className="text-left px-3 py-1.5 font-medium border-r border-zinc-100" colSpan={2}>항목</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">차입금액</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">이자기간</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-200">이자비용</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">차입금액</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">이자기간</th>
+                          <th className="text-right px-2 py-1.5 font-medium">이자비용</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* 단기차입금 */}
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td rowSpan={3} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-100 align-top">단기차입금</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">한도대<br/><span className="text-[10px] text-zinc-400">산업은행</span></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">250억</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 text-[10px] border-r border-zinc-100">24.12.31~<br/>25.01.24</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">60</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400">—</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">일반대<br/><span className="text-[10px] text-zinc-400">국민은행</span></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">200억</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 text-[10px] border-r border-zinc-100">24.12.29~<br/>25.03.28</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">200</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400">—</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-zinc-50 font-medium">
+                          <td className="px-2 py-1.5 text-zinc-700 border-r border-zinc-200">계</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-800 border-r border-zinc-200">260</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400">—</td>
+                        </tr>
+                        {/* 리스부채/복구충당부채 */}
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">리스부채/복구충당부채</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,812</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700">1,569</td>
+                        </tr>
+                        {/* OC 별도 계 */}
+                        <tr className="border-b border-zinc-200 bg-blue-50 font-semibold">
+                          <td colSpan={2} className="px-3 py-1.5 text-blue-800 border-r border-zinc-200">OC 별도 계</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">0</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-800 border-r border-zinc-200">2,073</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">0</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-800">1,569</td>
+                        </tr>
+                        {/* 기타(연결조정) */}
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td rowSpan={2} className="px-3 py-1.5 text-zinc-600 border-r border-zinc-100 align-top text-[10px] leading-tight">기타<br/>(연결<br/>조정)</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">관계사</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600 border-r border-zinc-200">(392)</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">(880)</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 hover:bg-zinc-50">
+                          <td className="px-2 py-1.5 text-zinc-500 text-[10px] border-r border-zinc-200">연결 법인<br/><span className="text-zinc-400">중·홍·엔·ST</span></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 1,013, 홍 201, 엔 237, ST 213)</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">1,665</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100">(중 1,380, 홍 165, 엔 299, ST 524)</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600">2,368</td>
+                        </tr>
+                        {/* 연결 합계 */}
+                        <tr className="bg-rose-50 font-bold border-t-2 border-rose-200">
+                          <td colSpan={2} className="px-3 py-2 text-rose-800 border-r border-zinc-200">연결 합계</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 tabular-nums text-rose-700 border-r border-zinc-200 text-sm">3,346</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 tabular-nums text-rose-700 text-sm">3,057</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-200 text-[10px] text-zinc-500">
+                    ※ 이자비용 단위: 백만원 | 25.1Q 단기차입금 전액 만기상환 (26.1Q 차입금 없음) | 연결조정 관계사는 내부거래 제거
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 이자손익 집계 — 이자수익 − 이자비용 */}
+            {selectedNonOpAccount === '이자손익' && (
+              <div className="mt-3">
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="bg-zinc-800 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">이자손익 집계</span>
+                    <span className="text-xs text-zinc-400">이자수익 − 이자비용 = 이자손익 · 단위: 백만원</span>
+                  </div>
+                  <table className="w-full text-[12px]">
+                    <thead>
+                      <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
+                        <th className="text-left px-4 py-2 font-semibold w-1/4">항목</th>
+                        <th className="text-right px-4 py-2 font-semibold text-blue-700">25.1Q</th>
+                        <th className="text-right px-4 py-2 font-semibold text-emerald-700">26.1Q</th>
+                        <th className="text-right px-4 py-2 font-semibold text-zinc-500">YoY 증감</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                        <td className="px-4 py-2 text-zinc-700">① 이자수익</td>
+                        <td className="text-right px-4 py-2 tabular-nums text-blue-700">+1,014</td>
+                        <td className="text-right px-4 py-2 tabular-nums font-medium text-emerald-700">+2,057</td>
+                        <td className="text-right px-4 py-2 tabular-nums text-emerald-600">+1,043</td>
+                      </tr>
+                      <tr className="border-b border-zinc-200 hover:bg-zinc-50">
+                        <td className="px-4 py-2 text-zinc-700">② 이자비용</td>
+                        <td className="text-right px-4 py-2 tabular-nums text-rose-700">3,346</td>
+                        <td className="text-right px-4 py-2 tabular-nums font-medium text-rose-700">3,057</td>
+                        <td className="text-right px-4 py-2 tabular-nums text-emerald-600">△289</td>
+                      </tr>
+                      <tr className="bg-zinc-800 font-bold text-white">
+                        <td className="px-4 py-2.5">이자손익 (① − ②)</td>
+                        <td className="text-right px-4 py-2.5 tabular-nums text-rose-300">△2,332</td>
+                        <td className="text-right px-4 py-2.5 tabular-nums text-rose-300 text-sm">△1,000</td>
+                        <td className="text-right px-4 py-2.5 tabular-nums text-emerald-300">+1,332 개선</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* 외환손익 상세 — FY26 1Q FNF 외환손익 */}
             {selectedNonOpAccount === '외환손익' && (
               <div className="mt-4">
