@@ -798,17 +798,21 @@ export default function FnFQ1_2026Dashboard() {
   const mainHeaderRef = React.useRef(null);
   const tabNavRef = React.useRef(null);
   const entityTabRef = React.useRef(null);
-  React.useEffect(() => {
-    const update = () => {
-      const hH = mainHeaderRef.current?.offsetHeight ?? 0;
-      const tH = tabNavRef.current?.offsetHeight ?? 0;
-      const eH = entityTabRef.current?.offsetHeight ?? 0;
+  // ResizeObserver로 각 요소 높이 변화 감지 → sticky top 값 갱신
+  React.useLayoutEffect(() => {
+    const recalc = () => {
+      const hH = mainHeaderRef.current?.getBoundingClientRect().height ?? 0;
+      const tH = tabNavRef.current?.getBoundingClientRect().height ?? 0;
+      const eH = entityTabRef.current?.getBoundingClientRect().height ?? 0;
       setStickyTop({ tabNav: hH, entityTab: hH + tH, thead: hH + tH + eH });
     };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    if (mainHeaderRef.current) ro.observe(mainHeaderRef.current);
+    if (tabNavRef.current) ro.observe(tabNavRef.current);
+    if (entityTabRef.current) ro.observe(entityTabRef.current);
+    return () => ro.disconnect();
+  });  // 의존성 없음 → 매 렌더마다 재측정 (entityTabRef mount 타이밍 커버)
   const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
   const [entityStmtOpExpanded, setEntityStmtOpExpanded] = useState(true);
   const [entityStmtNonOpExpanded, setEntityStmtNonOpExpanded] = useState(true);
