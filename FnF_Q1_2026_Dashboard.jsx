@@ -5917,8 +5917,8 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                 </div>
 
-                {/* ② 손상평가 모니터링 */}
-                <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                {/* ② 손상평가 모니터링 — 임시 숨김 (false && 로 복원) */}
+                {false && <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
                   <div className="px-4 py-3 border-b border-zinc-100 bg-rose-50/60">
                     <h4 className="text-[11px] font-bold uppercase tracking-wider text-rose-800">자회사 현황 — ② 손상평가 모니터링 (엔터테인먼트 · ST미국)</h4>
                   </div>
@@ -6089,7 +6089,7 @@ export default function FnFQ1_2026Dashboard() {
                       );
                     })}
                   </div>
-                </div>
+                </div>}
               </div>
             );
           })()}
