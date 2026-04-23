@@ -8764,6 +8764,23 @@ export default function FnFQ1_2026Dashboard() {
                         <span className="text-xs text-zinc-500 ml-2">{currPeriodLabel} vs {prevPeriodLabel} · 억원 단위 입력</span>
                       </div>
                       <div className="flex gap-1">
+                        {/* 📋 클립보드 복사 — 편집 모드 여부 무관하게 항상 표시 */}
+                        {hasAnyData && (
+                          <button onClick={() => {
+                            const header = `구분\t${prevPeriodLabel}\t${currPeriodLabel}\t차이`;
+                            const rows = MISC_ITEMS.map(it => {
+                              const p = getDisp(it.key, prevPeriod);
+                              const c = getDisp(it.key, currPeriod);
+                              return `${it.label}\t${p !== 0 ? p.toFixed(1) : '-'}\t${c !== 0 ? c.toFixed(1) : '-'}\t${(c - p) !== 0 ? (c - p > 0 ? '+' : '') + (c - p).toFixed(1) : '-'}`;
+                            });
+                            const totalRow = `합계\t${calcTotal(prevPeriod).toFixed(1)}\t${calcTotal(currPeriod).toFixed(1)}\t${(calcTotal(currPeriod) - calcTotal(prevPeriod)).toFixed(1)}`;
+                            navigator.clipboard.writeText([header, ...rows, totalRow].join('\n'))
+                              .then(() => alert('📋 클립보드에 복사되었습니다. 엑셀에 붙여넣기 하세요.'));
+                          }}
+                            className="text-[11px] px-2 py-0.5 rounded border border-slate-300 text-slate-600 hover:bg-slate-50">
+                            📋 복사
+                          </button>
+                        )}
                         {!miscEditMode ? (
                           <button onClick={startEdit}
                             className="text-[11px] px-2 py-0.5 rounded border border-violet-300 text-violet-600 hover:bg-violet-50">
