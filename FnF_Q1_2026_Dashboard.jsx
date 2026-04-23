@@ -847,8 +847,8 @@ export default function FnFQ1_2026Dashboard() {
       // entityTab = 메인헤더 + 탭네비 아래 → IS/BS 서브탭 바 sticky 기준
       // thead = entityTab + 서브탭 바 높이(48px 고정값) → 열 제목이 서브탭 바 아래 고정
       const eH = Math.round(entityTabRef.current?.getBoundingClientRect().height ?? 0);
-      const iH = isSubTabRef.current ? 48 : 0;  // 마운트 여부만 체크, 고정값 사용
-      const bH = bsSubTabRef.current ? 48 : 0;  // 마운트 여부만 체크, 고정값 사용
+      const iH = Math.round(isSubTabRef.current?.getBoundingClientRect().height ?? 0);  // 실제 높이 측정
+      const bH = Math.round(bsSubTabRef.current?.getBoundingClientRect().height ?? 0);  // 실제 높이 측정
       const subH = Math.max(eH, iH, bH);
       setStickyTop(prev => {
         const next = { tabNav: hH, entityTab: hH + tH, thead: hH + tH + subH };
@@ -859,7 +859,7 @@ export default function FnFQ1_2026Dashboard() {
     // requestAnimationFrame으로 비동기 측정 → 동기 루프 방지
     const raf = requestAnimationFrame(recalc);
     const ro = new ResizeObserver(recalc);
-    [mainHeaderRef, tabNavRef, entityTabRef].forEach(r => {
+    [mainHeaderRef, tabNavRef, entityTabRef, isSubTabRef, bsSubTabRef].forEach(r => {
       if (r.current) ro.observe(r.current);
     });
     return () => { cancelAnimationFrame(raf); ro.disconnect(); };
@@ -5010,189 +5010,6 @@ export default function FnFQ1_2026Dashboard() {
       costInsights.push('개선 제안: ① 수수료 최적화(직매장·D2C 채널 비중 확대) ② 광고비 ROI 분석 기반 집행 효율화 ③ 감가상각 증가 구간 신규 자본지출 타당성 검토');
     }
 
-    const bsP = bsSummaryCurrentPeriod;
-    const bsRow = balanceSheetData[bsP] || {};
-
-    // ===== 영업운전자본 (NWC = 매출채권 + 재고자산 - 매입채무) =====
-    const qSalesM = incomeStatementData[qKeyPerf]?.매출액 || 0;
-    const qCogsM = incomeStatementData[qKeyPerf]?.매출원가 || 0;
-    const arM = bsRow.매출채권 || 0;
-    const invM = bsRow.재고자산 || 0;
-    const apM = bsRow.매입채무 || 0;
-    const nwcM = arM + invM - apM;
-    const nwcPctRev = qSalesM > 0 ? +(nwcM / qSalesM * 100).toFixed(1) : null;
-    const dsoNWC = arM > 0 && qSalesM > 0 ? +(arM / qSalesM * 90).toFixed(1) : null;
-    const dioNWC = invM > 0 && qCogsM > 0 ? +(invM / qCogsM * 90).toFixed(1) : null;
-    const dpoNWC = apM > 0 && qCogsM > 0 ? +(apM / qCogsM * 90).toFixed(1) : null;
-    const cccNWC = dsoNWC != null && dioNWC != null && dpoNWC != null
-      ? +(dsoNWC + dioNWC - dpoNWC).toFixed(1) : null;
-
-    // 직전분기 (QoQ) 비교 — e.g. 26.1Q → 25.4Q
-    const prevQKey = getPeriodKey(selectedPeriod, 'prev');
-    const prevQLabel = prevQKey.replace('20','').replace('_','.');
-    const bsRowPrev = balanceSheetData[prevQKey] || {};
-    const qSalesPrevM = incomeStatementData[prevQKey]?.매출액 || 0;
-    const qCogsPrevM = incomeStatementData[prevQKey]?.매출원가 || 0;
-    const arMPrev = bsRowPrev.매출채권 || 0;
-    const invMPrev = bsRowPrev.재고자산 || 0;
-    const apMPrev = bsRowPrev.매입채무 || 0;
-    const nwcMPrev = arMPrev + invMPrev - apMPrev;
-    const dsoPrev = arMPrev > 0 && qSalesPrevM > 0 ? +(arMPrev / qSalesPrevM * 90).toFixed(1) : null;
-    const dioPrev = invMPrev > 0 && qCogsPrevM > 0 ? +(invMPrev / qCogsPrevM * 90).toFixed(1) : null;
-    const dpoPrev = apMPrev > 0 && qCogsPrevM > 0 ? +(apMPrev / qCogsPrevM * 90).toFixed(1) : null;
-    const cccPrev = dsoPrev != null && dioPrev != null && dpoPrev != null
-      ? +(dsoPrev + dioPrev - dpoPrev).toFixed(1) : null;
-
-    // 전년동분기 (YoY) 비교 — e.g. 26.1Q → 25.1Q
-    const yoyQKey = getPeriodKey(selectedPeriod, 'prev_quarter');
-    const yoyQLabel = yoyQKey.replace('20','').replace('_','.');
-    const bsRowYoY = balanceSheetData[yoyQKey] || {};
-    const qSalesYoYM = incomeStatementData[yoyQKey]?.매출액 || 0;
-    const qCogsYoYM  = incomeStatementData[yoyQKey]?.매출원가 || 0;
-    const arYoY  = bsRowYoY.매출채권 || 0;
-    const invYoY = bsRowYoY.재고자산 || 0;
-    const apYoY  = bsRowYoY.매입채무 || 0;
-    const nwcYoY = arYoY + invYoY - apYoY;
-    const dsoYoY = arYoY  > 0 && qSalesYoYM > 0 ? +(arYoY  / qSalesYoYM * 90).toFixed(1) : null;
-    const dioYoY = invYoY > 0 && qCogsYoYM  > 0 ? +(invYoY / qCogsYoYM  * 90).toFixed(1) : null;
-    const dpoYoY = apYoY  > 0 && qCogsYoYM  > 0 ? +(apYoY  / qCogsYoYM  * 90).toFixed(1) : null;
-    const cccYoY = dsoYoY != null && dioYoY != null && dpoYoY != null
-      ? +(dsoYoY + dioYoY - dpoYoY).toFixed(1) : null;
-
-    // NWC 시계열 (24.1Q~26.1Q, balanceSheetData 기반)
-    const nwcTrendPeriods = ['2024_1Q','2024_2Q','2024_3Q','2024_4Q','2025_1Q','2025_2Q','2025_3Q','2025_4Q','2026_1Q'];
-    const nwcTrendData = nwcTrendPeriods.map(pk => {
-      const bs = balanceSheetData[pk] || {};
-      const is = incomeStatementData[pk] || {};
-      const ar = bs.매출채권 || 0;
-      const inv = bs.재고자산 || 0;
-      const ap = bs.매입채무 || 0;
-      const rev = is.매출액 || 0;
-      const cogs = is.매출원가 || 0;
-      if (!ar && !inv && !ap) return null;
-      const nwc = ar + inv - ap;
-      const dso = ar > 0 && rev > 0 ? +(ar / rev * 90).toFixed(1) : null;
-      const dio = inv > 0 && cogs > 0 ? +(inv / cogs * 90).toFixed(1) : null;
-      const dpo = ap > 0 && cogs > 0 ? +(ap / cogs * 90).toFixed(1) : null;
-      const ccc = dso != null && dio != null && dpo != null ? +(dso + dio - dpo).toFixed(1) : null;
-      const name = pk.replace('20', '').replace('_', '.');
-      return {
-        name, NWC: Math.round(nwc / 100),
-        'NWC매출비': rev > 0 ? +(nwc / rev * 100).toFixed(1) : null,
-        DSO: dso, DIO: dio, DPO: dpo, CCC: ccc,
-        AR: Math.round(ar / 100), INV: Math.round(inv / 100), AP: Math.round(ap / 100),
-        AR매출비: rev > 0 ? +(ar / rev * 100).toFixed(1) : null,
-        INV매출비: rev > 0 ? +(inv / rev * 100).toFixed(1) : null,
-        AP매출비: rev > 0 ? +(ap / rev * 100).toFixed(1) : null,
-      };
-    }).filter(Boolean);
-
-    // NWC 추세 분석 인사이트 (대표 보고용)
-    const nwcTrendInsights = (() => {
-      if (nwcTrendData.length < 2) return [];
-      const insights = [];
-      const first = nwcTrendData[0];
-      const last = nwcTrendData[nwcTrendData.length - 1];
-
-      // 1. NWC 규모 변화
-      const nwcChange = last.NWC - first.NWC;
-      const nwcChangePct = first.NWC > 0 ? Math.round(nwcChange / first.NWC * 100) : null;
-      if (nwcChangePct !== null) {
-        insights.push(`NWC 규모: ${first.name} ${formatNumber(first.NWC)}억 → ${last.name} ${formatNumber(last.NWC)}억 (${nwcChange >= 0 ? '+' : ''}${nwcChangePct}%). ${nwcChange > 0 ? '운전자본 집약도 확대 — 성장에 따른 자금 소요 증가로 현금흐름 관리 강화 필요' : '운전자본 효율 개선 추세 — 현금 창출 여력 향상'}.`);
-      }
-
-      // 2. DSO 추세
-      const dsoData = nwcTrendData.filter(d => d.DSO != null);
-      if (dsoData.length >= 2) {
-        const dsoVals = dsoData.map(d => d.DSO);
-        const dsoFirst = dsoVals[0]; const dsoLast = dsoVals[dsoVals.length - 1];
-        const dsoMax = Math.max(...dsoVals); const dsoMin = Math.min(...dsoVals);
-        const maxPtDso = dsoData.find(d => d.DSO === dsoMax);
-        insights.push(`DSO(매출채권 회수일): ${dsoFirst.toFixed(0)}일 → ${dsoLast.toFixed(0)}일 (구간 최대 ${dsoMax.toFixed(0)}일[${maxPtDso?.name}], 최소 ${dsoMin.toFixed(0)}일). ${dsoLast > dsoFirst + 5 ? '회수기일 장기화 추세 — 외상매출 관리 및 대손 리스크 모니터링 강화 필요' : dsoLast < dsoFirst - 5 ? '회수 효율 개선 추세 — 매출채권 관리 정책 효과' : '안정적 수준 유지 — 매출채권 회수 주기 정상 범위'}.`);
-      }
-
-      // 3. DIO 추세
-      const dioData = nwcTrendData.filter(d => d.DIO != null);
-      if (dioData.length >= 2) {
-        const dioVals = dioData.map(d => d.DIO);
-        const dioFirst = dioVals[0]; const dioLast = dioVals[dioVals.length - 1];
-        const dioMax = Math.max(...dioVals);
-        const maxPtDio = dioData.find(d => d.DIO === dioMax);
-        insights.push(`DIO(재고 회전일): ${dioFirst.toFixed(0)}일 → ${dioLast.toFixed(0)}일 (구간 최대 ${dioMax.toFixed(0)}일[${maxPtDio?.name}]). ${dioLast > dioFirst + 10 ? '재고 체화 심화 추세 — 시즌 재고 소진 전략 및 발주 최적화 시급' : dioLast < dioFirst - 10 ? '재고 관리 효율 대폭 개선 — 수요 예측 정확도 향상 효과' : '재고 관리 수준 안정적 유지'}.`);
-      }
-
-      // 4. DPO 추세
-      const dpoData = nwcTrendData.filter(d => d.DPO != null);
-      if (dpoData.length >= 2) {
-        const dpoVals = dpoData.map(d => d.DPO);
-        const dpoFirst = dpoVals[0]; const dpoLast = dpoVals[dpoVals.length - 1];
-        insights.push(`DPO(매입채무 지급일): ${dpoFirst.toFixed(0)}일 → ${dpoLast.toFixed(0)}일. ${dpoLast > dpoFirst + 5 ? '지급 조건 연장 → 현금 보유 여력 확대(공급업체 관계 지속 모니터링 필요)' : dpoLast < dpoFirst - 5 ? '지급 가속화 → 공급업체 지급 조건 재협상으로 DPO 연장 검토' : '공급업체 지급 조건 안정적 유지'}.`);
-      }
-
-      // 5. CCC 추세 및 시사점
-      const cccData = nwcTrendData.filter(d => d.CCC != null);
-      if (cccData.length >= 2) {
-        const cccFirst = cccData[0].CCC; const cccLast = cccData[cccData.length - 1].CCC;
-        const cccMin = Math.min(...cccData.map(d => d.CCC));
-        const cccMinPt = cccData.find(d => d.CCC === cccMin);
-        insights.push(`CCC(현금전환주기): ${cccFirst.toFixed(0)}일 → ${cccLast.toFixed(0)}일 (구간 최저 ${cccMin.toFixed(0)}일[${cccMinPt?.name}]). ${cccLast > cccFirst ? `현금 묶임 기간 연장(+${(cccLast - cccFirst).toFixed(0)}일) — 단기 유동성 압박 요인, 운전자본 효율화 전략 수립 권고` : `현금 회수 주기 단축(${(cccLast - cccFirst).toFixed(0)}일) — 운전자본 효율 개선으로 현금 창출력 강화`}.`);
-      }
-
-      return insights;
-    })();
-
-    // ④ 리스크 & 이상징후 체크 (전년동기 YoY 대비 — 계절성 제거)
-    const nwcRisks = [];
-    const riskYoyLabel = yoyQLabel; // e.g. '25.1Q'
-    // DSO
-    if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 && qSalesM < qSalesYoYM) {
-      nwcRisks.push({ level: 'red', text: `DSO ↑ (전동분기 ${Math.round(dsoYoY)}일→${Math.round(dsoNWC)}일) + 매출 ↓ → 매출채권 회수 지연 🚨` });
-    } else if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5) {
-      nwcRisks.push({ level: 'orange', text: `DSO ↑ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, +${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수기일 장기화 ⚠️` });
-    } else if (dsoNWC != null && dsoYoY != null && dsoNWC < dsoYoY - 5) {
-      nwcRisks.push({ level: 'green', text: `DSO ↓ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, ${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수 효율 개선 ✅` });
-    }
-    // DIO
-    if (dioNWC != null && dioYoY != null && dioNWC > dioYoY + 10) {
-      nwcRisks.push({ level: 'orange', text: `DIO ↑ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일, +${(dioNWC-dioYoY).toFixed(0)}일) → 재고 체화 심화, 시즌 소진 전략 점검 🚨` });
-    } else if (dioNWC != null && dioYoY != null && dioNWC < dioYoY - 10) {
-      nwcRisks.push({ level: 'green', text: `DIO ↓ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일) → 재고 효율 개선 ✅` });
-    }
-    if (dioNWC != null && dioNWC > 180) {
-      nwcRisks.push({ level: 'red', text: `DIO ${Math.round(dioNWC)}일 — 절대 수준 과대, 시즌·트렌드 리스크 긴급 점검 🚨` });
-    }
-    // DPO
-    if (dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5) {
-      nwcRisks.push({ level: 'orange', text: `DPO ↓ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일, ${(dpoNWC-dpoYoY).toFixed(0)}일) → 공급업체 지급 가속, 지급조건 재협상 필요 🚨` });
-    } else if (dpoNWC != null && dpoYoY != null && dpoNWC > dpoYoY + 5) {
-      nwcRisks.push({ level: 'green', text: `DPO ↑ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일) → 지급조건 연장, 현금 보유 여력 확대 ✅` });
-    }
-    // NWC 전체 집약도 (YoY)
-    if (nwcM > 0 && nwcYoY > 0 && (nwcM - nwcYoY) / Math.abs(nwcYoY) > 0.2) {
-      nwcRisks.push({ level: 'orange', text: `NWC 급증 (${riskYoyLabel} ${formatNumber(Math.round(nwcYoY/100))}억 → 현재 ${formatNumber(Math.round(nwcM/100))}억, +${((nwcM-nwcYoY)/Math.abs(nwcYoY)*100).toFixed(0)}% YoY) → 현금 묶임 확대 🚨` });
-    }
-    if (nwcRisks.length === 0) {
-      const normalDetails = [
-        dsoNWC != null && dsoYoY != null ? `DSO ${Math.round(dsoNWC)}일(YoY ${dsoNWC >= dsoYoY ? '+' : ''}${(dsoNWC-dsoYoY).toFixed(0)}일)` : null,
-        dioNWC != null && dioYoY != null ? `DIO ${Math.round(dioNWC)}일(YoY ${dioNWC >= dioYoY ? '+' : ''}${(dioNWC-dioYoY).toFixed(0)}일)` : null,
-        dpoNWC != null && dpoYoY != null ? `DPO ${Math.round(dpoNWC)}일(YoY ${dpoNWC >= dpoYoY ? '+' : ''}${(dpoNWC-dpoYoY).toFixed(0)}일)` : null,
-        cccNWC != null ? `CCC ${Math.round(cccNWC)}일` : null,
-      ].filter(Boolean);
-      nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 전년동기(${riskYoyLabel}) 대비 정상 범위. ${normalDetails.length ? normalDetails.join(' / ') : ''}` });
-    }
-
-    // ⑤ 해결책
-    const nwcSolutions = [];
-    if (nwcRisks.some(r => r.text.includes('회수'))) nwcSolutions.push('매출채권 고령화 분석(30·60·90일 버킷) 및 회수 촉진 강화');
-    if (nwcRisks.some(r => r.text.includes('재고'))) nwcSolutions.push('SKU별 재고 회전율 점검, 시즌 말 프로모션·반품 정책 재검토');
-    if (nwcRisks.some(r => r.text.includes('DPO') || r.text.includes('현금 압박'))) nwcSolutions.push('주요 공급업체 결제 조건 재협상 — 지급 유예 연장(30→45일) 목표');
-    if (nwcRisks.some(r => r.text.includes('현금 묶임'))) nwcSolutions.push('NWC/매출% 목표 밴드 설정 및 분기별 KPI 모니터링 체계화');
-    if (nwcSolutions.length === 0) {
-      nwcSolutions.push('현행 영업운전자본 관리 수준 유지');
-      nwcSolutions.push('NWC/매출% 목표 밴드 설정으로 조기 이상징후 탐지 체계화');
-      nwcSolutions.push('DSO·DIO·DPO 분기별 리뷰를 통한 선제적 관리');
-    }
-
     const plHighlights = [];
     if (salesCurr > 0) {
       // ① 매출 모멘텀
@@ -5546,246 +5363,6 @@ export default function FnFQ1_2026Dashboard() {
               </div>
             </div>
 
-            {/* BS(재무상태) — 영업운전자본 분석 */}
-            <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-zinc-100 bg-emerald-50/60">
-                <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">BS — 영업운전자본 (NWC) 분석 (24.1Q~26.1Q)</h4>
-              </div>
-              <div className="p-5">
-
-                {/* ══ 2열 레이아웃: 좌(KPI+추세차트) / 우(구성요소+시사점+리스크+개선방향) ══ */}
-                <div className="grid grid-cols-2 gap-5 items-start">
-
-                  {/* ──── 좌 (50%): ① 핵심 KPI + ② 추세 분석 차트 ──── */}
-                  <div className="space-y-4">
-                  <div>
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">
-                      ① 핵심 KPI
-                      <span className="font-normal text-zinc-400 text-[10px] ml-1">(NWC = 매출채권 + 재고 − 매입채무)</span>
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        {
-                          label: 'NWC', val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—', color: 'text-emerald-700',
-                          rows: [
-                            { tag: `직전분기(${prevQLabel})`, v: nwcMPrev > 0 ? `${formatNumber(Math.round(nwcMPrev/100))}억` : '—' },
-                            { tag: `전년동기(${yoyQLabel})`, v: nwcYoY > 0 ? `${formatNumber(Math.round(nwcYoY/100))}억` : '—' },
-                          ],
-                        },
-                        {
-                          label: 'NWC / 매출', val: nwcPctRev != null ? `${nwcPctRev}%` : '—',
-                          color: nwcPctRev != null ? (nwcPctRev < 20 ? 'text-emerald-600' : nwcPctRev > 40 ? 'text-rose-600' : 'text-zinc-700') : 'text-emerald-700',
-                          rows: (() => {
-                            if (nwcPctRev == null) return [{ tag: '집약도', v: '' }];
-                            if (nwcPctRev < 20)  return [{ tag: '▲ 긍정', v: '효율적 자금 운용' }];
-                            if (nwcPctRev <= 40) return [{ tag: '◆ 보통', v: '업계 평균 수준' }];
-                            return [{ tag: '▼ 부정', v: '현금 묶임 과다', warn: true }];
-                          })(),
-                        },
-                        {
-                          label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
-                          color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800',
-                          rows: [
-                            { tag: `직전분기(${prevQLabel})`, v: dsoPrev != null ? `${Math.round(dsoPrev)}일` : '—', warn: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev + 5 },
-                            { tag: `전년동기(${yoyQLabel})`, v: dsoYoY != null ? `${Math.round(dsoYoY)}일` : '—', warn: dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 },
-                          ],
-                          bench: '30~45일', benchLow: 30, benchHigh: 45, lowerBetter: true,
-                        },
-                        {
-                          label: 'DIO (재고 회전일)', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—',
-                          color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800',
-                          rows: [
-                            { tag: `직전분기(${prevQLabel})`, v: dioPrev != null ? `${Math.round(dioPrev)}일` : '—', warn: dioNWC != null && dioPrev != null && dioNWC > dioPrev + 5 },
-                            { tag: `전년동기(${yoyQLabel})`, v: dioYoY != null ? `${Math.round(dioYoY)}일` : '—', warn: dioNWC != null && dioYoY != null && dioNWC > dioYoY + 5 },
-                          ],
-                          bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
-                        },
-                        {
-                          label: 'DPO (매입채무 지급일)', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—',
-                          color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800',
-                          rows: [
-                            { tag: `직전분기(${prevQLabel})`, v: dpoPrev != null ? `${Math.round(dpoPrev)}일` : '—', warn: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev - 5 },
-                            { tag: `전년동기(${yoyQLabel})`, v: dpoYoY != null ? `${Math.round(dpoYoY)}일` : '—', warn: dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5 },
-                          ],
-                          bench: '30~60일', benchLow: 30, benchHigh: 60, lowerBetter: false,
-                        },
-                        {
-                          label: 'CCC (현금전환주기)', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—',
-                          color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800',
-                          rows: [
-                            { tag: `직전분기(${prevQLabel})`, v: cccPrev != null ? `${Math.round(cccPrev)}일` : '—', warn: cccNWC != null && cccPrev != null && cccNWC > cccPrev + 5 },
-                            { tag: `전년동기(${yoyQLabel})`, v: cccYoY != null ? `${Math.round(cccYoY)}일` : '—', warn: cccNWC != null && cccYoY != null && cccNWC > cccYoY + 5 },
-                          ],
-                          bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
-                        },
-                      ].map((k, i) => {
-                        const numVal = k.bench ? parseFloat(k.val) : null;
-                        const benchGood = numVal != null && k.bench && (k.lowerBetter ? numVal < k.benchLow : numVal > k.benchHigh);
-                        const benchBad  = numVal != null && k.bench && (k.lowerBetter ? numVal > k.benchHigh : numVal < k.benchLow);
-                        return (
-                        <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2.5">
-                          <div className="text-[10px] text-zinc-400 font-medium leading-tight mb-1">{k.label}</div>
-                          <div className={`text-lg font-bold tabular-nums mb-1.5 ${k.color}`}>{k.val}</div>
-                          <div className="space-y-0.5 border-t border-zinc-100 pt-1">
-                            {k.rows.map((r, ri) => (
-                              <div key={ri} className="flex justify-between items-center gap-1">
-                                <span className="text-[9px] text-zinc-400 leading-tight">{r.tag}</span>
-                                {r.v ? <span className={`text-[10px] tabular-nums font-semibold ${r.warn ? 'text-rose-500' : 'text-zinc-500'}`}>{r.v}</span> : null}
-                              </div>
-                            ))}
-                          </div>
-                          {k.bench && (
-                            <div className="mt-1.5 pt-1.5 border-t border-zinc-100 flex justify-between items-center">
-                              <span className="text-[9px] text-zinc-300">업계 {k.bench}</span>
-                              <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${benchBad ? 'bg-rose-50 text-rose-500' : benchGood ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
-                                {benchBad ? '▼ 부정' : benchGood ? '▲ 긍정' : '◆ 보통'}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  {/* /① 핵심 KPI 섹션 */}
-
-                  {/* ② 추세 분석 차트 — 좌 하단 */}
-                  {nwcTrendData.length > 0 && (
-                    <div>
-                      <p className="text-[12px] font-semibold text-zinc-700 mb-2">
-                        ② 추세 분석
-                        <span className="font-normal text-zinc-400 text-[10px] ml-1">(24.1Q~26.1Q)</span>
-                      </p>
-                      <p className="text-[10px] text-zinc-400 mb-1">DSO · DIO · DPO (일수)</p>
-                      <div className="h-52 w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
-                            <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" />
-                            <YAxis tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}일`} domain={[0, 'auto']} />
-                            <Tooltip content={({ active, payload, label }) => {
-                              if (!active || !payload?.length) return null;
-                              return (
-                                <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-2 text-[10px]">
-                                  <div className="font-semibold mb-1 text-zinc-700">{label}</div>
-                                  {payload.map((p, i) => (
-                                    <div key={i} className="flex justify-between gap-3" style={{ color: p.color }}>
-                                      <span>{p.name}</span>
-                                      <span className="font-bold">{p.value != null ? `${p.value}일` : '—'}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              );
-                            }} />
-                            <Legend wrapperStyle={{ fontSize: 10 }} />
-                            <Line type="monotone" dataKey="DSO" name="DSO" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
-                            <Line type="monotone" dataKey="DIO" name="DIO" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
-                            <Line type="monotone" dataKey="DPO" name="DPO" stroke="#10b981" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
-                          </ComposedChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  )}
-
-                  </div>{/* /좌 컬럼 */}
-
-                  {/* ──── 우 (50%): 구성요소 상세 + 추세분석 시사점 + 리스크 + 개선방향 ──── */}
-                  <div className="space-y-4">
-                  <div>
-                    <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">구성요소 상세</p>
-                    <table className="w-full text-[11px] border-collapse mb-0">
-                      <thead>
-                        <tr className="bg-zinc-50 text-zinc-500">
-                          <th className="text-left py-2 px-2.5 font-semibold border border-zinc-100">항목</th>
-                          <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">금액(억)</th>
-                          <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">매출 대비</th>
-                          <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">전분기比</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[
-                          { label: '매출채권', valM: arM, valAMPrev: arMPrev, pct: qSalesM > 0 ? (arM/qSalesM*100).toFixed(1) : null, color: 'text-indigo-600' },
-                          { label: '재고자산', valM: invM, valAMPrev: invMPrev, pct: qSalesM > 0 ? (invM/qSalesM*100).toFixed(1) : null, color: 'text-amber-600' },
-                          { label: '매입채무', valM: apM, valAMPrev: apMPrev, pct: qSalesM > 0 ? (apM/qSalesM*100).toFixed(1) : null, color: 'text-emerald-600' },
-                        ].map((row, i) => {
-                          const d2 = row.valM - row.valAMPrev;
-                          const diffPct = row.valAMPrev > 0 ? (d2 / row.valAMPrev * 100).toFixed(1) : null;
-                          const isUp = d2 > 0; const isAsset = i < 2;
-                          const isAlert = (isAsset && isUp && Math.abs(d2) > 5000) || (!isAsset && !isUp && Math.abs(d2) > 5000);
-                          return (
-                            <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
-                              <td className={`py-2 px-2.5 font-semibold border border-zinc-100 ${row.color}`}>{row.label}</td>
-                              <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold">{formatNumber(Math.round(row.valM/100))}</td>
-                              <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100">{row.pct != null ? `${row.pct}%` : '—'}</td>
-                              <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold ${isAlert ? 'text-rose-600' : isUp ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                                {diffPct != null ? `${isUp ? '↑' : '↓'}${Math.abs(diffPct)}%` : '—'}{isAlert && ' 🚨'}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        <tr className="bg-emerald-50 font-bold">
-                          <td className="py-2 px-2.5 border border-zinc-100 text-emerald-800">NWC 합계</td>
-                          <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-emerald-800">{formatNumber(Math.round(nwcM/100))}</td>
-                          <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-emerald-700">{nwcPctRev != null ? `${nwcPctRev}%` : '—'}</td>
-                          <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 ${nwcMPrev > 0 ? (nwcM > nwcMPrev ? 'text-rose-600' : 'text-emerald-700') : 'text-zinc-400'}`}>
-                            {nwcMPrev > 0 ? `${nwcM >= nwcMPrev ? '↑' : '↓'}${Math.abs(((nwcM-nwcMPrev)/nwcMPrev*100)).toFixed(1)}%` : '—'}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* 추세 분석 시사점 */}
-                  {nwcTrendInsights.length > 0 && (
-                    <div className="rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
-                      <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
-                      <ul className="space-y-1">
-                        {nwcTrendInsights.map((t, i) => (
-                          <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
-                            <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
-                            <span>{t}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* 리스크 & 이상징후 */}
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전년동기 YoY 대비)</span></p>
-                    <ul className="space-y-1.5">
-                      {nwcRisks.map((r, i) => (
-                        <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
-                          r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                          r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                          r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
-                          'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                        }`}>{r.text}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* 개선 방향 */}
-                  <div>
-                    <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">개선 방향</p>
-                    <ul className="space-y-1.5">
-                      {nwcSolutions.map((s, i) => (
-                        <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
-                          <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
-                          <span>{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  </div>{/* /우 컬럼 */}
-                </div>{/* /2열 grid */}
-
-                {/* ══ 업계 비교 각주 ══ */}
-                <p className="text-[9px] text-zinc-400 mt-0">※ 업계 기준치(국내 패션업계 참고): DSO 30~45일 / DIO 90~150일 / DPO 30~60일 / CCC 90~150일 · 삼성패션연구소·업계 공개 자료 기반 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
-
-              </div>
-            </div>
           </div>
 
           {/* 자회사 현황 */}
@@ -10503,6 +10080,433 @@ export default function FnFQ1_2026Dashboard() {
               })()}
             </div>
           )}
+
+          {bsEntitySubTab === '연결' && (() => {
+            const bsP = bsCurrentPeriod;
+            const bsRow = balanceSheetData[bsP] || {};
+
+            // ===== 영업운전자본 (NWC = 매출채권 + 재고자산 - 매입채무) =====
+            const qSalesM = incomeStatementData[bsCurrentPeriod]?.매출액 || 0;
+            const qCogsM = incomeStatementData[bsCurrentPeriod]?.매출원가 || 0;
+            const arM = bsRow.매출채권 || 0;
+            const invM = bsRow.재고자산 || 0;
+            const apM = bsRow.매입채무 || 0;
+            const nwcM = arM + invM - apM;
+            const nwcPctRev = qSalesM > 0 ? +(nwcM / qSalesM * 100).toFixed(1) : null;
+            const dsoNWC = arM > 0 && qSalesM > 0 ? +(arM / qSalesM * 90).toFixed(1) : null;
+            const dioNWC = invM > 0 && qCogsM > 0 ? +(invM / qCogsM * 90).toFixed(1) : null;
+            const dpoNWC = apM > 0 && qCogsM > 0 ? +(apM / qCogsM * 90).toFixed(1) : null;
+            const cccNWC = dsoNWC != null && dioNWC != null && dpoNWC != null
+              ? +(dsoNWC + dioNWC - dpoNWC).toFixed(1) : null;
+
+            // 직전분기 (QoQ) 비교 — e.g. 26.1Q → 25.4Q
+            const prevQKey = getPeriodKey(selectedPeriod, 'prev');
+            const prevQLabel = prevQKey.replace('20','').replace('_','.');
+            const bsRowPrev = balanceSheetData[prevQKey] || {};
+            const qSalesPrevM = incomeStatementData[prevQKey]?.매출액 || 0;
+            const qCogsPrevM = incomeStatementData[prevQKey]?.매출원가 || 0;
+            const arMPrev = bsRowPrev.매출채권 || 0;
+            const invMPrev = bsRowPrev.재고자산 || 0;
+            const apMPrev = bsRowPrev.매입채무 || 0;
+            const nwcMPrev = arMPrev + invMPrev - apMPrev;
+            const dsoPrev = arMPrev > 0 && qSalesPrevM > 0 ? +(arMPrev / qSalesPrevM * 90).toFixed(1) : null;
+            const dioPrev = invMPrev > 0 && qCogsPrevM > 0 ? +(invMPrev / qCogsPrevM * 90).toFixed(1) : null;
+            const dpoPrev = apMPrev > 0 && qCogsPrevM > 0 ? +(apMPrev / qCogsPrevM * 90).toFixed(1) : null;
+            const cccPrev = dsoPrev != null && dioPrev != null && dpoPrev != null
+              ? +(dsoPrev + dioPrev - dpoPrev).toFixed(1) : null;
+
+            // 전년동분기 (YoY) 비교 — e.g. 26.1Q → 25.1Q
+            const yoyQKey = getPeriodKey(selectedPeriod, 'prev_quarter');
+            const yoyQLabel = yoyQKey.replace('20','').replace('_','.');
+            const bsRowYoY = balanceSheetData[yoyQKey] || {};
+            const qSalesYoYM = incomeStatementData[yoyQKey]?.매출액 || 0;
+            const qCogsYoYM  = incomeStatementData[yoyQKey]?.매출원가 || 0;
+            const arYoY  = bsRowYoY.매출채권 || 0;
+            const invYoY = bsRowYoY.재고자산 || 0;
+            const apYoY  = bsRowYoY.매입채무 || 0;
+            const nwcYoY = arYoY + invYoY - apYoY;
+            const dsoYoY = arYoY  > 0 && qSalesYoYM > 0 ? +(arYoY  / qSalesYoYM * 90).toFixed(1) : null;
+            const dioYoY = invYoY > 0 && qCogsYoYM  > 0 ? +(invYoY / qCogsYoYM  * 90).toFixed(1) : null;
+            const dpoYoY = apYoY  > 0 && qCogsYoYM  > 0 ? +(apYoY  / qCogsYoYM  * 90).toFixed(1) : null;
+            const cccYoY = dsoYoY != null && dioYoY != null && dpoYoY != null
+              ? +(dsoYoY + dioYoY - dpoYoY).toFixed(1) : null;
+
+            // NWC 시계열 (24.1Q~26.1Q, balanceSheetData 기반)
+            const nwcTrendPeriods = ['2024_1Q','2024_2Q','2024_3Q','2024_4Q','2025_1Q','2025_2Q','2025_3Q','2025_4Q','2026_1Q'];
+            const nwcTrendData = nwcTrendPeriods.map(pk => {
+              const bs = balanceSheetData[pk] || {};
+              const is = incomeStatementData[pk] || {};
+              const ar = bs.매출채권 || 0;
+              const inv = bs.재고자산 || 0;
+              const ap = bs.매입채무 || 0;
+              const rev = is.매출액 || 0;
+              const cogs = is.매출원가 || 0;
+              if (!ar && !inv && !ap) return null;
+              const nwc = ar + inv - ap;
+              const dso = ar > 0 && rev > 0 ? +(ar / rev * 90).toFixed(1) : null;
+              const dio = inv > 0 && cogs > 0 ? +(inv / cogs * 90).toFixed(1) : null;
+              const dpo = ap > 0 && cogs > 0 ? +(ap / cogs * 90).toFixed(1) : null;
+              const ccc = dso != null && dio != null && dpo != null ? +(dso + dio - dpo).toFixed(1) : null;
+              const name = pk.replace('20', '').replace('_', '.');
+              return {
+                name, NWC: Math.round(nwc / 100),
+                'NWC매출비': rev > 0 ? +(nwc / rev * 100).toFixed(1) : null,
+                DSO: dso, DIO: dio, DPO: dpo, CCC: ccc,
+                AR: Math.round(ar / 100), INV: Math.round(inv / 100), AP: Math.round(ap / 100),
+                AR매출비: rev > 0 ? +(ar / rev * 100).toFixed(1) : null,
+                INV매출비: rev > 0 ? +(inv / rev * 100).toFixed(1) : null,
+                AP매출비: rev > 0 ? +(ap / rev * 100).toFixed(1) : null,
+              };
+            }).filter(Boolean);
+
+            // NWC 추세 분석 인사이트 (대표 보고용)
+            const nwcTrendInsights = (() => {
+              if (nwcTrendData.length < 2) return [];
+              const insights = [];
+              const first = nwcTrendData[0];
+              const last = nwcTrendData[nwcTrendData.length - 1];
+
+              // 1. NWC 규모 변화
+              const nwcChange = last.NWC - first.NWC;
+              const nwcChangePct = first.NWC > 0 ? Math.round(nwcChange / first.NWC * 100) : null;
+              if (nwcChangePct !== null) {
+                insights.push(`NWC 규모: ${first.name} ${formatNumber(first.NWC)}억 → ${last.name} ${formatNumber(last.NWC)}억 (${nwcChange >= 0 ? '+' : ''}${nwcChangePct}%). ${nwcChange > 0 ? '운전자본 집약도 확대 — 성장에 따른 자금 소요 증가로 현금흐름 관리 강화 필요' : '운전자본 효율 개선 추세 — 현금 창출 여력 향상'}.`);
+              }
+
+              // 2. DSO 추세
+              const dsoData = nwcTrendData.filter(d => d.DSO != null);
+              if (dsoData.length >= 2) {
+                const dsoVals = dsoData.map(d => d.DSO);
+                const dsoFirst = dsoVals[0]; const dsoLast = dsoVals[dsoVals.length - 1];
+                const dsoMax = Math.max(...dsoVals); const dsoMin = Math.min(...dsoVals);
+                const maxPtDso = dsoData.find(d => d.DSO === dsoMax);
+                insights.push(`DSO(매출채권 회수일): ${dsoFirst.toFixed(0)}일 → ${dsoLast.toFixed(0)}일 (구간 최대 ${dsoMax.toFixed(0)}일[${maxPtDso?.name}], 최소 ${dsoMin.toFixed(0)}일). ${dsoLast > dsoFirst + 5 ? '회수기일 장기화 추세 — 외상매출 관리 및 대손 리스크 모니터링 강화 필요' : dsoLast < dsoFirst - 5 ? '회수 효율 개선 추세 — 매출채권 관리 정책 효과' : '안정적 수준 유지 — 매출채권 회수 주기 정상 범위'}.`);
+              }
+
+              // 3. DIO 추세
+              const dioData = nwcTrendData.filter(d => d.DIO != null);
+              if (dioData.length >= 2) {
+                const dioVals = dioData.map(d => d.DIO);
+                const dioFirst = dioVals[0]; const dioLast = dioVals[dioVals.length - 1];
+                const dioMax = Math.max(...dioVals);
+                const maxPtDio = dioData.find(d => d.DIO === dioMax);
+                insights.push(`DIO(재고 회전일): ${dioFirst.toFixed(0)}일 → ${dioLast.toFixed(0)}일 (구간 최대 ${dioMax.toFixed(0)}일[${maxPtDio?.name}]). ${dioLast > dioFirst + 10 ? '재고 체화 심화 추세 — 시즌 재고 소진 전략 및 발주 최적화 시급' : dioLast < dioFirst - 10 ? '재고 관리 효율 대폭 개선 — 수요 예측 정확도 향상 효과' : '재고 관리 수준 안정적 유지'}.`);
+              }
+
+              // 4. DPO 추세
+              const dpoData = nwcTrendData.filter(d => d.DPO != null);
+              if (dpoData.length >= 2) {
+                const dpoVals = dpoData.map(d => d.DPO);
+                const dpoFirst = dpoVals[0]; const dpoLast = dpoVals[dpoVals.length - 1];
+                insights.push(`DPO(매입채무 지급일): ${dpoFirst.toFixed(0)}일 → ${dpoLast.toFixed(0)}일. ${dpoLast > dpoFirst + 5 ? '지급 조건 연장 → 현금 보유 여력 확대(공급업체 관계 지속 모니터링 필요)' : dpoLast < dpoFirst - 5 ? '지급 가속화 → 공급업체 지급 조건 재협상으로 DPO 연장 검토' : '공급업체 지급 조건 안정적 유지'}.`);
+              }
+
+              // 5. CCC 추세 및 시사점
+              const cccData = nwcTrendData.filter(d => d.CCC != null);
+              if (cccData.length >= 2) {
+                const cccFirst = cccData[0].CCC; const cccLast = cccData[cccData.length - 1].CCC;
+                const cccMin = Math.min(...cccData.map(d => d.CCC));
+                const cccMinPt = cccData.find(d => d.CCC === cccMin);
+                insights.push(`CCC(현금전환주기): ${cccFirst.toFixed(0)}일 → ${cccLast.toFixed(0)}일 (구간 최저 ${cccMin.toFixed(0)}일[${cccMinPt?.name}]). ${cccLast > cccFirst ? `현금 묶임 기간 연장(+${(cccLast - cccFirst).toFixed(0)}일) — 단기 유동성 압박 요인, 운전자본 효율화 전략 수립 권고` : `현금 회수 주기 단축(${(cccLast - cccFirst).toFixed(0)}일) — 운전자본 효율 개선으로 현금 창출력 강화`}.`);
+              }
+
+              return insights;
+            })();
+
+            // ④ 리스크 & 이상징후 체크 (전년동기 YoY 대비 — 계절성 제거)
+            const nwcRisks = [];
+            const riskYoyLabel = yoyQLabel; // e.g. '25.1Q'
+            // DSO
+            if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 && qSalesM < qSalesYoYM) {
+              nwcRisks.push({ level: 'red', text: `DSO ↑ (전동분기 ${Math.round(dsoYoY)}일→${Math.round(dsoNWC)}일) + 매출 ↓ → 매출채권 회수 지연 🚨` });
+            } else if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5) {
+              nwcRisks.push({ level: 'orange', text: `DSO ↑ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, +${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수기일 장기화 ⚠️` });
+            } else if (dsoNWC != null && dsoYoY != null && dsoNWC < dsoYoY - 5) {
+              nwcRisks.push({ level: 'green', text: `DSO ↓ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, ${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수 효율 개선 ✅` });
+            }
+            // DIO
+            if (dioNWC != null && dioYoY != null && dioNWC > dioYoY + 10) {
+              nwcRisks.push({ level: 'orange', text: `DIO ↑ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일, +${(dioNWC-dioYoY).toFixed(0)}일) → 재고 체화 심화, 시즌 소진 전략 점검 🚨` });
+            } else if (dioNWC != null && dioYoY != null && dioNWC < dioYoY - 10) {
+              nwcRisks.push({ level: 'green', text: `DIO ↓ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일) → 재고 효율 개선 ✅` });
+            }
+            if (dioNWC != null && dioNWC > 180) {
+              nwcRisks.push({ level: 'red', text: `DIO ${Math.round(dioNWC)}일 — 절대 수준 과대, 시즌·트렌드 리스크 긴급 점검 🚨` });
+            }
+            // DPO
+            if (dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5) {
+              nwcRisks.push({ level: 'orange', text: `DPO ↓ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일, ${(dpoNWC-dpoYoY).toFixed(0)}일) → 공급업체 지급 가속, 지급조건 재협상 필요 🚨` });
+            } else if (dpoNWC != null && dpoYoY != null && dpoNWC > dpoYoY + 5) {
+              nwcRisks.push({ level: 'green', text: `DPO ↑ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일) → 지급조건 연장, 현금 보유 여력 확대 ✅` });
+            }
+            // NWC 전체 집약도 (YoY)
+            if (nwcM > 0 && nwcYoY > 0 && (nwcM - nwcYoY) / Math.abs(nwcYoY) > 0.2) {
+              nwcRisks.push({ level: 'orange', text: `NWC 급증 (${riskYoyLabel} ${formatNumber(Math.round(nwcYoY/100))}억 → 현재 ${formatNumber(Math.round(nwcM/100))}억, +${((nwcM-nwcYoY)/Math.abs(nwcYoY)*100).toFixed(0)}% YoY) → 현금 묶임 확대 🚨` });
+            }
+            if (nwcRisks.length === 0) {
+              const normalDetails = [
+                dsoNWC != null && dsoYoY != null ? `DSO ${Math.round(dsoNWC)}일(YoY ${dsoNWC >= dsoYoY ? '+' : ''}${(dsoNWC-dsoYoY).toFixed(0)}일)` : null,
+                dioNWC != null && dioYoY != null ? `DIO ${Math.round(dioNWC)}일(YoY ${dioNWC >= dioYoY ? '+' : ''}${(dioNWC-dioYoY).toFixed(0)}일)` : null,
+                dpoNWC != null && dpoYoY != null ? `DPO ${Math.round(dpoNWC)}일(YoY ${dpoNWC >= dpoYoY ? '+' : ''}${(dpoNWC-dpoYoY).toFixed(0)}일)` : null,
+                cccNWC != null ? `CCC ${Math.round(cccNWC)}일` : null,
+              ].filter(Boolean);
+              nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 전년동기(${riskYoyLabel}) 대비 정상 범위. ${normalDetails.length ? normalDetails.join(' / ') : ''}` });
+            }
+
+            // ⑤ 해결책
+            const nwcSolutions = [];
+            if (nwcRisks.some(r => r.text.includes('회수'))) nwcSolutions.push('매출채권 고령화 분석(30·60·90일 버킷) 및 회수 촉진 강화');
+            if (nwcRisks.some(r => r.text.includes('재고'))) nwcSolutions.push('SKU별 재고 회전율 점검, 시즌 말 프로모션·반품 정책 재검토');
+            if (nwcRisks.some(r => r.text.includes('DPO') || r.text.includes('현금 압박'))) nwcSolutions.push('주요 공급업체 결제 조건 재협상 — 지급 유예 연장(30→45일) 목표');
+            if (nwcRisks.some(r => r.text.includes('현금 묶임'))) nwcSolutions.push('NWC/매출% 목표 밴드 설정 및 분기별 KPI 모니터링 체계화');
+            if (nwcSolutions.length === 0) {
+              nwcSolutions.push('현행 영업운전자본 관리 수준 유지');
+              nwcSolutions.push('NWC/매출% 목표 밴드 설정으로 조기 이상징후 탐지 체계화');
+              nwcSolutions.push('DSO·DIO·DPO 분기별 리뷰를 통한 선제적 관리');
+            }
+
+            return (
+              <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-zinc-100 bg-emerald-50/60">
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">BS — 영업운전자본 (NWC) 분석 (24.1Q~26.1Q)</h4>
+                </div>
+                <div className="p-5">
+
+                  {/* ══ 2열 레이아웃: 좌(KPI+추세차트) / 우(구성요소+시사점+리스크+개선방향) ══ */}
+                  <div className="grid grid-cols-2 gap-5 items-start">
+
+                    {/* ──── 좌 (50%): ① 핵심 KPI + ② 추세 분석 차트 ──── */}
+                    <div className="space-y-4">
+                    <div>
+                      <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">
+                        ① 핵심 KPI
+                        <span className="font-normal text-zinc-400 text-[10px] ml-1">(NWC = 매출채권 + 재고 − 매입채무)</span>
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          {
+                            label: 'NWC', val: nwcM > 0 ? `${formatNumber(Math.round(nwcM/100))}억` : '—', color: 'text-emerald-700',
+                            rows: [
+                              { tag: `직전분기(${prevQLabel})`, v: nwcMPrev > 0 ? `${formatNumber(Math.round(nwcMPrev/100))}억` : '—' },
+                              { tag: `전년동기(${yoyQLabel})`, v: nwcYoY > 0 ? `${formatNumber(Math.round(nwcYoY/100))}억` : '—' },
+                            ],
+                          },
+                          {
+                            label: 'NWC / 매출', val: nwcPctRev != null ? `${nwcPctRev}%` : '—',
+                            color: nwcPctRev != null ? (nwcPctRev < 20 ? 'text-emerald-600' : nwcPctRev > 40 ? 'text-rose-600' : 'text-zinc-700') : 'text-emerald-700',
+                            rows: (() => {
+                              if (nwcPctRev == null) return [{ tag: '집약도', v: '' }];
+                              if (nwcPctRev < 20)  return [{ tag: '▲ 긍정', v: '효율적 자금 운용' }];
+                              if (nwcPctRev <= 40) return [{ tag: '◆ 보통', v: '업계 평균 수준' }];
+                              return [{ tag: '▼ 부정', v: '현금 묶임 과다', warn: true }];
+                            })(),
+                          },
+                          {
+                            label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
+                            color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800',
+                            rows: [
+                              { tag: `직전분기(${prevQLabel})`, v: dsoPrev != null ? `${Math.round(dsoPrev)}일` : '—', warn: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev + 5 },
+                              { tag: `전년동기(${yoyQLabel})`, v: dsoYoY != null ? `${Math.round(dsoYoY)}일` : '—', warn: dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 },
+                            ],
+                            bench: '30~45일', benchLow: 30, benchHigh: 45, lowerBetter: true,
+                          },
+                          {
+                            label: 'DIO (재고 회전일)', val: dioNWC != null ? `${Math.round(dioNWC)}일` : '—',
+                            color: dioNWC != null && dioPrev != null && dioNWC > dioPrev ? 'text-rose-600' : 'text-zinc-800',
+                            rows: [
+                              { tag: `직전분기(${prevQLabel})`, v: dioPrev != null ? `${Math.round(dioPrev)}일` : '—', warn: dioNWC != null && dioPrev != null && dioNWC > dioPrev + 5 },
+                              { tag: `전년동기(${yoyQLabel})`, v: dioYoY != null ? `${Math.round(dioYoY)}일` : '—', warn: dioNWC != null && dioYoY != null && dioNWC > dioYoY + 5 },
+                            ],
+                            bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
+                          },
+                          {
+                            label: 'DPO (매입채무 지급일)', val: dpoNWC != null ? `${Math.round(dpoNWC)}일` : '—',
+                            color: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev ? 'text-rose-600' : 'text-zinc-800',
+                            rows: [
+                              { tag: `직전분기(${prevQLabel})`, v: dpoPrev != null ? `${Math.round(dpoPrev)}일` : '—', warn: dpoNWC != null && dpoPrev != null && dpoNWC < dpoPrev - 5 },
+                              { tag: `전년동기(${yoyQLabel})`, v: dpoYoY != null ? `${Math.round(dpoYoY)}일` : '—', warn: dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5 },
+                            ],
+                            bench: '30~60일', benchLow: 30, benchHigh: 60, lowerBetter: false,
+                          },
+                          {
+                            label: 'CCC (현금전환주기)', val: cccNWC != null ? `${Math.round(cccNWC)}일` : '—',
+                            color: cccNWC != null && cccNWC > 180 ? 'text-rose-600' : 'text-zinc-800',
+                            rows: [
+                              { tag: `직전분기(${prevQLabel})`, v: cccPrev != null ? `${Math.round(cccPrev)}일` : '—', warn: cccNWC != null && cccPrev != null && cccNWC > cccPrev + 5 },
+                              { tag: `전년동기(${yoyQLabel})`, v: cccYoY != null ? `${Math.round(cccYoY)}일` : '—', warn: cccNWC != null && cccYoY != null && cccNWC > cccYoY + 5 },
+                            ],
+                            bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
+                          },
+                        ].map((k, i) => {
+                          const numVal = k.bench ? parseFloat(k.val) : null;
+                          const benchGood = numVal != null && k.bench && (k.lowerBetter ? numVal < k.benchLow : numVal > k.benchHigh);
+                          const benchBad  = numVal != null && k.bench && (k.lowerBetter ? numVal > k.benchHigh : numVal < k.benchLow);
+                          return (
+                          <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2.5">
+                            <div className="text-[10px] text-zinc-400 font-medium leading-tight mb-1">{k.label}</div>
+                            <div className={`text-lg font-bold tabular-nums mb-1.5 ${k.color}`}>{k.val}</div>
+                            <div className="space-y-0.5 border-t border-zinc-100 pt-1">
+                              {k.rows.map((r, ri) => (
+                                <div key={ri} className="flex justify-between items-center gap-1">
+                                  <span className="text-[9px] text-zinc-400 leading-tight">{r.tag}</span>
+                                  {r.v ? <span className={`text-[10px] tabular-nums font-semibold ${r.warn ? 'text-rose-500' : 'text-zinc-500'}`}>{r.v}</span> : null}
+                                </div>
+                              ))}
+                            </div>
+                            {k.bench && (
+                              <div className="mt-1.5 pt-1.5 border-t border-zinc-100 flex justify-between items-center">
+                                <span className="text-[9px] text-zinc-300">업계 {k.bench}</span>
+                                <span className={`text-[9px] font-bold px-1 py-0.5 rounded ${benchBad ? 'bg-rose-50 text-rose-500' : benchGood ? 'bg-emerald-50 text-emerald-600' : 'bg-zinc-100 text-zinc-400'}`}>
+                                  {benchBad ? '▼ 부정' : benchGood ? '▲ 긍정' : '◆ 보통'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* /① 핵심 KPI 섹션 */}
+
+                    {/* ② 추세 분석 차트 — 좌 하단 */}
+                    {nwcTrendData.length > 0 && (
+                      <div>
+                        <p className="text-[12px] font-semibold text-zinc-700 mb-2">
+                          ② 추세 분석
+                          <span className="font-normal text-zinc-400 text-[10px] ml-1">(24.1Q~26.1Q)</span>
+                        </p>
+                        <p className="text-[10px] text-zinc-400 mb-1">DSO · DIO · DPO (일수)</p>
+                        <div className="h-52 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={nwcTrendData} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                              <XAxis dataKey="name" tick={{ fontSize: 9 }} stroke="#71717a" />
+                              <YAxis tick={{ fontSize: 9 }} stroke="#71717a" tickFormatter={v => `${v}일`} domain={[0, 'auto']} />
+                              <Tooltip content={({ active, payload, label }) => {
+                                if (!active || !payload?.length) return null;
+                                return (
+                                  <div className="bg-white border border-zinc-200 rounded-lg shadow px-2.5 py-2 text-[10px]">
+                                    <div className="font-semibold mb-1 text-zinc-700">{label}</div>
+                                    {payload.map((p, i) => (
+                                      <div key={i} className="flex justify-between gap-3" style={{ color: p.color }}>
+                                        <span>{p.name}</span>
+                                        <span className="font-bold">{p.value != null ? `${p.value}일` : '—'}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              }} />
+                              <Legend wrapperStyle={{ fontSize: 10 }} />
+                              <Line type="monotone" dataKey="DSO" name="DSO" stroke="#6366f1" strokeWidth={2} dot={{ r: 3 }} />
+                              <Line type="monotone" dataKey="DIO" name="DIO" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
+                              <Line type="monotone" dataKey="DPO" name="DPO" stroke="#10b981" strokeWidth={2} strokeDasharray="4 2" dot={{ r: 3 }} />
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    )}
+
+                    </div>{/* /좌 컬럼 */}
+
+                    {/* ──── 우 (50%): 구성요소 상세 + 추세분석 시사점 + 리스크 + 개선방향 ──── */}
+                    <div className="space-y-4">
+                    <div>
+                      <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">구성요소 상세</p>
+                      <table className="w-full text-[11px] border-collapse mb-0">
+                        <thead>
+                          <tr className="bg-zinc-50 text-zinc-500">
+                            <th className="text-left py-2 px-2.5 font-semibold border border-zinc-100">항목</th>
+                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">금액(억)</th>
+                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">매출 대비</th>
+                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">전분기比</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { label: '매출채권', valM: arM, valAMPrev: arMPrev, pct: qSalesM > 0 ? (arM/qSalesM*100).toFixed(1) : null, color: 'text-indigo-600' },
+                            { label: '재고자산', valM: invM, valAMPrev: invMPrev, pct: qSalesM > 0 ? (invM/qSalesM*100).toFixed(1) : null, color: 'text-amber-600' },
+                            { label: '매입채무', valM: apM, valAMPrev: apMPrev, pct: qSalesM > 0 ? (apM/qSalesM*100).toFixed(1) : null, color: 'text-emerald-600' },
+                          ].map((row, i) => {
+                            const d2 = row.valM - row.valAMPrev;
+                            const diffPct = row.valAMPrev > 0 ? (d2 / row.valAMPrev * 100).toFixed(1) : null;
+                            const isUp = d2 > 0; const isAsset = i < 2;
+                            const isAlert = (isAsset && isUp && Math.abs(d2) > 5000) || (!isAsset && !isUp && Math.abs(d2) > 5000);
+                            return (
+                              <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
+                                <td className={`py-2 px-2.5 font-semibold border border-zinc-100 ${row.color}`}>{row.label}</td>
+                                <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold">{formatNumber(Math.round(row.valM/100))}</td>
+                                <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100">{row.pct != null ? `${row.pct}%` : '—'}</td>
+                                <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold ${isAlert ? 'text-rose-600' : isUp ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                                  {diffPct != null ? `${isUp ? '↑' : '↓'}${Math.abs(diffPct)}%` : '—'}{isAlert && ' 🚨'}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          <tr className="bg-emerald-50 font-bold">
+                            <td className="py-2 px-2.5 border border-zinc-100 text-emerald-800">NWC 합계</td>
+                            <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-emerald-800">{formatNumber(Math.round(nwcM/100))}</td>
+                            <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-emerald-700">{nwcPctRev != null ? `${nwcPctRev}%` : '—'}</td>
+                            <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 ${nwcMPrev > 0 ? (nwcM > nwcMPrev ? 'text-rose-600' : 'text-emerald-700') : 'text-zinc-400'}`}>
+                              {nwcMPrev > 0 ? `${nwcM >= nwcMPrev ? '↑' : '↓'}${Math.abs(((nwcM-nwcMPrev)/nwcMPrev*100)).toFixed(1)}%` : '—'}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* 추세 분석 시사점 */}
+                    {nwcTrendInsights.length > 0 && (
+                      <div className="rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
+                        <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
+                        <ul className="space-y-1">
+                          {nwcTrendInsights.map((t, i) => (
+                            <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
+                              <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
+                              <span>{t}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* 리스크 & 이상징후 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전년동기 YoY 대비)</span></p>
+                      <ul className="space-y-1.5">
+                        {nwcRisks.map((r, i) => (
+                          <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
+                            r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
+                            r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                            r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
+                            'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          }`}>{r.text}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 개선 방향 */}
+                    <div>
+                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">개선 방향</p>
+                      <ul className="space-y-1.5">
+                        {nwcSolutions.map((s, i) => (
+                          <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
+                            <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    </div>{/* /우 컬럼 */}
+                  </div>{/* /2열 grid */}
+
+                  {/* ══ 업계 비교 각주 ══ */}
+                  <p className="text-[9px] text-zinc-400 mt-0">※ 업계 기준치(국내 패션업계 참고): DSO 30~45일 / DIO 90~150일 / DPO 30~60일 / CCC 90~150일 · 삼성패션연구소·업계 공개 자료 기반 / DSO·DIO·CCC는 낮을수록, DPO는 높을수록 유리.</p>
+
+                </div>
+              </div>
+            );
+          })()}
         </>
       </div>
       </div>
