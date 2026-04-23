@@ -564,7 +564,14 @@ const buildConsolidatedISLookup = (rows, year) => {
       const fwdLoss =
         Number(lookup[period].__파생평가손실 || 0) +
         Number(lookup[period].__파생거래손실 || 0);
-      if (fwdGain !== 0 || fwdLoss !== 0) {
+      // CSV에 파생상품 계정이 하나라도 존재하면(값=0 포함) 명시적으로 0 세팅
+      // → normalizeYearDataset 클론값(-3,333 등)이 남지 않도록
+      const hasFwdData =
+        lookup[period].__파생평가이익 !== undefined ||
+        lookup[period].__파생거래이익 !== undefined ||
+        lookup[period].__파생평가손실 !== undefined ||
+        lookup[period].__파생거래손실 !== undefined;
+      if (hasFwdData || fwdGain !== 0 || fwdLoss !== 0) {
         lookup[period].선물환손익 = Math.round(fwdGain - fwdLoss);
       }
     }
