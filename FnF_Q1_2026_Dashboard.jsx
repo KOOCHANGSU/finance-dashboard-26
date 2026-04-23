@@ -11178,8 +11178,8 @@ export default function FnFQ1_2026Dashboard() {
         {/* 탭 컨텐츠 */}
         <div>
           {activeTab === 'summary' && renderSummaryTab()}
-          {activeTab === 'income' && renderIncomeTab()}
-          {activeTab === 'balance' && renderBalanceSheetTab()}
+          {activeTab === 'income' && (() => { try { return renderIncomeTab(); } catch(e) { return <div className="p-8 bg-red-50 text-red-700 rounded-lg"><p className="font-bold text-lg mb-2">손익계산서 렌더링 오류</p><pre className="text-xs whitespace-pre-wrap">{e.message}{'\n'}{e.stack}</pre></div>; } })()}
+          {activeTab === 'balance' && (() => { try { return renderBalanceSheetTab(); } catch(e) { return <div className="p-8 bg-red-50 text-red-700 rounded-lg"><p className="font-bold text-lg mb-2">재무상태표 렌더링 오류</p><pre className="text-xs whitespace-pre-wrap">{e.message}{'\n'}{e.stack}</pre></div>; } })()}
           {activeTab === 'entity' && renderEntityStatementsTab()}
         </div>
 
