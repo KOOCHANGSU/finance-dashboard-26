@@ -850,8 +850,10 @@ export default function FnFQ1_2026Dashboard() {
       const iH = Math.round(isSubTabRef.current?.getBoundingClientRect().height ?? 0);  // 실제 높이 측정
       const bH = Math.round(bsSubTabRef.current?.getBoundingClientRect().height ?? 0);  // 실제 높이 측정
       const subH = Math.max(eH, iH, bH);
+      // ※ tabNavRef는 mainHeaderRef 내부에 있으므로 hH에 tH가 이미 포함됨
+      //   → entityTab = hH (mainHeader 전체 높이), thead = hH + subH
       setStickyTop(prev => {
-        const next = { tabNav: hH, entityTab: hH + tH, thead: hH + tH + subH };
+        const next = { tabNav: hH - tH, entityTab: hH, thead: hH + subH };
         if (prev.tabNav === next.tabNav && prev.entityTab === next.entityTab && prev.thead === next.thead) return prev;
         return next;
       });
