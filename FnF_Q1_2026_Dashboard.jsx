@@ -898,6 +898,7 @@ export default function FnFQ1_2026Dashboard() {
   // 일별 환율 추이 차트
   const [fxRateData, setFxRateData] = useState([]);
   const [fxVisible, setFxVisible] = useState({ USD: true, CNY: true, HKD: false, EUR: false, TWD: false });
+  const [entityBsCompareMode, setEntityBsCompareMode] = useState('prevYearEnd'); // 법인별 BS 비교모드: 'sameQuarter' | 'prevYearEnd'
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
   const [hiddenEntityCards, setHiddenEntityCards] = useState(() => {
     // localStorage에서 숨겨진 법인 카드 목록 로드
@@ -10575,7 +10576,8 @@ export default function FnFQ1_2026Dashboard() {
     const q = Number((selectedPeriod?.split('_')?.[1] || 'Q1').replace('Q', '')) || 1;
     const period25 = `2025_${q}Q`;
     const period26 = `2026_${q}Q`;
-    const bsPeriod25 = '2025_4Q'; // 법인별 BS는 전기말(2025.4Q) 비교
+    // 법인별 BS 비교 기간: 동분기(전년 동분기) or 전기말(25.4Q)
+    const bsPeriod25 = entityBsCompareMode === 'sameQuarter' ? period25 : '2025_4Q';
     const entityTabs = [
       { label: 'OC(국내)', key: 'OC(국내)' },
       { label: '중국', key: '중국' },
@@ -11089,54 +11091,58 @@ export default function FnFQ1_2026Dashboard() {
       </>
     );
 
-    // BS 섹션 JSX — 동분기(25.1Q) + 전기말(25.4Q) + 당기(26.1Q) 3열 비교
-    const bsSameQPeriod = period25;   // 동분기: 2025_1Q
-    const bsYearEndPeriod = bsPeriod25; // 전기말: 2025_4Q
+    // BS 섹션 JSX — 동분기/전기말 토글 방식
     const entityBSSection = (
       <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-          <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 재무상태표</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-zinc-900">{displayEntityName} 재무상태표</h3>
+            {/* 동분기/전기말 토글 */}
+            <div className="inline-flex p-0.5 bg-zinc-100 rounded-lg border border-zinc-200">
+              <button
+                type="button"
+                onClick={() => setEntityBsCompareMode('sameQuarter')}
+                className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${
+                  entityBsCompareMode === 'sameQuarter'
+                    ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >동분기</button>
+              <button
+                type="button"
+                onClick={() => setEntityBsCompareMode('prevYearEnd')}
+                className={`px-3 py-1 text-xs font-medium rounded transition-all duration-150 ${
+                  entityBsCompareMode === 'prevYearEnd'
+                    ? 'bg-white text-zinc-900 border border-zinc-200 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >전기말</button>
+            </div>
+          </div>
         </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <colgroup>
-                <col style={{minWidth:'130px'}} />
-                <col style={{minWidth:'95px'}} />
-                <col style={{minWidth:'95px'}} />
-                <col style={{minWidth:'95px'}} />
-                <col style={{minWidth:'90px'}} />
-                <col style={{minWidth:'70px'}} />
-                <col style={{minWidth:'168px'}} />
-              </colgroup>
               <thead>
                 <tr className="bg-zinc-100 border-b-2 border-zinc-300">
-                  <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200">과목</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-500 border-r border-zinc-200">
-                    <div className="text-[10px] font-medium text-zinc-400">동분기</div>
-                    <div>{getBsPeriodLabel(bsSameQPeriod)}</div>
+                  <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">
+                    <div className="text-[10px] font-normal text-zinc-400">{entityBsCompareMode === 'sameQuarter' ? '동분기' : '전기말'}</div>
+                    {getBsPeriodLabel(bsPeriod25)}
                   </th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200">
-                    <div className="text-[10px] font-medium text-zinc-400">전기말</div>
-                    <div>{getBsPeriodLabel(bsYearEndPeriod)}</div>
-                  </th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200">
-                    <div className="text-[10px] font-medium text-zinc-500">당기</div>
-                    <div>{getBsPeriodLabel(period26)}</div>
-                  </th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200">증감액<br/><span className="text-[10px] font-normal text-zinc-400">vs전기말</span></th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200">증감률<br/><span className="text-[10px] font-normal text-zinc-400">vs전기말</span></th>
-                  <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 border-l border-zinc-200">증감분석</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
+                  <th className="text-center px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
                 </tr>
               </thead>
               <tbody>
                 {entityBalanceItems.map((item, idx) => {
-                  const valSameQ = valBS(item.key, bsSameQPeriod);
-                  const valYearEnd = valBS(item.key, bsYearEndPeriod);
+                  const val25 = valBS(item.key, bsPeriod25);
                   const val26 = valBS(item.key, period26);
                   const isTotalItem = item.key.includes('총계');
-                  if (!isTotalItem && valSameQ === 0 && valYearEnd === 0 && val26 === 0) return null;
-                  const diff = val26 - valYearEnd;   // 전기말 대비 증감
-                  const change = calculateYoY(val26, valYearEnd);
+                  if (!isTotalItem && val25 === 0 && val26 === 0) return null;
+                  const diff = val26 - val25;
+                  const change = calculateYoY(val26, val25);
                   const highlightClass =
                     item.highlight === 'blue'
                       ? 'bg-blue-50/50'
@@ -11150,8 +11156,7 @@ export default function FnFQ1_2026Dashboard() {
                       <td className={`px-3 py-2 border-r border-zinc-200 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-600'} ${item.depth === 1 ? 'pl-6' : ''}`}>
                         {item.label}
                       </td>
-                      <td className="text-right px-3 py-2 text-zinc-400 border-r border-zinc-200 tabular-nums">{valSameQ !== 0 ? formatNumber(valSameQ) : '-'}</td>
-                      <td className="text-right px-3 py-2 text-zinc-500 border-r border-zinc-200 tabular-nums">{formatNumber(valYearEnd)}</td>
+                      <td className="text-right px-3 py-2 text-zinc-500 border-r border-zinc-200 tabular-nums">{formatNumber(val25)}</td>
                       <td className={`text-right px-3 py-2 border-r border-zinc-200 tabular-nums ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-700'}`}>
                         {formatNumber(val26)}
                       </td>
