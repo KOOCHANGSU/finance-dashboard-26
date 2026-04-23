@@ -896,7 +896,7 @@ export default function FnFQ1_2026Dashboard() {
   const [miscDraft, setMiscDraft] = useState({}); // 기타손익 구성상세 임시 입력값
   // 일별 환율 추이 차트
   const [fxRateData, setFxRateData] = useState([]);
-  const [fxVisible, setFxVisible] = useState({ USD: true, CNY: true, HKD: true, EUR: true, TWD: true });
+  const [fxVisible, setFxVisible] = useState({ USD: true, CNY: true, HKD: false, EUR: false, TWD: false });
   const [bsEditMode, setBsEditMode] = useState(false); // 재무상태표 증감 분석 편집 모드
   const [hiddenEntityCards, setHiddenEntityCards] = useState(() => {
     // localStorage에서 숨겨진 법인 카드 목록 로드
@@ -11212,25 +11212,6 @@ export default function FnFQ1_2026Dashboard() {
                 <p className="mt-1.5 text-sm text-white/90">
                   {selectedPeriod?.split('_')?.[0] || '2026'}년 F&F 연결 재무 대시보드
                 </p>
-                <p className="mt-1 text-xs sm:text-sm text-white/85 leading-relaxed">
-                  <span className="text-white/90">(분기·누적 조회 가능 / </span>
-                  <span className="text-red-400 font-medium">단위: 백만원</span>
-                  <span className="text-white/90">)</span>
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 border-t border-white/25 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-              <div>
-                <span className="font-semibold text-white">보고단위</span>{' '}
-                <span className="text-white/90">연결(Consolidated)</span>
-              </div>
-              <div>
-                <span className="font-semibold text-white">조회기간</span>{' '}
-                <span className="text-white/90">
-                  {selectedPeriod
-                    ? `${selectedPeriod.split('_')[0]}년 ${selectedPeriod.split('_')[1]?.replace('Q', '') || '1'}분기`
-                    : '2026년 1분기'}
-                </span>
               </div>
             </div>
           </div>
