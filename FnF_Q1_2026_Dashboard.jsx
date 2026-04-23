@@ -4772,7 +4772,7 @@ export default function FnFQ1_2026Dashboard() {
             {/* 조정 EPS (투자부동산처분이익 제외) */}
             {card.epsAdj > 0 && (
               <div className="pt-2 border-t border-zinc-200 mt-1 bg-indigo-50 rounded-b-lg -mx-4 -mb-4 px-4 pb-3 pt-2">
-                <div className="text-[10px] font-medium text-indigo-500 mb-1">투자부동산처분이익 제외</div>
+                <div className="text-[10px] font-medium text-indigo-500 mb-1">조정 EPS (투자부동산처분이익 제외)</div>
                 <div className="flex items-baseline justify-between">
                   <span className="text-lg font-bold text-indigo-700">{formatEPS(card.epsAdj)}<span className="text-xs font-normal ml-0.5">원</span></span>
                   {card.epsPrevAdj > 0 && (
