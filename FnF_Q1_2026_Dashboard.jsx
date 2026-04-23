@@ -931,6 +931,19 @@ export default function FnFQ1_2026Dashboard() {
 
   // 일별 환율 CSV 로드 (매매기준율 5개 파일 병합)
   useEffect(() => {
+    // 따옴표 포함 CSV 한 줄 파싱 ("1,289.40" 같은 quoted field 처리)
+    const parseCsvLine = (line) => {
+      const fields = [];
+      let cur = '', inQ = false;
+      for (let c = 0; c < line.length; c++) {
+        const ch = line[c];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { fields.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+      fields.push(cur);
+      return fields;
+    };
     const parseFxCsv = async (filename) => {
       try {
         const res = await fetch(`/${encodeURIComponent(filename)}`);
@@ -942,10 +955,11 @@ export default function FnFQ1_2026Dashboard() {
         if (startIdx < 0) return {};
         const result = {};
         for (let i = startIdx + 1; i < lines.length; i++) {
-          const row = lines[i].split(',');
+          if (!lines[i].trim()) continue;
+          const row = parseCsvLine(lines[i]);
           if (row.length < 3) continue;
           const rawDate = row[0].trim(); // "2024.01.02"
-          const rawRate = row[2].replace(/[",\s]/g, ''); // "1,289.40" → "1289.40"
+          const rawRate = row[2].replace(/[,\s]/g, ''); // "1,289.40" → "1289.40" (따옴표는 이미 제거됨)
           if (!rawDate || !rawRate) continue;
           const date = rawDate.replace(/\./g, '-'); // "2024-01-02"
           const rate = parseFloat(rawRate);
