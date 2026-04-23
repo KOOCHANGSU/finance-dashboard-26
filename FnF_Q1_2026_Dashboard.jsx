@@ -178,6 +178,7 @@ const normalizeAccount = (v) =>
     .replace(/[.,\-_:·]/g, '')
     .replace(/[()]/g, '')
     .replace(/Ⅰ|Ⅱ|Ⅲ|Ⅳ|Ⅴ|Ⅵ|Ⅶ|Ⅷ|Ⅸ|Ⅹ/g, '')
+    .replace(/^\d+/, '')   // "(2)재고자산" → "2재고자산" → "재고자산" (앞 숫자 제거)
     .trim();
 
 const buildEntityQuarterLookup = (rows, year) => {
@@ -10925,7 +10926,7 @@ export default function FnFQ1_2026Dashboard() {
             value={getEntityReason(stmt, rowKey)}
             onChange={(e) => setEntityReason(stmt, rowKey, e.target.value)}
             rows={2}
-            placeholder="증감 사유 입력"
+            placeholder="증감분석 입력"
             className="w-full text-xs text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1.5 resize-y min-h-[2.5rem] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 focus:bg-white"
           />
         )}
@@ -11001,14 +11002,14 @@ export default function FnFQ1_2026Dashboard() {
     };
 
     const entityIsThead = (
-      <thead className="sticky z-20" style={{top: stickyTop.thead}}>
-        <tr className="bg-zinc-50 border-b border-zinc-200">
+      <thead>
+        <tr className="bg-zinc-100 border-b-2 border-zinc-300">
           <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
-          <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
+          <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
-          <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감 사유</th>
+          <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
         </tr>
       </thead>
     );
@@ -11096,14 +11097,14 @@ export default function FnFQ1_2026Dashboard() {
         </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="sticky z-20" style={{top: stickyTop.thead}}>
-                <tr className="bg-zinc-50 border-b border-zinc-200">
+              <thead>
+                <tr className="bg-zinc-100 border-b-2 border-zinc-300">
                   <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(bsPeriod25)}</th>
-                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-100 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
+                  <th className="text-center px-3 py-2 font-semibold text-zinc-900 border-r border-zinc-200 bg-zinc-200 min-w-[95px]">{getBsPeriodLabel(period26)}</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[90px]">증감액</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[70px]">증감률</th>
-                  <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감 사유</th>
+                  <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 min-w-[168px] border-l border-zinc-200">증감분석</th>
                 </tr>
               </thead>
               <tbody>
