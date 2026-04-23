@@ -797,26 +797,34 @@ export default function FnFQ1_2026Dashboard() {
   const [stickyTop, setStickyTop] = React.useState({ tabNav: 0, entityTab: 0, thead: 0 });
   const mainHeaderRef = React.useRef(null);
   const tabNavRef = React.useRef(null);
-  const entityTabRef = React.useRef(null);
+  const entityTabRef = React.useRef(null);   // 법인별 탭 (entity 탭 전용)
+  const isSubTabRef = React.useRef(null);    // 손익계산서 서브탭 바
+  const bsSubTabRef = React.useRef(null);    // 재무상태표 서브탭 바
   // ResizeObserver로 각 요소 높이 변화 감지 → sticky top 값 갱신
   // ※ 함수형 setState로 이전값과 동일할 때 prev 반환 → 무한 리렌더 방지
+  // ※ entityTabRef / isSubTabRef / bsSubTabRef 중 실제 마운트된 것만 높이 기여
   React.useLayoutEffect(() => {
     const recalc = () => {
       const hH = mainHeaderRef.current?.getBoundingClientRect().height ?? 0;
       const tH = tabNavRef.current?.getBoundingClientRect().height ?? 0;
-      const eH = entityTabRef.current?.getBoundingClientRect().height ?? 0;
+      const subH = Math.max(
+        entityTabRef.current?.getBoundingClientRect().height ?? 0,
+        isSubTabRef.current?.getBoundingClientRect().height ?? 0,
+        bsSubTabRef.current?.getBoundingClientRect().height ?? 0,
+      );
       setStickyTop(prev => {
-        if (prev.tabNav === hH && prev.entityTab === hH + tH && prev.thead === hH + tH + eH) return prev;
-        return { tabNav: hH, entityTab: hH + tH, thead: hH + tH + eH };
+        const next = { tabNav: hH, entityTab: hH + tH, thead: hH + tH + subH };
+        if (prev.tabNav === next.tabNav && prev.entityTab === next.entityTab && prev.thead === next.thead) return prev;
+        return next;
       });
     };
     recalc();
     const ro = new ResizeObserver(recalc);
-    if (mainHeaderRef.current) ro.observe(mainHeaderRef.current);
-    if (tabNavRef.current) ro.observe(tabNavRef.current);
-    if (entityTabRef.current) ro.observe(entityTabRef.current);
+    [mainHeaderRef, tabNavRef, entityTabRef, isSubTabRef, bsSubTabRef].forEach(r => {
+      if (r.current) ro.observe(r.current);
+    });
     return () => ro.disconnect();
-  });  // 의존성 없음 → 매 렌더마다 재측정 (entityTabRef mount 타이밍 커버)
+  });  // 의존성 없음 → 매 렌더마다 재측정 (ref mount 타이밍 커버)
   const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
   const [entityStmtOpExpanded, setEntityStmtOpExpanded] = useState(true);
   const [entityStmtNonOpExpanded, setEntityStmtNonOpExpanded] = useState(true);
@@ -7238,7 +7246,7 @@ export default function FnFQ1_2026Dashboard() {
     ];
 
     const isSubTabBar = (
-      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-2">
+      <div ref={isSubTabRef} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-2 sticky z-30" style={{top: stickyTop.entityTab}}>
         <div className="flex flex-wrap items-center gap-1.5">
           {isEntitySubTabList.map(tab => (
             <button
@@ -9455,7 +9463,7 @@ export default function FnFQ1_2026Dashboard() {
     ];
 
     const bsSubTabBar = (
-      <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-2">
+      <div ref={bsSubTabRef} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-2 sticky z-30" style={{top: stickyTop.entityTab}}>
         <div className="flex flex-wrap items-center gap-1.5">
           {bsEntitySubTabList.map(tab => (
             <button
