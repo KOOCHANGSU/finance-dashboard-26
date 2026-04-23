@@ -794,6 +794,21 @@ const normalizeYearDataset = (source, baseYear = '2025', targetRules = { '2024':
 
 export default function FnFQ1_2026Dashboard() {
   const [activeTab, setActiveTab] = useState('summary');
+  const [stickyTop, setStickyTop] = React.useState({ tabNav: 0, entityTab: 0, thead: 0 });
+  const mainHeaderRef = React.useRef(null);
+  const tabNavRef = React.useRef(null);
+  const entityTabRef = React.useRef(null);
+  React.useEffect(() => {
+    const update = () => {
+      const hH = mainHeaderRef.current?.offsetHeight ?? 0;
+      const tH = tabNavRef.current?.offsetHeight ?? 0;
+      const eH = entityTabRef.current?.offsetHeight ?? 0;
+      setStickyTop({ tabNav: hH, entityTab: hH + tH, thead: hH + tH + eH });
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
   const [selectedEntityTab, setSelectedEntityTab] = useState('OC(국내)');
   const [entityStmtOpExpanded, setEntityStmtOpExpanded] = useState(true);
   const [entityStmtNonOpExpanded, setEntityStmtNonOpExpanded] = useState(true);
@@ -10704,7 +10719,7 @@ export default function FnFQ1_2026Dashboard() {
     };
 
     const entityIsThead = (
-      <thead>
+      <thead className="sticky z-20" style={{top: stickyTop.thead}}>
         <tr className="bg-zinc-50 border-b border-zinc-200">
           <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
           <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(period25)}</th>
@@ -10799,7 +10814,7 @@ export default function FnFQ1_2026Dashboard() {
         </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky z-20" style={{top: stickyTop.thead}}>
                 <tr className="bg-zinc-50 border-b border-zinc-200">
                   <th className="text-left px-2 py-2.5 font-semibold text-zinc-700 border-r border-zinc-200 min-w-[130px]">과목</th>
                   <th className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[95px]">{getBsPeriodLabel(bsPeriod25)}</th>
@@ -10863,7 +10878,7 @@ export default function FnFQ1_2026Dashboard() {
     // 법인별 탭 전체 뷰 (IS + BS + 서브탭 바)
     return (
       <div className="space-y-6">
-        <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-3">
+        <div ref={entityTabRef} className="bg-white border-b border-zinc-200 shadow-sm px-3 py-2 sticky z-30" style={{top: stickyTop.entityTab}}>
           <div className="flex flex-wrap items-center gap-2">
             {entityTabs.map((tab) => (
               <button
@@ -10893,7 +10908,7 @@ export default function FnFQ1_2026Dashboard() {
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Sticky 헤더 영역 — 보고서형 네이비 상단 */}
-      <div className="sticky top-0 z-50 shadow-md">
+      <div ref={mainHeaderRef} className="sticky top-0 z-50 shadow-md">
         <div className="bg-[#1e3a5f] text-white relative overflow-hidden">
           <div
             className="pointer-events-none absolute -right-8 top-1/2 -translate-y-1/2 h-40 w-40 rounded-full bg-white/5"
@@ -10939,7 +10954,7 @@ export default function FnFQ1_2026Dashboard() {
           </div>
         </div>
 
-        <div className="bg-zinc-100 border-b border-zinc-200">
+        <div ref={tabNavRef} className="bg-zinc-100 border-b border-zinc-200 sticky z-40 shadow-sm" style={{top: stickyTop.tabNav}}>
           <div className="max-w-screen-2xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="inline-flex p-1 bg-zinc-100 rounded-xl border border-zinc-200">
               {tabs.filter(t => !t.hidden).map((tab) => (
