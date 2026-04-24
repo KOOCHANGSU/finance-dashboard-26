@@ -3172,8 +3172,6 @@ export default function FnFQ1_2026Dashboard() {
       '2025_3Q_Year': { 'OC(국내)': 554518, '중국': 713162, '홍콩': 53313, 'ST미국': 33156, '기타': 4595 },
       '2025_4Q': { 'OC(국내)': 287542, '중국': 247172, '홍콩': 22962, 'ST미국': 15082, '기타': 2494 },
       '2025_Year': { 'OC(국내)': 842060, '중국': 960334, '홍콩': 76275, 'ST미국': 48238, '기타': 7089 },
-      '2026_1Q': { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3234 },
-      '2026_1Q_Year': { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3234 },
     },
     '매출원가': {
       '2024_1Q': { 'OC(국내)': 84861, '중국': 80578, '홍콩': 4359, 'ST미국': 2031, '기타': 2716 },
@@ -3555,6 +3553,13 @@ export default function FnFQ1_2026Dashboard() {
       '2025_Year': { 'OC(국내)': 399488, '중국': 26345, '홍콩': 1040, 'ST미국': -4226, '기타': -19937 },
     },
   }, '2025', yearCloneRules);
+  // ─── 매출액 2026_1Q 확정 수치 Override ──────────────────────────────────────
+  // normalizeYearDataset이 2025_1Q를 2026_1Q로 클론하므로, 확정 수치로 덮어씀
+  if (entityData['매출액']) {
+    entityData['매출액']['2026_1Q'] = { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3234 };
+    entityData['매출액']['2026_1Q_Year'] = { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3234 };
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ============================================
   // 법인별 재무상태표 데이터 (컴포넌트 상위 레벨)
@@ -6817,9 +6822,12 @@ export default function FnFQ1_2026Dashboard() {
             Math.max(Math.abs(curr[a] || 0), Math.abs(prev[a] || 0))
         );
 
-      const entityOrder = [...MAJOR_ENTITIES, ...dynamicEntities, MERGED_ENTITY_LABEL].filter(
-        (v, i, arr) => arr.indexOf(v) === i
-      );
+      // 매출액: 기타(연결조정) 없이 고정 순서 표시 (기타는 맨 마지막)
+      const entityOrder = selectedAccount === '매출액'
+        ? ['OC(국내)', '중국', '홍콩', 'ST미국', '엔터테인먼트', '기타'].filter(k => keyUnion.includes(k))
+        : [...MAJOR_ENTITIES, ...dynamicEntities, MERGED_ENTITY_LABEL].filter(
+            (v, i, arr) => arr.indexOf(v) === i
+          );
 
       return entityOrder.map(entity => {
         const prevVal = prev[entity] || 0;
