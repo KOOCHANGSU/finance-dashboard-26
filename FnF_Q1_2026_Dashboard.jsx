@@ -10026,62 +10026,62 @@ export default function FnFQ1_2026Dashboard() {
                   </tbody>
                 </table>
               </div>
+
+              {/* 분기별 추이 - 우측 패널 내, 법인별 구성 테이블 아래 */}
+              {balanceItems.find(i => i.key === selectedBSAccount)?.selectable && quarterlyEntityData[selectedBSAccount] && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-bold text-zinc-700 tracking-tight">분기별 추이</h4>
+                    <div className="flex items-center gap-3">
+                      {Object.entries(trendColors).map(([name, color]) => (
+                        <div key={name} className="flex items-center gap-1">
+                          <span className="w-3 h-0.5 rounded" style={{ backgroundColor: color }}></span>
+                          <span className="text-xs text-zinc-500">{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ height: 140 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={quarterlyEntityData[selectedBSAccount]} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                        <XAxis dataKey="quarter" tick={{ fontSize: 9, fill: '#71717a' }} axisLine={{ stroke: '#d4d4d8' }} tickLine={false} />
+                        <YAxis tick={{ fontSize: 8, fill: '#a1a1aa' }} axisLine={false} tickLine={false}
+                          tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value} width={38} />
+                        <Tooltip content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white/95 border border-zinc-200 rounded-lg shadow-lg px-2 py-1.5 min-w-[100px]">
+                                <p className="text-xs font-medium text-zinc-500 mb-1 pb-1 border-b border-zinc-100">{label}</p>
+                                <div className="space-y-0.5">
+                                  {payload.map((entry, index) => (
+                                    <div key={index} className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                                        <span className="text-xs text-zinc-600">{entry.dataKey}</span>
+                                      </div>
+                                      <span className="text-xs font-semibold text-zinc-900">{formatNumber(entry.value)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }} />
+                        <Line type="monotone" dataKey="OC(국내)" stroke={trendColors['OC(국내)']} strokeWidth={1.5} dot={{ r: 2, fill: trendColors['OC(국내)'] }} activeDot={{ r: 4 }} />
+                        <Line type="monotone" dataKey="중국" stroke={trendColors['중국']} strokeWidth={1.5} dot={{ r: 2, fill: trendColors['중국'] }} activeDot={{ r: 4 }} />
+                        <Line type="monotone" dataKey="기타" stroke={trendColors['기타']} strokeWidth={1.5} dot={{ r: 2, fill: trendColors['기타'] }} activeDot={{ r: 4 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-1 text-center">* 기타 = 홍콩 + ST미국</p>
+                </div>
+              )}
             </div>}
 
           </div>
         </div>
-
-        {/* 분기별 추이 - 현금성자산 외 계정 (전체 너비) */}
-        {selectedBSAccount !== '현금성자산' && balanceItems.find(i => i.key === selectedBSAccount)?.selectable && quarterlyEntityData[selectedBSAccount] && (
-          <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight">분기별 추이</h3>
-              <div className="flex items-center gap-4">
-                {Object.entries(trendColors).map(([name, color]) => (
-                  <div key={name} className="flex items-center gap-1.5">
-                    <span className="w-3 h-0.5 rounded" style={{ backgroundColor: color }}></span>
-                    <span className="text-xs text-zinc-500">{name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ height: 160 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={quarterlyEntityData[selectedBSAccount]} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                  <XAxis dataKey="quarter" tick={{ fontSize: 10, fill: '#71717a' }} axisLine={{ stroke: '#d4d4d8' }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 9, fill: '#a1a1aa' }} axisLine={false} tickLine={false}
-                    tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value} width={45} />
-                  <Tooltip content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2 min-w-[120px]">
-                          <p className="text-xs font-medium text-zinc-500 mb-1.5 pb-1.5 border-b border-zinc-100">{label}</p>
-                          <div className="space-y-1">
-                            {payload.map((entry, index) => (
-                              <div key={index} className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
-                                  <span className="text-xs text-zinc-600">{entry.dataKey}</span>
-                                </div>
-                                <span className="text-xs font-semibold text-zinc-900">{formatNumber(entry.value)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }} />
-                  <Line type="monotone" dataKey="OC(국내)" stroke={trendColors['OC(국내)']} strokeWidth={2} dot={{ r: 3, fill: trendColors['OC(국내)'] }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="중국" stroke={trendColors['중국']} strokeWidth={2} dot={{ r: 3, fill: trendColors['중국'] }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="기타" stroke={trendColors['기타']} strokeWidth={2} dot={{ r: 3, fill: trendColors['기타'] }} activeDot={{ r: 5 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            <p className="text-xs text-zinc-400 mt-2 text-center">* 기타 = 홍콩 + ST미국</p>
-          </div>
-        )}
 
         {/* 법인별 구성(좌) + 분기별 추이(우) 2열 레이아웃 - 현금성자산 선택 시에만 표시 */}
         {selectedBSAccount === '현금성자산' && (
