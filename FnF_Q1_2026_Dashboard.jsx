@@ -6817,25 +6817,280 @@ export default function FnFQ1_2026Dashboard() {
       // 2026 이후: normalizeYearDataset가 2025 데이터를 클론하므로 CSV를 우선 사용
       const isCurrentOrFuture = period.startsWith('2026') || period.startsWith('2027');
       if (isCurrentOrFuture) {
+        // 1) CSV 직접 조회
         for (const ak of tryKeys) {
           const csvKey = normalizeAccount(ak);
           const csvData = entityCsvLookup?.is?.[csvPeriodKey]?.[csvKey];
           if (csvData && Object.keys(csvData).length > 0) return csvData;
         }
+
+        // 2) CSV 직접 조회 실패 시: getISRaw와 동일한 파생 계산으로 법인별 값 산출
+        //    (cloned 2025 entityData 사용 방지)
+        const csvIs = entityCsvLookup?.is?.[csvPeriodKey];
+        if (csvIs) {
+          const PANEL_ENTS = ['OC(국내)', '중국', '홍콩', '베트남', '엔터테인먼트', 'ST미국', '기타(연결조정)'];
+
+          const getE = (key, ek) => {
+            const alts = isAccountAliasesForPanel[key] || [];
+            for (const k of [key, ...alts]) {
+              const v = csvIs[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) return Number(v);
+            }
+            return undefined;
+          };
+
+          const buildR = (fn) => {
+            const r = {};
+            PANEL_ENTS.forEach(ek => { const v = fn(ek); if (v !== undefined) r[ek] = Math.round(v); });
+            return Object.keys(r).length > 0 ? r : null;
+          };
+
+          // 기타판관비 = 판관비 − 인건비 − 광고선전비 − 수수료 − 감가상각비
+          if (accountKey === '기타판관비') {
+            const r = buildR(ek => {
+              const sga = getE('판매비와관리비', ek);
+              if (sga === undefined) return undefined;
+              return sga
+                - (getE('인건비', ek) ?? 0)
+                - (getE('광고선전비', ek) ?? 0)
+                - (getE('수수료', ek) ?? getE('지급수수료', ek) ?? 0)
+                - (getE('감가상각비', ek) ?? 0);
+            });
+            if (r) return r;
+          }
+
+          // 외환손익 = 외환차익 + 외화환산이익 − 외환차손 − 외화환산손실
+          if (accountKey === '외환손익') {
+            const r = buildR(ek => {
+              const g1 = getE('외환차익', ek), g2 = getE('외화환산이익', ek);
+              const l1 = getE('외환차손', ek), l2 = getE('외화환산손실', ek);
+              if (g1 === undefined && g2 === undefined && l1 === undefined && l2 === undefined) return undefined;
+              return Number(g1||0) + Number(g2||0) - Number(l1||0) - Number(l2||0);
+            });
+            if (r) return r;
+          }
+
+          // 이자손익 = 이자수익 − 이자비용
+          if (accountKey === '이자손익') {
+            const r = buildR(ek => {
+              const inc = getE('이자수익', ek), exp = getE('이자비용', ek);
+              if (inc === undefined && exp === undefined) return undefined;
+              return Number(inc||0) - Number(exp||0);
+            });
+            if (r) return r;
+          }
+
+          // 금융상품손익 = gains − losses
+          if (accountKey === '금융상품손익') {
+            const gK = ['파생상품평가이익','파생상품거래이익','당기손익인식금융자산처분이익','당기손익공정가치측정금융자산평가이익'];
+            const lK = ['파생상품평가손실','파생상품거래손실','당기손익인식금융자산처분손실','당기손익공정가치측정금융자산평가손실'];
+            const r = buildR(ek => {
+              let sum = 0; let found = false;
+              gK.forEach(k => { const v = getE(k, ek); if (v !== undefined) { sum += v; found = true; } });
+              lK.forEach(k => { const v = getE(k, ek); if (v !== undefined) { sum -= v; found = true; } });
+              return found ? sum : undefined;
+            });
+            if (r) return r;
+          }
+
+          // 기타손익 = 잡이익 − 잡손실
+          if (accountKey === '기타손익') {
+            const r = buildR(ek => {
+              const gain = getE('잡이익', ek), loss = getE('잡손실', ek);
+              if (gain === undefined && loss === undefined) return undefined;
+              return Number(gain||0) - Number(loss||0);
+            });
+            if (r) return r;
+          }
+
+          // 기타손익_순 = 기타손익 − 투자부동산처분손익
+          if (accountKey === '기타손익_순') {
+            const r = buildR(ek => {
+              const etc = getE('기타손익', ek) ?? (Number(getE('잡이익',ek)||0) - Number(getE('잡손실',ek)||0));
+              const prop = Number(getE('투자부동산처분이익',ek)||0) - Number(getE('투자부동산처분손실',ek)||0);
+              return etc - prop;
+            });
+            if (r) return r;
+          }
+
+          // 지분법손익 = 지분법이익 − 지분법손실
+          if (accountKey === '지분법손익') {
+            const r = buildR(ek => {
+              const gain = getE('지분법이익', ek), loss = getE('지분법손실', ek);
+              if (gain === undefined && loss === undefined) return undefined;
+              return Number(gain||0) - Number(loss||0);
+            });
+            if (r) return r;
+          }
+
+          // 영업외손익: 영업외수익 − 영업외비용, 없으면 구성 항목 합산
+          if (accountKey === '영업외손익') {
+            if (csvIs[normalizeAccount('영업외수익')] || csvIs[normalizeAccount('영업외비용')]) {
+              const r = buildR(ek => {
+                const inc = getE('영업외수익', ek), exp = getE('영업외비용', ek);
+                if (inc === undefined && exp === undefined) return undefined;
+                return Number(inc||0) - Number(exp||0);
+              });
+              if (r) return r;
+            }
+            const compK = ['외환손익','선물환손익','금융상품손익','이자손익','배당수익','기부금','기타손익'];
+            const r = buildR(ek => {
+              let sum = 0; let found = false;
+              compK.forEach(k => { const v = getE(k, ek); if (v !== undefined) { sum += v; found = true; } });
+              return found ? sum : undefined;
+            });
+            if (r) return r;
+          }
+
+          // 법인세비용차감전순이익 = 영업이익 + 영업외손익 + 지분법손익
+          if (accountKey === '법인세비용차감전순이익') {
+            const r = buildR(ek => {
+              const op = getE('영업이익', ek);
+              const nonOp = getE('영업외손익', ek) ?? getE('영업외수익', ek);
+              const eq = getE('지분법이익', ek);
+              if (op === undefined && nonOp === undefined && eq === undefined) return undefined;
+              return Number(op||0) + Number(nonOp||0) + Number(eq||0);
+            });
+            if (r) return r;
+          }
+
+          // 당기순이익 = 법인세비용차감전순이익 − 법인세비용
+          if (accountKey === '당기순이익') {
+            const r = buildR(ek => {
+              const ebt = getE('법인세비용차감전순이익', ek) ?? getE('세전이익', ek);
+              const tax = getE('법인세비용', ek);
+              if (ebt === undefined && tax === undefined) return undefined;
+              return Number(ebt||0) - Number(tax||0);
+            });
+            if (r) return r;
+          }
+        }
       }
 
-      // 2025 이하: entityData 하드코딩 우선 (정확히 큐레이션된 데이터)
-      const direct = entityData?.[accountKey]?.[period];
-      if (direct && Object.keys(direct).length > 0) return direct;
-      const fromEntityData = entityData?.[accountKey]?.[fallbackPeriod];
-      if (fromEntityData && Object.keys(fromEntityData).length > 0) return fromEntityData;
-
-      // 최종: CSV 폴백
+      // 2025 이하: CSV 우선 (getISRaw와 동일한 우선순위), 없으면 entityData 폴백
       for (const ak of tryKeys) {
         const csvKey = normalizeAccount(ak);
         const csvData = entityCsvLookup?.is?.[csvPeriodKey]?.[csvKey];
         if (csvData && Object.keys(csvData).length > 0) return csvData;
       }
+
+      // CSV에 없는 파생 계정: getISRaw와 동일한 로직으로 계산
+      const csvIs2 = entityCsvLookup?.is?.[csvPeriodKey];
+      if (csvIs2) {
+        const PANEL_ENTS2 = ['OC(국내)', '중국', '홍콩', '베트남', '엔터테인먼트', 'ST미국', '기타(연결조정)'];
+        const getE2 = (key, ek) => {
+          const alts = isAccountAliasesForPanel[key] || [];
+          for (const k of [key, ...alts]) {
+            const v = csvIs2[normalizeAccount(k)]?.[ek];
+            if (v !== undefined) return Number(v);
+          }
+          return undefined;
+        };
+        const buildR2 = (fn) => {
+          const r = {};
+          PANEL_ENTS2.forEach(ek => { const v = fn(ek); if (v !== undefined) r[ek] = Math.round(v); });
+          return Object.keys(r).length > 0 ? r : null;
+        };
+        if (accountKey === '기타판관비') {
+          const r = buildR2(ek => {
+            const sga = getE2('판매비와관리비', ek);
+            if (sga === undefined) return undefined;
+            return sga - (getE2('인건비',ek)??0) - (getE2('광고선전비',ek)??0)
+              - (getE2('수수료',ek) ?? getE2('지급수수료',ek) ?? 0) - (getE2('감가상각비',ek)??0);
+          });
+          if (r) return r;
+        }
+        if (accountKey === '외환손익') {
+          const r = buildR2(ek => {
+            const g1=getE2('외환차익',ek), g2=getE2('외화환산이익',ek), l1=getE2('외환차손',ek), l2=getE2('외화환산손실',ek);
+            if (g1===undefined&&g2===undefined&&l1===undefined&&l2===undefined) return undefined;
+            return Number(g1||0)+Number(g2||0)-Number(l1||0)-Number(l2||0);
+          });
+          if (r) return r;
+        }
+        if (accountKey === '이자손익') {
+          const r = buildR2(ek => {
+            const inc=getE2('이자수익',ek), exp=getE2('이자비용',ek);
+            if (inc===undefined&&exp===undefined) return undefined;
+            return Number(inc||0)-Number(exp||0);
+          });
+          if (r) return r;
+        }
+        if (accountKey === '금융상품손익') {
+          const gK=['파생상품평가이익','파생상품거래이익','당기손익인식금융자산처분이익','당기손익공정가치측정금융자산평가이익'];
+          const lK=['파생상품평가손실','파생상품거래손실','당기손익인식금융자산처분손실','당기손익공정가치측정금융자산평가손실'];
+          const r = buildR2(ek => {
+            let s=0,f=false;
+            gK.forEach(k=>{const v=getE2(k,ek);if(v!==undefined){s+=v;f=true;}});
+            lK.forEach(k=>{const v=getE2(k,ek);if(v!==undefined){s-=v;f=true;}});
+            return f?s:undefined;
+          });
+          if (r) return r;
+        }
+        if (accountKey === '기타손익') {
+          const r = buildR2(ek => {
+            const g=getE2('잡이익',ek), l=getE2('잡손실',ek);
+            if (g===undefined&&l===undefined) return undefined;
+            return Number(g||0)-Number(l||0);
+          });
+          if (r) return r;
+        }
+        if (accountKey === '기타손익_순') {
+          const r = buildR2(ek => {
+            const etc=getE2('기타손익',ek)??(Number(getE2('잡이익',ek)||0)-Number(getE2('잡손실',ek)||0));
+            const prop=Number(getE2('투자부동산처분이익',ek)||0)-Number(getE2('투자부동산처분손실',ek)||0);
+            return etc-prop;
+          });
+          if (r) return r;
+        }
+        if (accountKey === '지분법손익') {
+          const r = buildR2(ek => {
+            const g=getE2('지분법이익',ek), l=getE2('지분법손실',ek);
+            if (g===undefined&&l===undefined) return undefined;
+            return Number(g||0)-Number(l||0);
+          });
+          if (r) return r;
+        }
+        if (accountKey === '영업외손익') {
+          if (csvIs2[normalizeAccount('영업외수익')]||csvIs2[normalizeAccount('영업외비용')]) {
+            const r = buildR2(ek => {
+              const inc=getE2('영업외수익',ek), exp=getE2('영업외비용',ek);
+              if (inc===undefined&&exp===undefined) return undefined;
+              return Number(inc||0)-Number(exp||0);
+            });
+            if (r) return r;
+          }
+          const compK=['외환손익','선물환손익','금융상품손익','이자손익','배당수익','기부금','기타손익'];
+          const r = buildR2(ek => {
+            let s=0,f=false;
+            compK.forEach(k=>{const v=getE2(k,ek);if(v!==undefined){s+=v;f=true;}});
+            return f?s:undefined;
+          });
+          if (r) return r;
+        }
+        if (accountKey === '법인세비용차감전순이익') {
+          const r = buildR2(ek => {
+            const op=getE2('영업이익',ek), nonOp=getE2('영업외손익',ek)??getE2('영업외수익',ek), eq=getE2('지분법이익',ek);
+            if (op===undefined&&nonOp===undefined&&eq===undefined) return undefined;
+            return Number(op||0)+Number(nonOp||0)+Number(eq||0);
+          });
+          if (r) return r;
+        }
+        if (accountKey === '당기순이익') {
+          const r = buildR2(ek => {
+            const ebt=getE2('법인세비용차감전순이익',ek)??getE2('세전이익',ek), tax=getE2('법인세비용',ek);
+            if (ebt===undefined&&tax===undefined) return undefined;
+            return Number(ebt||0)-Number(tax||0);
+          });
+          if (r) return r;
+        }
+      }
+
+      // CSV 없을 때 entityData 폴백
+      const direct = entityData?.[accountKey]?.[period];
+      if (direct && Object.keys(direct).length > 0) return direct;
+      const fromEntityData = entityData?.[accountKey]?.[fallbackPeriod];
+      if (fromEntityData && Object.keys(fromEntityData).length > 0) return fromEntityData;
       return {};
     };
 
