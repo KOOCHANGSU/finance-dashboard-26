@@ -8020,7 +8020,7 @@ export default function FnFQ1_2026Dashboard() {
                   </tbody>
                 </table>
                 <p className="text-[10px] text-zinc-400 px-2 py-1 bg-zinc-50 border-t border-zinc-100">* 단위: 백만원</p>
-              </div>}
+              </div>
               </>
                 );
               })()}
