@@ -9964,7 +9964,7 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div>}
 
             {/* 법인별 테이블 */}
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
