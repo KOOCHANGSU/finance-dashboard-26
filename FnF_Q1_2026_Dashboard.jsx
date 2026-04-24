@@ -9695,17 +9695,17 @@ export default function FnFQ1_2026Dashboard() {
               <div className="mt-1 overflow-hidden rounded-lg border border-zinc-200">
                 <table className="w-full text-xs table-fixed">
                   <colgroup>
-                    <col className="w-[28%]" />
-                    <col className="w-[24%]" />
-                    <col className="w-[24%]" />
-                    <col className="w-[24%]" />
+                    <col className="w-[25%]" />
+                    <col className="w-[25%]" />
+                    <col className="w-[25%]" />
+                    <col className="w-[25%]" />
                   </colgroup>
                   <thead>
                     <tr className="bg-zinc-100">
                       <th className="px-3 py-2 text-left font-semibold text-zinc-700 border-b border-zinc-200">자본</th>
                       <th className="px-3 py-2 text-right font-semibold text-zinc-700 border-b border-zinc-200">25년말</th>
                       <th className="px-3 py-2 text-right font-semibold text-emerald-700 border-b border-zinc-200">26.1Q말</th>
-                      <th className="px-3 py-2 text-right font-semibold text-zinc-600 border-b border-zinc-200">차이</th>
+                      <th className="px-3 py-2 text-right font-semibold text-zinc-700 border-b border-zinc-200">차이</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -9713,13 +9713,13 @@ export default function FnFQ1_2026Dashboard() {
                       <td className="px-3 py-1.5 text-zinc-600">자본금</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">3,831</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">3,831</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums text-zinc-400">-</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">0</td>
                     </tr>
                     <tr className="border-b border-zinc-100">
                       <td className="px-3 py-1.5 text-zinc-600">자본잉여금</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">307,329</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">307,329</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums text-zinc-400">-</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">0</td>
                     </tr>
                     <tr className="border-b border-zinc-100">
                       <td className="px-3 py-1.5 text-zinc-600">기타포괄손익</td>
@@ -9737,15 +9737,15 @@ export default function FnFQ1_2026Dashboard() {
                       <td className="px-3 py-1.5 text-zinc-600">자본조정</td>
                       <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(59,049)</td>
                       <td className="px-3 py-1.5 text-right text-rose-600 tabular-nums">(59,049)</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums text-zinc-400">-</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">0</td>
                     </tr>
                     <tr className="border-b border-zinc-200 bg-amber-50/50">
                       <td className="px-3 py-1.5 text-zinc-800 font-semibold">비지배지분</td>
-                      <td className="px-3 py-1.5 text-right font-semibold tabular-nums text-zinc-400">-</td>
-                      <td className="px-3 py-1.5 text-right font-semibold tabular-nums text-zinc-400">-</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums text-zinc-400">-</td>
+                      <td className="px-3 py-1.5 text-right font-semibold tabular-nums">0</td>
+                      <td className="px-3 py-1.5 text-right font-semibold tabular-nums">0</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">0</td>
                     </tr>
-                    <tr className="border-b border-zinc-200 bg-zinc-100">
+                    <tr className="bg-zinc-100">
                       <td className="px-3 py-2 text-zinc-800 font-semibold">합계</td>
                       <td className="px-3 py-2 text-right font-semibold tabular-nums">1,878,679</td>
                       <td className="px-3 py-2 text-right font-semibold tabular-nums">1,976,194</td>
