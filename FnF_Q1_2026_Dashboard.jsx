@@ -10090,26 +10090,9 @@ export default function FnFQ1_2026Dashboard() {
             }
           });
 
-          // ── 우측 entity 카드 데이터 ──
-          const cfEntityColors = { 'OC(국내)': '#3b82f6', '중국': '#f59e0b', '홍콩': '#8b5cf6', 'ST미국': '#10b981', '기타(연결조정)': '#6b7280' };
-          const cfEntityOrder = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
-          const getCashVal = (period, entity) => {
-            const candidates = entity === '기타(연결조정)' ? ['기타(연결조정)', '기타', '연결조정'] : [entity];
-            for (const ek of candidates) {
-              const v = entityCsvLookup?.bs?.[period]?.['현금및현금성자산']?.[ek];
-              if (v !== undefined) return v;
-            }
-            return entityBSData?.[period]?.현금성자산?.[entity] ?? 0;
-          };
-          const totalCurr = balanceSheetData[bsCurrentPeriod]?.현금성자산 || 0;
-          const totalPrev = balanceSheetData[bsPrevPeriod]?.현금성자산 || 0;
-          const totalDiffBil = Math.round((totalCurr - totalPrev) / 100);
-          const totalYoY = totalPrev ? (((totalCurr - totalPrev) / Math.abs(totalPrev)) * 100).toFixed(1) : null;
-
           return (
-            <div className="flex gap-4 mt-4">
-              {/* 좌: 현금 변동내역 */}
-              <div className="flex-1 min-w-0 bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+            <div className="mt-4">
+              <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between bg-zinc-50 px-4 py-2.5 border-b border-zinc-200">
                   <h3 className="text-sm font-semibold text-zinc-800">▷ 현금 및 현금성자산 변동내역</h3>
                   <span className="text-[10px] text-zinc-400 font-normal">(단위: 억원)</span>
@@ -10147,65 +10130,6 @@ export default function FnFQ1_2026Dashboard() {
                     })}
                   </tbody>
                 </table>
-              </div>
-
-              {/* 우: 현금성자산 구성 상세 카드 */}
-              <div className="w-[38%] flex-shrink-0 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col">
-                <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-200 bg-zinc-50">
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-800">현금성자산 구성 상세</h3>
-                    <p className="text-[10px] text-zinc-400">YoY 변동 ({getBsPeriodLabel(bsPrevPeriod)} → {getBsPeriodLabel(bsCurrentPeriod)}) · 단위: 억원</p>
-                  </div>
-                  <button onClick={() => setCashEntityEditMode(m => !m)} title={cashEntityEditMode ? '저장' : '편집'} className={`text-xs px-2 py-1 rounded ${cashEntityEditMode ? 'bg-blue-100 text-blue-600' : 'text-zinc-400 hover:text-blue-500'} transition-colors`}>
-                    {cashEntityEditMode ? '완료' : '편집'}
-                  </button>
-                </div>
-                <div className="p-3 space-y-2 flex-1 overflow-y-auto">
-                  {cfEntityOrder.map(entity => {
-                    const curr = getCashVal(bsCurrentPeriod, entity);
-                    const prev = getCashVal(bsPrevPeriod, entity);
-                    const diffBil = Math.round((curr - prev) / 100);
-                    if (curr === 0 && prev === 0) return null;
-                    const noteKey = `cash_${entity}`;
-                    const noteText = cashEntityNotes[noteKey] || '';
-                    const color = cfEntityColors[entity] || '#6b7280';
-                    return (
-                      <div key={entity} className="rounded-lg border border-zinc-100 px-3 py-2.5 bg-zinc-50/60">
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></span>
-                            <span className="text-xs font-semibold text-zinc-700">{entity}</span>
-                          </div>
-                          <span className={`text-xs font-bold tabular-nums ${diffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {diffBil >= 0 ? '+' : ''}{diffBil.toLocaleString('ko-KR')}억원
-                          </span>
-                        </div>
-                        {cashEntityEditMode ? (
-                          <textarea
-                            value={noteText}
-                            onChange={e => setCashEntityNotes(p => ({ ...p, [noteKey]: e.target.value }))}
-                            rows={2}
-                            placeholder="변동 내용 입력"
-                            className="w-full text-[10px] text-zinc-600 bg-white border border-blue-200 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
-                          />
-                        ) : (
-                          <p className="text-[10px] text-zinc-400 leading-relaxed min-h-[1.2rem]">
-                            {noteText || '유의미한 변동 없음'}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="px-4 py-2.5 border-t border-zinc-200 bg-zinc-50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500">전체 YoY 변동</span>
-                    <span className={`text-xs font-bold tabular-nums ${totalDiffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {totalDiffBil >= 0 ? '+' : ''}{totalDiffBil.toLocaleString('ko-KR')}억원
-                      {totalYoY ? ` (${parseFloat(totalYoY) >= 0 ? '+' : ''}${totalYoY}%)` : ''}
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
           );
