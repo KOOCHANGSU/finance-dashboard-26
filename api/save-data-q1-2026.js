@@ -5,8 +5,26 @@ const redis = new Redis({
   token: process.env.fnf_report_KV_REST_API_TOKEN,
 });
 
+// Vercel serverless function에서 req.body 수동 파싱
+const parseBody = (req) =>
+  new Promise((resolve, reject) => {
+    if (req.body && typeof req.body === 'object') {
+      // 이미 파싱된 경우 (Next.js 등)
+      return resolve(req.body);
+    }
+    let raw = '';
+    req.on('data', (chunk) => (raw += chunk));
+    req.on('end', () => {
+      try {
+        resolve(raw ? JSON.parse(raw) : null);
+      } catch (e) {
+        reject(new Error('Invalid JSON body'));
+      }
+    });
+    req.on('error', reject);
+  });
+
 export default async function handler(req, res) {
-  // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -22,9 +40,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = req.body;
+    const data = await parseBody(req);
 
-    // 데이터 유효성 검사
     if (!data) {
       return res.status(400).json({ error: 'No data provided' });
     }
@@ -38,7 +55,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       message: '데이터가 저장되었습니다.',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Save error:', error);

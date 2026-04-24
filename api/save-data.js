@@ -5,8 +5,24 @@ const redis = new Redis({
   token: process.env.fnf_report_KV_REST_API_TOKEN,
 });
 
+const parseBody = (req) =>
+  new Promise((resolve, reject) => {
+    if (req.body && typeof req.body === 'object') {
+      return resolve(req.body);
+    }
+    let raw = '';
+    req.on('data', (chunk) => (raw += chunk));
+    req.on('end', () => {
+      try {
+        resolve(raw ? JSON.parse(raw) : null);
+      } catch (e) {
+        reject(new Error('Invalid JSON body'));
+      }
+    });
+    req.on('error', reject);
+  });
+
 export default async function handler(req, res) {
-  // CORS 헤더 설정
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -22,23 +38,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const data = req.body;
-    
-    // 데이터 유효성 검사
+    const data = await parseBody(req);
+
     if (!data) {
       return res.status(400).json({ error: 'No data provided' });
     }
 
-    // Redis에 데이터 저장 (키: 'dashboard_analysis')
     await redis.set('dashboard_analysis', JSON.stringify({
       ...data,
       lastUpdated: new Date().toISOString(),
     }));
 
-    return res.status(200).json({ 
-      success: true, 
+    return res.status(200).json({
+      success: true,
       message: '데이터가 저장되었습니다.',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Save error:', error);
