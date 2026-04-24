@@ -9754,11 +9754,6 @@ export default function FnFQ1_2026Dashboard() {
               <div className="mt-3 px-3 py-2 bg-zinc-50 rounded-lg text-xs text-zinc-600">
                 <div className="font-medium text-zinc-700 mb-1">* 연결자본 : 모회사의 자본+비지배지분</div>
                 <div className="pl-3">{"→ 추가 비지배지분의 취득 : 지분율↑/자본감소(비지배지분제거)"}</div>
-                <div className="mt-2 pl-2 text-zinc-500">
-                  {"(예시) 모회사 자본 100/ 종속 자본 10 →"}<br/>
-                  <span className="pl-8">{"①100%투자 : 연결자본 100 (종속 자본 10 상계 제거)"}</span><br/>
-                  <span className="pl-8">{"②50%투자 : 연결자본 105 (모회사 100 + 비지배 5)"}</span>
-                </div>
               </div>
               </>
             )}
