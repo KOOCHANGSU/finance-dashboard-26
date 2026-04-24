@@ -10382,98 +10382,145 @@ export default function FnFQ1_2026Dashboard() {
               };
             }).filter(Boolean);
 
-            // NWC 추세 분석 인사이트 (대표 보고용)
+            // 법인별 NWC 데이터 조회 (주도 법인 식별용)
+            const NWC_ENTITIES = ['OC(국내)', '중국', '홍콩', 'ST미국', '엔터테인먼트', '베트남'];
+            const entityBSCurr = entityBSData[bsCurrentPeriod] || {};
+            const entityBSYoY  = entityBSData[yoyQKey] || {};
+            const arByEnt  = entityBSCurr['매출채권'] || {};
+            const invByEnt = entityBSCurr['재고자산'] || {};
+            const apByEnt  = entityBSCurr['매입채무'] || {};
+            const arByEntY  = entityBSYoY['매출채권'] || {};
+            const invByEntY = entityBSYoY['재고자산'] || {};
+            const apByEntY  = entityBSYoY['매입채무'] || {};
+
+            // 증감 주도 법인 찾기 헬퍼
+            const topMover = (currMap, prevMap, ascending = true) => {
+              const deltas = NWC_ENTITIES.map(e => ({
+                e,
+                curr: Math.round((currMap[e] || 0) / 100),
+                delta: Math.round(((currMap[e] || 0) - (prevMap[e] || 0)) / 100),
+              })).filter(x => Math.abs(x.delta) >= 10);
+              if (!deltas.length) return null;
+              return ascending
+                ? deltas.sort((a, b) => b.delta - a.delta)[0]
+                : deltas.sort((a, b) => a.delta - b.delta)[0];
+            };
+
+            // NWC 추세 분석 인사이트 (법인 주도 핵심분석)
             const nwcTrendInsights = (() => {
               if (nwcTrendData.length < 2) return [];
               const insights = [];
-              const first = nwcTrendData[0];
               const last = nwcTrendData[nwcTrendData.length - 1];
 
-              // 1. NWC 규모 변화
-              const nwcChange = last.NWC - first.NWC;
-              const nwcChangePct = first.NWC > 0 ? Math.round(nwcChange / first.NWC * 100) : null;
-              if (nwcChangePct !== null) {
-                insights.push(`NWC 규모: ${first.name} ${formatNumber(first.NWC)}억 → ${last.name} ${formatNumber(last.NWC)}억 (${nwcChange >= 0 ? '+' : ''}${nwcChangePct}%). ${nwcChange > 0 ? '운전자본 집약도 확대 — 성장에 따른 자금 소요 증가로 현금흐름 관리 강화 필요' : '운전자본 효율 개선 추세 — 현금 창출 여력 향상'}.`);
+              // 1. 매출채권(DSO) — 주도 법인 명시
+              if (dsoNWC != null && dsoYoY != null) {
+                const dsoChg = +(dsoNWC - dsoYoY).toFixed(0);
+                const topAR = topMover(arByEnt, arByEntY, dsoChg >= 0);
+                const entStr = topAR ? ` (${topAR.e} ${topAR.delta >= 0 ? '+' : ''}${formatNumber(topAR.delta)}억 주도)` : '';
+                if (Math.abs(dsoChg) >= 3) {
+                  insights.push(`매출채권 DSO ${Math.round(dsoNWC)}일 (YoY ${dsoChg >= 0 ? '+' : ''}${dsoChg}일)${entStr}. ${dsoChg > 0 ? '회수기일 연장 — 해당 법인 채권 고령화 여부 점검 필요' : '회수 효율 개선 — 채권관리 강화 효과'}`);
+                }
               }
 
-              // 2. DSO 추세
-              const dsoData = nwcTrendData.filter(d => d.DSO != null);
-              if (dsoData.length >= 2) {
-                const dsoVals = dsoData.map(d => d.DSO);
-                const dsoFirst = dsoVals[0]; const dsoLast = dsoVals[dsoVals.length - 1];
-                const dsoMax = Math.max(...dsoVals); const dsoMin = Math.min(...dsoVals);
-                const maxPtDso = dsoData.find(d => d.DSO === dsoMax);
-                insights.push(`DSO(매출채권 회수일): ${dsoFirst.toFixed(0)}일 → ${dsoLast.toFixed(0)}일 (구간 최대 ${dsoMax.toFixed(0)}일[${maxPtDso?.name}], 최소 ${dsoMin.toFixed(0)}일). ${dsoLast > dsoFirst + 5 ? '회수기일 장기화 추세 — 외상매출 관리 및 대손 리스크 모니터링 강화 필요' : dsoLast < dsoFirst - 5 ? '회수 효율 개선 추세 — 매출채권 관리 정책 효과' : '안정적 수준 유지 — 매출채권 회수 주기 정상 범위'}.`);
+              // 2. 재고자산(DIO) — 주도 법인 명시
+              if (dioNWC != null && dioYoY != null) {
+                const dioChg = +(dioNWC - dioYoY).toFixed(0);
+                const topINV = topMover(invByEnt, invByEntY, dioChg >= 0);
+                const entStr = topINV ? ` (${topINV.e} ${topINV.delta >= 0 ? '+' : ''}${formatNumber(topINV.delta)}억 주도)` : '';
+                if (Math.abs(dioChg) >= 5) {
+                  insights.push(`재고 DIO ${Math.round(dioNWC)}일 (YoY ${dioChg >= 0 ? '+' : ''}${dioChg}일)${entStr}. ${dioChg > 0 ? '재고 체화 심화 — 해당 법인 시즌 재고 소진 전략 및 발주 계획 재검토' : '재고 효율 개선 — 수요 예측 정확도 향상 효과'}`);
+                }
               }
 
-              // 3. DIO 추세
-              const dioData = nwcTrendData.filter(d => d.DIO != null);
-              if (dioData.length >= 2) {
-                const dioVals = dioData.map(d => d.DIO);
-                const dioFirst = dioVals[0]; const dioLast = dioVals[dioVals.length - 1];
-                const dioMax = Math.max(...dioVals);
-                const maxPtDio = dioData.find(d => d.DIO === dioMax);
-                insights.push(`DIO(재고 회전일): ${dioFirst.toFixed(0)}일 → ${dioLast.toFixed(0)}일 (구간 최대 ${dioMax.toFixed(0)}일[${maxPtDio?.name}]). ${dioLast > dioFirst + 10 ? '재고 체화 심화 추세 — 시즌 재고 소진 전략 및 발주 최적화 시급' : dioLast < dioFirst - 10 ? '재고 관리 효율 대폭 개선 — 수요 예측 정확도 향상 효과' : '재고 관리 수준 안정적 유지'}.`);
+              // 3. 매입채무(DPO) — 주도 법인 명시
+              if (dpoNWC != null && dpoYoY != null) {
+                const dpoChg = +(dpoNWC - dpoYoY).toFixed(0);
+                const topAP = topMover(apByEnt, apByEntY, dpoChg < 0);
+                const entStr = topAP ? ` (${topAP.e} ${topAP.delta >= 0 ? '+' : ''}${formatNumber(topAP.delta)}억 변동)` : '';
+                if (Math.abs(dpoChg) >= 3) {
+                  insights.push(`매입채무 DPO ${Math.round(dpoNWC)}일 (YoY ${dpoChg >= 0 ? '+' : ''}${dpoChg}일)${entStr}. ${dpoChg < 0 ? '지급 가속 — 공급업체 결제조건 재협상 검토' : '지급조건 연장 — 현금 여력 확보 긍정적'}`);
+                }
               }
 
-              // 4. DPO 추세
-              const dpoData = nwcTrendData.filter(d => d.DPO != null);
-              if (dpoData.length >= 2) {
-                const dpoVals = dpoData.map(d => d.DPO);
-                const dpoFirst = dpoVals[0]; const dpoLast = dpoVals[dpoVals.length - 1];
-                insights.push(`DPO(매입채무 지급일): ${dpoFirst.toFixed(0)}일 → ${dpoLast.toFixed(0)}일. ${dpoLast > dpoFirst + 5 ? '지급 조건 연장 → 현금 보유 여력 확대(공급업체 관계 지속 모니터링 필요)' : dpoLast < dpoFirst - 5 ? '지급 가속화 → 공급업체 지급 조건 재협상으로 DPO 연장 검토' : '공급업체 지급 조건 안정적 유지'}.`);
-              }
-
-              // 5. CCC 추세 및 시사점
-              const cccData = nwcTrendData.filter(d => d.CCC != null);
-              if (cccData.length >= 2) {
-                const cccFirst = cccData[0].CCC; const cccLast = cccData[cccData.length - 1].CCC;
-                const cccMin = Math.min(...cccData.map(d => d.CCC));
-                const cccMinPt = cccData.find(d => d.CCC === cccMin);
-                insights.push(`CCC(현금전환주기): ${cccFirst.toFixed(0)}일 → ${cccLast.toFixed(0)}일 (구간 최저 ${cccMin.toFixed(0)}일[${cccMinPt?.name}]). ${cccLast > cccFirst ? `현금 묶임 기간 연장(+${(cccLast - cccFirst).toFixed(0)}일) — 단기 유동성 압박 요인, 운전자본 효율화 전략 수립 권고` : `현금 회수 주기 단축(${(cccLast - cccFirst).toFixed(0)}일) — 운전자본 효율 개선으로 현금 창출력 강화`}.`);
+              // 4. CCC 및 NWC 종합
+              if (cccNWC != null && cccYoY != null) {
+                const cccChg = +(cccNWC - cccYoY).toFixed(0);
+                const nwcChgPct = nwcYoY > 0 ? Math.round((nwcM - nwcYoY) / nwcYoY * 100) : null;
+                const nwcChgStr = nwcChgPct != null ? `, NWC ${nwcChgPct >= 0 ? '+' : ''}${nwcChgPct}% YoY` : '';
+                insights.push(`CCC ${Math.round(cccNWC)}일 (YoY ${cccChg >= 0 ? '+' : ''}${cccChg}일${nwcChgStr}). ${cccChg > 5 ? '현금전환 주기 연장 — 단기 유동성 압박, 법인별 운전자본 목표 밴드 설정 권고' : cccChg < -5 ? '현금전환 주기 단축 — 운전자본 효율 개선으로 현금 창출력 강화' : '전년 동기 수준 유지'}`);
               }
 
               return insights;
             })();
 
-            // ④ 리스크 & 이상징후 체크 (전년동기 YoY 대비 — 계절성 제거)
+            // ④ 리스크 & 이상징후 (법인 주도 중심 핵심분석)
             const nwcRisks = [];
-            const riskYoyLabel = yoyQLabel; // e.g. '25.1Q'
-            // DSO
-            if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5 && qSalesM < qSalesYoYM) {
-              nwcRisks.push({ level: 'red', text: `DSO ↑ (전동분기 ${Math.round(dsoYoY)}일→${Math.round(dsoNWC)}일) + 매출 ↓ → 매출채권 회수 지연 🚨` });
-            } else if (dsoNWC != null && dsoYoY != null && dsoNWC > dsoYoY + 5) {
-              nwcRisks.push({ level: 'orange', text: `DSO ↑ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, +${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수기일 장기화 ⚠️` });
-            } else if (dsoNWC != null && dsoYoY != null && dsoNWC < dsoYoY - 5) {
-              nwcRisks.push({ level: 'green', text: `DSO ↓ (${riskYoyLabel} ${Math.round(dsoYoY)}일 → 현재 ${Math.round(dsoNWC)}일, ${(dsoNWC-dsoYoY).toFixed(0)}일) → 매출채권 회수 효율 개선 ✅` });
+            const riskYoyLabel = yoyQLabel;
+
+            // 매출채권 — 주도 법인 명시
+            if (dsoNWC != null && dsoYoY != null) {
+              const topAR = topMover(arByEnt, arByEntY, true);
+              const entStr = topAR ? ` — ${topAR.e} +${formatNumber(topAR.delta)}억` : '';
+              if (dsoNWC > dsoYoY + 5 && qSalesM < qSalesYoYM) {
+                nwcRisks.push({ level: 'red', text: `매출채권 DSO ${Math.round(dsoNWC)}일 (+${(dsoNWC-dsoYoY).toFixed(0)}일 YoY)${entStr}, 매출 감소 동반 → 회수 지연·부실 리스크 집중 점검 🚨` });
+              } else if (dsoNWC > dsoYoY + 5) {
+                nwcRisks.push({ level: 'orange', text: `매출채권 DSO ${Math.round(dsoNWC)}일 (+${(dsoNWC-dsoYoY).toFixed(0)}일 YoY)${entStr} → 해당 법인 채권 고령화 분석(30·60·90일 버킷) 및 회수 촉진 강화 필요 ⚠️` });
+              } else if (dsoNWC < dsoYoY - 5) {
+                const topARdown = topMover(arByEnt, arByEntY, false);
+                const entStrD = topARdown ? ` — ${topARdown.e} ${formatNumber(topARdown.delta)}억` : '';
+                nwcRisks.push({ level: 'green', text: `매출채권 DSO ${Math.round(dsoNWC)}일 (${(dsoNWC-dsoYoY).toFixed(0)}일 YoY)${entStrD} → 회수 효율 개선 ✅` });
+              }
             }
-            // DIO
-            if (dioNWC != null && dioYoY != null && dioNWC > dioYoY + 10) {
-              nwcRisks.push({ level: 'orange', text: `DIO ↑ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일, +${(dioNWC-dioYoY).toFixed(0)}일) → 재고 체화 심화, 시즌 소진 전략 점검 🚨` });
-            } else if (dioNWC != null && dioYoY != null && dioNWC < dioYoY - 10) {
-              nwcRisks.push({ level: 'green', text: `DIO ↓ (${riskYoyLabel} ${Math.round(dioYoY)}일 → 현재 ${Math.round(dioNWC)}일) → 재고 효율 개선 ✅` });
+
+            // 재고 — 주도 법인 명시
+            if (dioNWC != null && dioYoY != null) {
+              const topINV = topMover(invByEnt, invByEntY, true);
+              const entStr = topINV ? ` — ${topINV.e} +${formatNumber(topINV.delta)}억` : '';
+              if (dioNWC > dioYoY + 10) {
+                nwcRisks.push({ level: 'orange', text: `재고 DIO ${Math.round(dioNWC)}일 (+${(dioNWC-dioYoY).toFixed(0)}일 YoY)${entStr} → 해당 법인 SKU별 소진율·시즌 재고 점검 시급 🚨` });
+              } else if (dioNWC < dioYoY - 10) {
+                const topINVdown = topMover(invByEnt, invByEntY, false);
+                const entStrD = topINVdown ? ` — ${topINVdown.e} ${formatNumber(topINVdown.delta)}억` : '';
+                nwcRisks.push({ level: 'green', text: `재고 DIO ${Math.round(dioNWC)}일 (${(dioNWC-dioYoY).toFixed(0)}일 YoY)${entStrD} → 재고 효율 개선 ✅` });
+              }
+              if (dioNWC > 180) {
+                nwcRisks.push({ level: 'red', text: `재고 DIO ${Math.round(dioNWC)}일 — 절대 수준 과대${entStr}, 트렌드·시즌 진부화 리스크 긴급 점검 🚨` });
+              }
             }
-            if (dioNWC != null && dioNWC > 180) {
-              nwcRisks.push({ level: 'red', text: `DIO ${Math.round(dioNWC)}일 — 절대 수준 과대, 시즌·트렌드 리스크 긴급 점검 🚨` });
+
+            // 매입채무 — 주도 법인 명시
+            if (dpoNWC != null && dpoYoY != null) {
+              const topAP = topMover(apByEnt, apByEntY, false);
+              const entStr = topAP ? ` — ${topAP.e} ${formatNumber(topAP.delta)}억` : '';
+              if (dpoNWC < dpoYoY - 5) {
+                nwcRisks.push({ level: 'orange', text: `매입채무 DPO ${Math.round(dpoNWC)}일 (${(dpoNWC-dpoYoY).toFixed(0)}일 YoY)${entStr} → 공급업체 결제 조기화, 결제 조건 재협상으로 DPO 연장 검토 ⚠️` });
+              } else if (dpoNWC > dpoYoY + 5) {
+                nwcRisks.push({ level: 'green', text: `매입채무 DPO ${Math.round(dpoNWC)}일 (+${(dpoNWC-dpoYoY).toFixed(0)}일 YoY)${entStr} → 지급조건 연장, 현금 여력 확보 ✅` });
+              }
             }
-            // DPO
-            if (dpoNWC != null && dpoYoY != null && dpoNWC < dpoYoY - 5) {
-              nwcRisks.push({ level: 'orange', text: `DPO ↓ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일, ${(dpoNWC-dpoYoY).toFixed(0)}일) → 공급업체 지급 가속, 지급조건 재협상 필요 🚨` });
-            } else if (dpoNWC != null && dpoYoY != null && dpoNWC > dpoYoY + 5) {
-              nwcRisks.push({ level: 'green', text: `DPO ↑ (${riskYoyLabel} ${Math.round(dpoYoY)}일 → 현재 ${Math.round(dpoNWC)}일) → 지급조건 연장, 현금 보유 여력 확대 ✅` });
-            }
-            // NWC 전체 집약도 (YoY)
+
+            // NWC 종합
             if (nwcM > 0 && nwcYoY > 0 && (nwcM - nwcYoY) / Math.abs(nwcYoY) > 0.2) {
-              nwcRisks.push({ level: 'orange', text: `NWC 급증 (${riskYoyLabel} ${formatNumber(Math.round(nwcYoY/100))}억 → 현재 ${formatNumber(Math.round(nwcM/100))}억, +${((nwcM-nwcYoY)/Math.abs(nwcYoY)*100).toFixed(0)}% YoY) → 현금 묶임 확대 🚨` });
+              const topNWC = topMover(
+                { ...arByEnt, ...Object.fromEntries(NWC_ENTITIES.map(e => [e, (arByEnt[e]||0)+(invByEnt[e]||0)-(apByEnt[e]||0)])) },
+                { ...arByEntY, ...Object.fromEntries(NWC_ENTITIES.map(e => [e, (arByEntY[e]||0)+(invByEntY[e]||0)-(apByEntY[e]||0)])) },
+                true
+              );
+              const nwcByEnt = Object.fromEntries(NWC_ENTITIES.map(e => [e, (arByEnt[e]||0)+(invByEnt[e]||0)-(apByEnt[e]||0)]));
+              const nwcByEntY = Object.fromEntries(NWC_ENTITIES.map(e => [e, (arByEntY[e]||0)+(invByEntY[e]||0)-(apByEntY[e]||0)]));
+              const topNWCent = NWC_ENTITIES.map(e => ({ e, delta: Math.round(((nwcByEnt[e]||0)-(nwcByEntY[e]||0))/100) }))
+                .filter(x => x.delta > 10).sort((a,b) => b.delta - a.delta)[0];
+              const entStr = topNWCent ? ` (${topNWCent.e} +${formatNumber(topNWCent.delta)}억 주도)` : '';
+              nwcRisks.push({ level: 'orange', text: `NWC ${formatNumber(Math.round(nwcM/100))}억 (+${((nwcM-nwcYoY)/Math.abs(nwcYoY)*100).toFixed(0)}% YoY)${entStr} → 해당 법인 운전자본 집중 관리 필요 🚨` });
             }
+
             if (nwcRisks.length === 0) {
               const normalDetails = [
                 dsoNWC != null && dsoYoY != null ? `DSO ${Math.round(dsoNWC)}일(YoY ${dsoNWC >= dsoYoY ? '+' : ''}${(dsoNWC-dsoYoY).toFixed(0)}일)` : null,
                 dioNWC != null && dioYoY != null ? `DIO ${Math.round(dioNWC)}일(YoY ${dioNWC >= dioYoY ? '+' : ''}${(dioNWC-dioYoY).toFixed(0)}일)` : null,
                 dpoNWC != null && dpoYoY != null ? `DPO ${Math.round(dpoNWC)}일(YoY ${dpoNWC >= dpoYoY ? '+' : ''}${(dpoNWC-dpoYoY).toFixed(0)}일)` : null,
-                cccNWC != null ? `CCC ${Math.round(cccNWC)}일` : null,
               ].filter(Boolean);
-              nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 전년동기(${riskYoyLabel}) 대비 정상 범위. ${normalDetails.length ? normalDetails.join(' / ') : ''}` });
+              nwcRisks.push({ level: 'green', text: `✅ 이상징후 없음 — DSO·DIO·DPO 전년동기(${riskYoyLabel}) 대비 정상 범위. ${normalDetails.join(' / ')}` });
             }
 
             // ⑤ 해결책
