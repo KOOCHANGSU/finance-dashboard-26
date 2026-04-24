@@ -68,7 +68,8 @@
       "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.vercel\")",
       "Bash(dir \"C:\\\\Users\\\\AD0623\\\\.vercel\")",
       "Bash(ping -n 90 127.0.0.1)",
-      "Bash(awk 'NR>=4598 && NR<=4650' FnF_Q1_2026_Dashboard.jsx)"
+      "Bash(awk 'NR>=4598 && NR<=4650' FnF_Q1_2026_Dashboard.jsx)",
+      "Bash(powershell -Command ' *)"
     ]
   }
 }
