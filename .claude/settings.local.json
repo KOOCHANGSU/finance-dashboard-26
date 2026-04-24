@@ -45,7 +45,28 @@
       "Bash(node -e ' *)",
       "Bash(git commit -m 'Fix: 손익계산서 맵핑표 기준으로 수수료/감가상각비 계산 수정 *)",
       "Bash(git commit -m 'Add: 기타손익 구성상세 입력 테이블 추가 *)",
-      "Bash(git commit -m 'Fix: 영업외손익 맵핑표 일치 수정 *)"
+      "Bash(git commit -m 'Fix: 영업외손익 맵핑표 일치 수정 *)",
+      "Bash(awk 'NR>=6480 && NR<=6540' FnF_Q1_2026_Dashboard.jsx)",
+      "Bash(python -c ' *)",
+      "Bash(grep -v \"//.*bsEntity\")",
+      "Bash(powershell -Command \"Get-Content '2026_BS.csv' -TotalCount 3\")",
+      "Bash(node node_modules/vite/bin/vite.js build)",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.claude\\\\worktrees\\\\crazy-moser\\\\public\")",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.claude\\\\worktrees\\\\crazy-moser\\\\src\")",
+      "Bash(vercel --version)",
+      "Bash(gh run *)",
+      "Bash(gh deployment *)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const txt=fs.readFileSync\\('dist/assets/index-CJ0CsLE9.js','utf8'\\); console.log\\(txt.includes\\('isEPS'\\) ? 'isEPS found' : 'isEPS NOT found'\\); console.log\\(txt.includes\\('epsData'\\) ? 'epsData found' : 'epsData NOT found'\\); console.log\\('file size:', fs.statSync\\('dist/assets/index-CJ0CsLE9.js'\\).size\\);\")",
+      "WebFetch(domain:api.github.com)",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.claude\\\\worktrees\\\\crazy-moser\\\\api\")",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\public\")",
+      "Bash(curl -s \"https://finance-dashboard-26.vercel.app/api/load-data-q1-2026\")",
+      "Bash(curl -v \"https://finance-dashboard-26.vercel.app/api/load-data-q1-2026\")",
+      "Bash(curl -s \"https://finance-dashboard-26.vercel.app/api/load-data\")",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.env*\")",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\vercel.json\")",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\Desktop\\\\finance-dashboard-26\\\\.vercel\")",
+      "Bash(dir \"C:\\\\Users\\\\AD0623\\\\.vercel\")"
     ]
   }
 }
