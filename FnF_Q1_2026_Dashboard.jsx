@@ -1251,8 +1251,10 @@ export default function FnFQ1_2026Dashboard() {
     async function loadCashFlow() {
       try {
         const text = await fetchCsvTextWithFallback('/현금흐름.csv');
-        const rows = parseCsvText(text);
-        if (rows?.length) setCashFlowData(rows);
+        // \r only(Mac) 또는 \r\n(Windows) 모두 \n으로 통일 후 파싱
+        const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const rows = parseCsvText(normalized);
+        if (rows?.length > 1) setCashFlowData(rows);
       } catch {}
     }
     loadCashFlow();
