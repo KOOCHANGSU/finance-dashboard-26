@@ -11333,6 +11333,25 @@ export default function FnFQ1_2026Dashboard() {
             return Math.round(Number(total) - cash - fin - ar - loans - inv - invest - ppe - rou);
           }
         }
+        // ── 기타부채: 잔차법 (부채총계 − 명시 카테고리 합계) — 부채 항목 합계 = 부채총계 보장 ──
+        if (account === '기타부채') {
+          for (const ek of entityCandidates) {
+            const total = csvBs['부채총계']?.[ek];
+            if (total === undefined) continue;
+            const payables = Number(csvBs['매입채무']?.[ek] || 0);
+            const accrued = Number(csvBs['미지급금']?.[ek] || 0)
+              + Number(csvBs['장기미지급금']?.[ek] || 0);
+            const deposit = Number(csvBs['보증금']?.[ek] || 0)
+              + Number(csvBs['유동성장기예수보증금']?.[ek] || 0)
+              + Number(csvBs['장기성예수보증금']?.[ek] || 0);
+            const BORR_KEYS = ['단기차입금', '유동성장기차입금', '장기차입금', '사채'];
+            const borr = BORR_KEYS.reduce((s, k) => s + Number(csvBs[normalizeAccount(k)]?.[ek] || 0), 0);
+            const lease = Number(csvBs['유동리스부채']?.[ek] || 0)
+              + Number(csvBs['리스부채']?.[ek] || 0);
+            const finLiab = Number(csvBs['금융부채']?.[ek] || 0);
+            return Math.round(Number(total) - payables - accrued - deposit - borr - lease - finLiab);
+          }
+        }
       }
       // ────────────────────────────────────────────────────────────────────
       const candidates = bsAliasMap[account] || [account];
@@ -11702,6 +11721,32 @@ export default function FnFQ1_2026Dashboard() {
                 </tr>
               </thead>
               <tbody>
+                {(() => {
+                  // ── 자동 검증: 자산총계 = 부채총계 + 자본총계 체크 ──
+                  const assets26 = valBS('자산총계', period26);
+                  const liab26 = valBS('부채총계', period26);
+                  const equity26 = valBS('자본총계', period26);
+                  const check26 = assets26 - liab26 - equity26;
+                  const assets25 = valBS('자산총계', bsPeriod25);
+                  const liab25 = valBS('부채총계', bsPeriod25);
+                  const equity25 = valBS('자본총계', bsPeriod25);
+                  const check25 = assets25 - liab25 - equity25;
+                  const isOk26 = Math.abs(check26) <= 1;
+                  const isOk25 = Math.abs(check25) <= 1;
+                  if (isOk26 && isOk25) return null;
+                  return (
+                    <tr key="bs-validation" className="bg-amber-50 border-t-2 border-amber-300">
+                      <td className="px-3 py-1.5 text-xs font-semibold text-amber-800 border-r border-amber-200">⚠ 자산 ≠ 부채+자본</td>
+                      <td className="text-right px-3 py-1.5 text-xs font-bold tabular-nums border-r border-amber-200">
+                        {!isOk25 ? <span className={check25 > 0 ? 'text-emerald-700' : 'text-rose-700'}>{check25 > 0 ? '+' : ''}{formatNumber(check25)}</span> : <span className="text-emerald-600">✓</span>}
+                      </td>
+                      <td className="text-right px-3 py-1.5 text-xs font-bold tabular-nums border-r border-amber-200 bg-amber-100">
+                        {!isOk26 ? <span className={check26 > 0 ? 'text-emerald-700' : 'text-rose-700'}>{check26 > 0 ? '+' : ''}{formatNumber(check26)}</span> : <span className="text-emerald-600">✓</span>}
+                      </td>
+                      <td className="border-r border-amber-200" colSpan={3} />
+                    </tr>
+                  );
+                })()}
                 {entityBalanceItems.map((item, idx) => {
                   const val25 = valBS(item.key, bsPeriod25);
                   const val26 = valBS(item.key, period26);
