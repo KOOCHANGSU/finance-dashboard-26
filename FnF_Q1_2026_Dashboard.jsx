@@ -10039,30 +10039,58 @@ export default function FnFQ1_2026Dashboard() {
 
         {/* ───── 현금성자산 선택 시: 변동내역(좌) + 구성상세 카드(우) ───── */}
         {selectedBSAccount === '현금성자산' && cashFlowData.length > 0 && (() => {
+          // 원 → 억원 변환 (commas inside quotes are kept by parseCsvText)
           const parseAmt = (s) => {
             const str = String(s || '').replace(/\s/g, '');
             if (!str) return null;
             const neg = str.includes('(') && str.includes(')');
             const n = Number(str.replace(/[(),]/g, ''));
             if (!isFinite(n) || n === 0) return null;
-            return (neg ? -n : n) / 1e8; // 원 → 억원
+            return Math.round((neg ? -n : n) / 1e8); // 원 → 억원(반올림)
           };
           const fmtAmt = (v) => {
             if (v === null) return '—';
-            return `${v >= 0 ? '+' : ''}${Math.round(v).toLocaleString('ko-KR')}억`;
+            return `${v >= 0 ? '+' : ''}${v.toLocaleString('ko-KR')}억`;
           };
           const amtCls = (v) => v === null ? 'text-zinc-400' : v >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold';
 
-          // cashFlowData: skip first 2 rows (blank/title)
-          const cfRows = (cashFlowData || []).slice(2).filter(r => r && (String(r[1]||'').trim() || String(r[2]||'').trim()));
+          // ── 행 전처리: slice(1)으로 title만 제거, 카테고리 헤더 자동 주입 ──
+          const rawRows = (cashFlowData || []).slice(1).filter(r => {
+            if (!r) return false;
+            const c1 = String(r[1]||'').trim(); const c2 = String(r[2]||'').trim();
+            if (!c1 && !c2) return false;         // 완전 빈 행
+            if (c1.startsWith('#')) return false;  // #REF! 등 Excel 오류 셀
+            return true;
+          });
+          const processedRows = [];
+          let lastCat = '';
+          rawRows.forEach(row => {
+            const col1 = String(row[1]||'').trim();
+            const col2 = String(row[2]||'').trim();
+            const isTotal = /^[12]\./.test(col1) || /현금및/.test(col1);
+            if (isTotal) {
+              lastCat = '';
+              processedRows.push({ type: 'total', label: col1, amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
+            } else if (col1 && col2) {
+              // 카테고리 + 항목이 같은 행 → 카테고리 헤더 먼저 주입
+              if (col1 !== lastCat) { processedRows.push({ type: 'cat', label: col1 }); lastCat = col1; }
+              const isSub = col2.trimStart().startsWith('-');
+              processedRows.push({ type: isSub ? 'sub' : 'item', label: col2.trim(), amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
+            } else if (col1 && !col2) {
+              processedRows.push({ type: 'cat', label: col1 }); lastCat = col1;
+            } else if (!col1 && col2) {
+              const isSub = col2.trimStart().startsWith('-');
+              processedRows.push({ type: isSub ? 'sub' : 'item', label: col2.trim(), amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
+            }
+          });
 
-          // entity cards
+          // ── 우측 entity 카드 데이터 ──
           const cfEntityColors = { 'OC(국내)': '#3b82f6', '중국': '#f59e0b', '홍콩': '#8b5cf6', 'ST미국': '#10b981', '기타(연결조정)': '#6b7280' };
           const cfEntityOrder = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
           const getCashVal = (period, entity) => {
-            const csvKey = '현금및현금성자산';
-            for (const ek of (entity === '기타(연결조정)' ? ['기타(연결조정)', '기타', '연결조정'] : [entity])) {
-              const v = entityCsvLookup?.bs?.[period]?.[csvKey]?.[ek];
+            const candidates = entity === '기타(연결조정)' ? ['기타(연결조정)', '기타', '연결조정'] : [entity];
+            for (const ek of candidates) {
+              const v = entityCsvLookup?.bs?.[period]?.['현금및현금성자산']?.[ek];
               if (v !== undefined) return v;
             }
             return entityBSData?.[period]?.현금성자산?.[entity] ?? 0;
@@ -10076,62 +10104,57 @@ export default function FnFQ1_2026Dashboard() {
             <div className="flex gap-4 mt-4">
               {/* 좌: 현금 변동내역 */}
               <div className="flex-1 min-w-0 bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
-                <div className="bg-zinc-50 px-4 py-2.5 border-b border-zinc-200">
+                <div className="flex items-center justify-between bg-zinc-50 px-4 py-2.5 border-b border-zinc-200">
                   <h3 className="text-sm font-semibold text-zinc-800">▷ 현금 및 현금성자산 변동내역</h3>
+                  <span className="text-[10px] text-zinc-400 font-normal">(단위: 억원)</span>
                 </div>
                 <table className="w-full text-xs">
                   <tbody>
-                    {cfRows.map((row, i) => {
-                      const col1 = String(row[1] || '').trim();
-                      const col2 = String(row[2] || '').trim();
-                      const amt  = parseAmt(row[3]);
-                      const note = String(row[4] || '').trim();
-                      // 구분
-                      const isTotal   = /^[12]\./.test(col1) || /현금및/.test(col1);
-                      const isCatOnly = !isTotal && col1 && !col2; // OC(국내), 자회사, 기타
-                      const isSubItem = col2.startsWith('-') || col2.startsWith('    -');
-                      const isItem    = col2 && !isSubItem;
-                      if (isTotal) return (
+                    {processedRows.map((pr, i) => {
+                      if (pr.type === 'total') return (
                         <tr key={i} className="bg-zinc-100 border-t-2 border-zinc-300">
-                          <td className="px-4 py-2 font-bold text-zinc-900 w-[38%]">{col1}</td>
-                          <td className={`text-right px-3 py-2 w-[18%] ${amtCls(amt)}`}>{fmtAmt(amt)}</td>
-                          <td className="px-3 py-2 text-zinc-400 text-[10px] leading-relaxed">{note}</td>
+                          <td className="px-4 py-2 font-bold text-zinc-900 w-[38%]">{pr.label}</td>
+                          <td className={`text-right px-4 py-2 w-[15%] tabular-nums ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                          <td className="px-3 py-2 text-zinc-400 text-[10px] leading-relaxed">{pr.note}</td>
                         </tr>
                       );
-                      if (isCatOnly) return (
+                      if (pr.type === 'cat') return (
                         <tr key={i} className="bg-blue-50/50 border-t border-zinc-200">
-                          <td colSpan={3} className="px-4 py-1 font-semibold text-blue-700 text-[11px]">{col1}</td>
+                          <td colSpan={3} className="px-4 py-1 font-semibold text-blue-700 text-[11px]">{pr.label}</td>
                         </tr>
                       );
-                      if (isSubItem) return (
+                      if (pr.type === 'sub') return (
                         <tr key={i} className="border-b border-zinc-50">
-                          <td className="px-4 py-1 pl-12 text-zinc-400 text-[10px] w-[38%]">{col2.replace(/^\s+-\s*/, '- ')}</td>
-                          <td className={`text-right px-3 py-1 text-[10px] w-[18%] ${amtCls(amt)}`}>{fmtAmt(amt)}</td>
-                          <td className="px-3 py-1 text-zinc-300 text-[10px]">{note}</td>
+                          <td className="px-4 py-1 pl-12 text-zinc-400 text-[10px] w-[38%]">{pr.label}</td>
+                          <td className={`text-right px-4 py-1 text-[10px] w-[15%] tabular-nums ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                          <td className="px-3 py-1 text-zinc-300 text-[10px]">{pr.note}</td>
                         </tr>
                       );
-                      if (isItem) return (
+                      // type === 'item'
+                      return (
                         <tr key={i} className="border-b border-zinc-100">
-                          <td className="px-4 py-1.5 pl-6 text-zinc-700 w-[38%]">{col2}</td>
-                          <td className={`text-right px-3 py-1.5 w-[18%] ${amtCls(amt)}`}>{fmtAmt(amt)}</td>
-                          <td className="px-3 py-1.5 text-zinc-400 text-[10px] leading-relaxed">{note}</td>
+                          <td className="px-4 py-1.5 pl-6 text-zinc-700 w-[38%]">{pr.label}</td>
+                          <td className={`text-right px-4 py-1.5 w-[15%] tabular-nums ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                          <td className="px-3 py-1.5 text-zinc-400 text-[10px] leading-relaxed">{pr.note}</td>
                         </tr>
                       );
-                      return null;
                     })}
                   </tbody>
                 </table>
               </div>
 
               {/* 우: 현금성자산 구성 상세 카드 */}
-              <div className="w-[40%] flex-shrink-0 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col">
+              <div className="w-[38%] flex-shrink-0 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col">
                 <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-200 bg-zinc-50">
-                  <h3 className="text-sm font-semibold text-zinc-800">현금성자산 구성 상세</h3>
-                  <button onClick={() => setCashEntityEditMode(m => !m)} title="편집" className="text-zinc-400 hover:text-blue-500 transition-colors">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  <div>
+                    <h3 className="text-sm font-semibold text-zinc-800">현금성자산 구성 상세</h3>
+                    <p className="text-[10px] text-zinc-400">YoY 변동 ({getBsPeriodLabel(bsPrevPeriod)} → {getBsPeriodLabel(bsCurrentPeriod)}) · 단위: 억원</p>
+                  </div>
+                  <button onClick={() => setCashEntityEditMode(m => !m)} title={cashEntityEditMode ? '저장' : '편집'} className={`text-xs px-2 py-1 rounded ${cashEntityEditMode ? 'bg-blue-100 text-blue-600' : 'text-zinc-400 hover:text-blue-500'} transition-colors`}>
+                    {cashEntityEditMode ? '완료' : '편집'}
                   </button>
                 </div>
-                <div className="p-3 space-y-2 flex-1">
+                <div className="p-3 space-y-2 flex-1 overflow-y-auto">
                   {cfEntityOrder.map(entity => {
                     const curr = getCashVal(bsCurrentPeriod, entity);
                     const prev = getCashVal(bsPrevPeriod, entity);
@@ -10141,26 +10164,26 @@ export default function FnFQ1_2026Dashboard() {
                     const noteText = cashEntityNotes[noteKey] || '';
                     const color = cfEntityColors[entity] || '#6b7280';
                     return (
-                      <div key={entity} className="rounded-lg border border-zinc-100 px-3 py-2 bg-zinc-50/60">
+                      <div key={entity} className="rounded-lg border border-zinc-100 px-3 py-2.5 bg-zinc-50/60">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1.5">
                             <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></span>
                             <span className="text-xs font-semibold text-zinc-700">{entity}</span>
                           </div>
-                          <span className={`text-xs font-bold ${diffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          <span className={`text-xs font-bold tabular-nums ${diffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                             {diffBil >= 0 ? '+' : ''}{diffBil.toLocaleString('ko-KR')}억원
                           </span>
                         </div>
                         {cashEntityEditMode ? (
                           <textarea
                             value={noteText}
-                            onChange={e => setCashEntityNotes(prev => ({ ...prev, [noteKey]: e.target.value }))}
+                            onChange={e => setCashEntityNotes(p => ({ ...p, [noteKey]: e.target.value }))}
                             rows={2}
                             placeholder="변동 내용 입력"
                             className="w-full text-[10px] text-zinc-600 bg-white border border-blue-200 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
                           />
                         ) : (
-                          <p className="text-[10px] text-zinc-400 leading-relaxed min-h-[1.5rem]">
+                          <p className="text-[10px] text-zinc-400 leading-relaxed min-h-[1.2rem]">
                             {noteText || '유의미한 변동 없음'}
                           </p>
                         )}
@@ -10171,7 +10194,7 @@ export default function FnFQ1_2026Dashboard() {
                 <div className="px-4 py-2.5 border-t border-zinc-200 bg-zinc-50">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-zinc-500">전체 YoY 변동</span>
-                    <span className={`text-xs font-bold ${totalDiffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className={`text-xs font-bold tabular-nums ${totalDiffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {totalDiffBil >= 0 ? '+' : ''}{totalDiffBil.toLocaleString('ko-KR')}억원
                       {totalYoY ? ` (${parseFloat(totalYoY) >= 0 ? '+' : ''}${totalYoY}%)` : ''}
                     </span>
