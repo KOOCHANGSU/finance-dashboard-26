@@ -9969,9 +9969,10 @@ export default function FnFQ1_2026Dashboard() {
           </div>
         </div>
 
-        {/* 법인별 구성(좌) + 분기별 추이(우) 2총 레이아웃 */}
+        {/* 법인별 구성(좌) + 분기별 추이(우) 2열 레이아웃 - 현금성자산 선택 시에만 적용 */}
+        {selectedBSAccount === '현금성자산' ? (
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* 좌실: 법인별 구성 테이블 */}
+          {/* 좌: 법인별 구성 테이블 */}
           <div className="flex-1 min-w-0 lg:max-w-[55%]">
         {/* 법인별 테이블 */}
         <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
@@ -10153,6 +10154,155 @@ export default function FnFQ1_2026Dashboard() {
         )}
           </div>
         </div>
+        ) : (
+        /* 현금성자산 외 계정: 법인별 구성 테이블 + 분기별 추이를 세로 배치 */
+        <div className="flex flex-col gap-4">
+          {/* 법인별 테이블 (전체 너비) */}
+          <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-zinc-50 border-b border-zinc-200">
+                  <th rowSpan={2} className="text-center px-2 py-1.5 font-semibold text-zinc-600 min-w-[65px] whitespace-nowrap border-r border-zinc-200">법인</th>
+                  <th colSpan={2} className="text-center px-1 py-1 font-semibold text-zinc-600 border-r border-zinc-200">{getBsPeriodLabel(bsPrevPeriod)}</th>
+                  <th colSpan={2} className="text-center px-1 py-1 font-semibold text-zinc-600 border-r border-zinc-200">{getBsPeriodLabel(bsCurrentPeriod)}</th>
+                  <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-zinc-600 min-w-[55px] border-r border-zinc-200">차이</th>
+                  <th rowSpan={2} className="text-center px-1 py-1.5 font-semibold text-zinc-600 min-w-[40px] whitespace-nowrap">YoY</th>
+                </tr>
+                <tr className="bg-zinc-50 border-b border-zinc-200">
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">비중</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">비중</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const allEntities2 = new Map();
+                  const totalCurr2 = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
+                  const totalPrev2 = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
+                  donutData2024.forEach(e => {
+                    if (!allEntities2.has(e.name)) allEntities2.set(e.name, { name: e.name, color: e.color, prev: e.valueRaw ?? e.value, curr: 0 });
+                    else allEntities2.get(e.name).prev = e.valueRaw ?? e.value;
+                  });
+                  donutData2025.forEach(e => {
+                    if (!allEntities2.has(e.name)) allEntities2.set(e.name, { name: e.name, color: e.color, prev: 0, curr: e.valueRaw ?? e.value });
+                    else { allEntities2.get(e.name).curr = e.valueRaw ?? e.value; allEntities2.get(e.name).color = e.color; }
+                  });
+                  const entityOrder2 = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
+                  const sorted2 = Array.from(allEntities2.values())
+                    .filter(e => e.prev !== 0 || e.curr !== 0)
+                    .sort((a, b) => {
+                      const oa = entityOrder2.indexOf(a.name), ob = entityOrder2.indexOf(b.name);
+                      return (oa === -1 ? 999 : oa) - (ob === -1 ? 999 : ob);
+                    });
+                  return sorted2.map((entity, idx) => {
+                    const diff = entity.curr - entity.prev;
+                    const yoy = entity.prev !== 0 ? ((entity.curr - entity.prev) / Math.abs(entity.prev) * 100).toFixed(1) : (entity.curr !== 0 ? '신규' : '-');
+                    const isPositive = parseFloat(yoy) >= 0;
+                    const isDiffPositive = diff >= 0;
+                    const prevRatio = totalPrev2 !== 0 ? ((Math.abs(entity.prev) / Math.abs(totalPrev2)) * 100).toFixed(1) : '0.0';
+                    const currRatio = totalCurr2 !== 0 ? ((Math.abs(entity.curr) / Math.abs(totalCurr2)) * 100).toFixed(1) : '0.0';
+                    return (
+                      <tr key={idx} className="border-b border-zinc-100">
+                        <td className="px-2 py-1.5 text-zinc-700 whitespace-nowrap border-r border-zinc-100">
+                          <span className="inline-block w-1.5 h-1.5 rounded-full mr-1" style={{ backgroundColor: entity.color }}></span>
+                          {entity.name}
+                        </td>
+                        <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums">{formatNumber(entity.prev)}</td>
+                        <td className="text-right px-1 py-1.5 text-zinc-400 tabular-nums border-r border-zinc-100">{prevRatio}%</td>
+                        <td className="text-right px-1 py-1.5 font-medium text-zinc-900 tabular-nums">{formatNumber(entity.curr)}</td>
+                        <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums border-r border-zinc-100">{currRatio}%</td>
+                        <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${isDiffPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {isDiffPositive ? '+' : ''}{formatNumber(diff)}
+                        </td>
+                        <td className={`text-right px-1 py-1.5 font-medium tabular-nums whitespace-nowrap ${
+                          yoy === '신규' ? 'text-blue-600' : yoy === '-' ? 'text-zinc-400' : isPositive ? 'text-emerald-600' : 'text-rose-600'
+                        }`}>
+                          {yoy === '신규' ? '신규' : yoy === '-' ? '-' : `${isPositive ? '+' : ''}${yoy}%`}
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
+                {(() => {
+                  const tp2 = getBSConsolidatedTotal(selectedBSAccount, bsPrevPeriod);
+                  const tc2 = getBSConsolidatedTotal(selectedBSAccount, bsCurrentPeriod);
+                  const td2 = tc2 - tp2;
+                  const ty2 = tp2 !== 0 ? ((tc2 - tp2) / tp2 * 100).toFixed(1) : '-';
+                  const ip2 = parseFloat(ty2) >= 0;
+                  const idp2 = td2 >= 0;
+                  return (
+                    <tr className="bg-zinc-50 font-medium">
+                      <td className="px-2 py-1.5 text-zinc-900 whitespace-nowrap border-r border-zinc-200">합계</td>
+                      <td className="text-right px-1 py-1.5 text-zinc-700 tabular-nums">{formatNumber(tp2)}</td>
+                      <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">100%</td>
+                      <td className="text-right px-1 py-1.5 text-zinc-900 tabular-nums">{formatNumber(tc2)}</td>
+                      <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">100%</td>
+                      <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-200 ${idp2 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {idp2 ? '+' : ''}{formatNumber(td2)}
+                      </td>
+                      <td className={`text-right px-1 py-1.5 tabular-nums whitespace-nowrap ${ty2 === '-' ? 'text-zinc-400' : ip2 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {ty2 !== '-' ? `${ip2 ? '+' : ''}${ty2}%` : '-'}
+                      </td>
+                    </tr>
+                  );
+                })()}
+              </tbody>
+            </table>
+          </div>
+          {/* 분기별 추이 (전체 너비) */}
+          {balanceItems.find(i => i.key === selectedBSAccount)?.selectable && quarterlyEntityData[selectedBSAccount] && (
+            <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight">분기별 추이</h3>
+                <div className="flex items-center gap-4">
+                  {Object.entries(trendColors).map(([name, color]) => (
+                    <div key={name} className="flex items-center gap-1.5">
+                      <span className="w-3 h-0.5 rounded" style={{ backgroundColor: color }}></span>
+                      <span className="text-xs text-zinc-500">{name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ height: 160 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={quarterlyEntityData[selectedBSAccount]} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                    <XAxis dataKey="quarter" tick={{ fontSize: 10, fill: '#71717a' }} axisLine={{ stroke: '#d4d4d8' }} tickLine={false} />
+                    <YAxis tick={{ fontSize: 9, fill: '#a1a1aa' }} axisLine={false} tickLine={false}
+                      tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value} width={45} />
+                    <Tooltip content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white/95 backdrop-blur-sm border border-zinc-200 rounded-lg shadow-lg px-3 py-2 min-w-[120px]">
+                            <p className="text-xs font-medium text-zinc-500 mb-1.5 pb-1.5 border-b border-zinc-100">{label}</p>
+                            <div className="space-y-1">
+                              {payload.map((entry, index) => (
+                                <div key={index} className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                                    <span className="text-xs text-zinc-600">{entry.dataKey}</span>
+                                  </div>
+                                  <span className="text-xs font-semibold text-zinc-900">{formatNumber(entry.value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }} />
+                    <Line type="monotone" dataKey="OC(국내)" stroke={trendColors['OC(국내)']} strokeWidth={2} dot={{ r: 3, fill: trendColors['OC(국내)'] }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="중국" stroke={trendColors['중국']} strokeWidth={2} dot={{ r: 3, fill: trendColors['중국'] }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="기타" stroke={trendColors['기타']} strokeWidth={2} dot={{ r: 3, fill: trendColors['기타'] }} activeDot={{ r: 5 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="text-xs text-zinc-400 mt-2 text-center">* 기타 = 홍콩 + ST미국</p>
+            </div>
+          )}
+        </div>
+        )}
 
         {/* ─────────────────────────────────────────────────────────────── */}
 
