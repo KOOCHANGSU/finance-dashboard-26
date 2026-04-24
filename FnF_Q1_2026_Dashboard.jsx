@@ -1250,10 +1250,14 @@ export default function FnFQ1_2026Dashboard() {
   React.useEffect(() => {
     async function loadCashFlow() {
       try {
-        const text = await fetchCsvTextWithFallback('/현금흐름.csv');
-        // \r only(Mac) 또는 \r\n(Windows) 모두 \n으로 통일 후 파싱
-        const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        const rows = parseCsvText(normalized);
+        // fetchCsvTextWithFallback의 EUC-KR 판별 로직이 이 파일에서 오동작할 수 있어
+        // 직접 fetch + text() 로 UTF-8 디코딩
+        const res = await fetch('/현금흐름.csv');
+        if (!res.ok) return;
+        const raw = await res.text();
+        // BOM 제거 + 모든 줄바꿈(\r\n / \r) → \n 통일
+        const clean = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const rows = parseCsvText(clean);
         if (rows?.length > 1) setCashFlowData(rows);
       } catch {}
     }
@@ -10040,7 +10044,7 @@ export default function FnFQ1_2026Dashboard() {
         </div>
 
         {/* ───── 현금성자산 선택 시: 변동내역(좌) + 구성상세 카드(우) ───── */}
-        {selectedBSAccount === '현금성자산' && cashFlowData.length > 0 && (() => {
+        {selectedBSAccount === '현금성자산' && cashFlowData.length > 1 && (() => {
           // 원 → 억원 변환 (commas inside quotes are kept by parseCsvText)
           const parseAmt = (s) => {
             const str = String(s || '').replace(/\s/g, '');
