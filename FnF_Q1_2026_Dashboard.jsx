@@ -6690,6 +6690,17 @@ export default function FnFQ1_2026Dashboard() {
         return { '연결조정': consolidatedTotal };
       }
 
+      // 매출액: CSV 원본 OC(국내)에는 중국/홍콩 법인 수출분(내부거래)이 포함되어 있어
+      // 연결조정 제거 후 NET OC(국내) = 연결합계 − 기타법인 합산으로 재계산
+      // (2025 하드코딩 방식과 동일 → 분기/연도 간 비교 정합성 확보)
+      if (accountKey === '매출액' && consolidatedTotal > 0) {
+        const nonOcSum = baseKeys
+          .filter(k => k !== 'OC(국내)')
+          .reduce((sum, k) => sum + (base[k] || 0), 0);
+        const netOC = consolidatedTotal - nonOcSum;
+        return { ...base, 'OC(국내)': netOC, '연결조정': 0 };
+      }
+
       // 스케일링 없이 원본 값 그대로 사용, 차이분은 연결조정에 표시
       const baseSum = baseKeys.reduce((sum, k) => sum + (base[k] || 0), 0);
       const adjustment = consolidatedTotal - baseSum;
