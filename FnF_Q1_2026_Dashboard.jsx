@@ -613,7 +613,19 @@ const buildConsolidatedISLookup = (rows, year) => {
         Number(lookup[period].배당수익 || 0) -
         Number(lookup[period].기부금 || 0)
       );
-    } else if (false) {
+    }
+    // 투자부동산처분손익 = 처분이익 - 처분손실 (연결 합산)
+    {
+      const gainByEnt = lookup[period]['__투자부동산처분이익'] || {};
+      const lossByEnt = lookup[period]['__투자부동산처분손실'] || {};
+      const g = Object.values(gainByEnt).reduce((s, v) => s + Number(v || 0), 0);
+      const l = Object.values(lossByEnt).reduce((s, v) => s + Number(v || 0), 0);
+      lookup[period].투자부동산처분손익 = Math.round(g - l);
+      if (lookup[period].기타손익 !== undefined) {
+        lookup[period].기타손익_순 = Math.round(Number(lookup[period].기타손익) - lookup[period].투자부동산처분손익);
+      }
+    }
+    if (false) {
       // 아래는 사용 안함 (잔차 방식으로 대체)
       const miscGain = Number(lookup[period].__잡이익 || 0);
       const miscLoss = Number(lookup[period].__잡손실 || 0);
@@ -2273,10 +2285,15 @@ export default function FnFQ1_2026Dashboard() {
       당기순이익: 400686,    // 2025_IS.csv yCol=62
     },
   }, '2025', yearCloneRules);
-  const incomeStatementData = useMemo(
-    () => mergePeriodMetrics(incomeStatementDataBase, consolidatedCsvOverride.income),
-    [consolidatedCsvOverride.income]
-  );
+  const incomeStatementData = useMemo(() => {
+    const merged = mergePeriodMetrics(incomeStatementDataBase, consolidatedCsvOverride.income);
+    // 투자부동산처분손익/기타손익_순 기본값 보정 (CSV 없는 기간은 0/기타손익과 동일)
+    return Object.fromEntries(Object.entries(merged).map(([period, data]) => {
+      const dispPnl = data.투자부동산처분손익 ?? 0;
+      const 기타순 = data.기타손익_순 ?? ((data.기타손익 ?? 0) - dispPnl);
+      return [period, { ...data, 투자부동산처분손익: dispPnl, 기타손익_순: 기타순 }];
+    }));
+  }, [consolidatedCsvOverride.income]);
 
   // ============================================
   // 손익계산서 세부 계정 데이터 (증감 분석용) - financial_detail_data.json 기반
@@ -6923,7 +6940,8 @@ export default function FnFQ1_2026Dashboard() {
       { key: '이자손익', label: '(4)이자손익', depth: 1, selectable: true },
       { key: '배당수익', label: '(5)배당수익', depth: 1, selectable: true },
       { key: '기부금', label: '(6)기부금', depth: 1, selectable: true },
-      { key: '기타손익', label: '(7)기타손익', depth: 1, selectable: true },
+      { key: '투자부동산처분손익', label: '(7)투자부동산처분손익', depth: 1, selectable: true },
+      { key: '기타손익_순', label: '(8)기타손익', depth: 1, selectable: true },
       { key: '지분법손익', label: 'VII. 지분법손익', depth: 0, bold: true, selectable: true },
       { key: '법인세비용차감전순이익', label: 'VIII. 법인세비용차감전순이익', depth: 0, bold: true, selectable: true },
       { key: '법인세비용', label: 'IX. 법인세비용', depth: 0, bold: true, selectable: true },
@@ -7188,7 +7206,7 @@ export default function FnFQ1_2026Dashboard() {
           {/* 법인별 분석 헤더 */}
           {(() => {
             // 영업외손익 관련 계정들 (도넛 차트 숨김)
-            const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
+            const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순', '지분법손익'];
             const hideDonutChart = nonOperatingSubAccounts.includes(selectedAccount);
             
             return (
@@ -7321,7 +7339,7 @@ export default function FnFQ1_2026Dashboard() {
               </thead>
               <tbody>
                 {(() => {
-                  const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
+                  const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순', '지분법손익'];
                   const hideZeroEntities = nonOperatingSubAccounts.includes(selectedAccount);
                   
                   let data = getEntityTableData();
@@ -7394,7 +7412,7 @@ export default function FnFQ1_2026Dashboard() {
                 })()}
                 {/* 합계 행 */}
                 {(() => {
-                  const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
+                  const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순', '지분법손익'];
                   const hideZeroEntities = nonOperatingSubAccounts.includes(selectedAccount);
                   let data = getEntityTableData();
                   if (hideZeroEntities) {
@@ -7426,7 +7444,7 @@ export default function FnFQ1_2026Dashboard() {
         </div>
 
         {/* 영업 섹션 법인별 증감 분석 - 전체 너비 */}
-        {selectedAccount !== '지분법손익' && !['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익'].includes(selectedAccount) && (
+        {selectedAccount !== '지분법손익' && !['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순'].includes(selectedAccount) && (
         <>
         {/* 숨겨진 섹션 - 항상 복원 링크 표시 */}
         {isDetailSectionHidden(selectedAccount) ? (
@@ -7739,7 +7757,7 @@ export default function FnFQ1_2026Dashboard() {
               {/* 법인별 분석 헤더 */}
               {(() => {
                 // 영업외손익 관련 계정들 (도넛 차트 숨김)
-                const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '기타손익', '지분법손익'];
+                const nonOperatingSubAccounts = ['영업외손익', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순', '지분법손익'];
                 const hideDonutChart = nonOperatingSubAccounts.includes(selectedNonOpAccount);
                 
                 // 영업외 섹션용 법인별 분석 데이터 함수
@@ -8855,7 +8873,7 @@ export default function FnFQ1_2026Dashboard() {
             )}
 
             {/* ─── 기타손익 구성상세 입력 테이블 ─── */}
-            {selectedNonOpAccount === '기타손익' && (() => {
+            {(selectedNonOpAccount === '기타손익' || selectedNonOpAccount === '기타손익_순') && (() => {
               const MISC_ITEMS = [
                 { key: '잡이익',            label: '잡이익',             sign: 1,  csvRaw: '__잡이익'  },
                 { key: '잡손실',            label: '잡손실',             sign: -1, csvRaw: '__잡손실'  },
@@ -10877,7 +10895,12 @@ export default function FnFQ1_2026Dashboard() {
       { key: '이자손익', label: '(4)이자손익', depth: 1, selectable: true },
       { key: '배당수익', label: '(5)배당수익', depth: 1, selectable: true },
       { key: '기부금', label: '(6)기부금', depth: 1, selectable: true },
-      { key: '기타손익', label: '(7)기타손익', depth: 1, selectable: true },
+      ...(selectedEntityKey === 'OC(국내)' ? [
+        { key: '투자부동산처분손익', label: '(7)투자부동산처분손익', depth: 1, selectable: true },
+        { key: '기타손익_순', label: '(8)기타손익', depth: 1, selectable: true },
+      ] : [
+        { key: '기타손익', label: '(7)기타손익', depth: 1, selectable: true },
+      ]),
       { key: '지분법손익', label: 'VII. 지분법손익', depth: 0, bold: true, selectable: true },
       { key: '법인세비용차감전순이익', label: 'VIII. 법인세비용차감전순이익', depth: 0, bold: true, selectable: true },
       { key: '법인세비용', label: 'IX. 법인세비용', depth: 0, bold: true, selectable: true },
@@ -11021,6 +11044,17 @@ export default function FnFQ1_2026Dashboard() {
         const gain = getISRaw('잡이익', resolvedPeriod);
         const loss = getISRaw('잡손실', resolvedPeriod);
         if (gain !== undefined || loss !== undefined) return Math.round(Number(gain || 0) - Number(loss || 0));
+      }
+      if (account === '투자부동산처분손익') {
+        const gain = getISRaw('투자부동산처분이익', resolvedPeriod);
+        const loss = getISRaw('투자부동산처분손실', resolvedPeriod);
+        if (gain !== undefined || loss !== undefined) return Math.round(Number(gain || 0) - Number(loss || 0));
+        return 0;
+      }
+      if (account === '기타손익_순') {
+        const 기타 = getISRaw('기타손익', resolvedPeriod) ?? 0;
+        const 투자부동산 = getISRaw('투자부동산처분손익', resolvedPeriod) ?? 0;
+        return Math.round(Number(기타) - Number(투자부동산));
       }
       if (account === '영업외손익') {
         const nonOpIncome = getISRaw('영업외수익', resolvedPeriod);
