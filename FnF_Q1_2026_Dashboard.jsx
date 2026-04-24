@@ -614,12 +614,16 @@ const buildConsolidatedISLookup = (rows, year) => {
         Number(lookup[period].기부금 || 0)
       );
     }
-    // 투자부동산처분손익 = 처분이익 - 처분손실 (연결 합산)
+    // 투자부동산처분손익 = 처분이익 - 처분손실
+    // buildConsolidatedISLookup에서는 addMetric이 숫자로 저장 → 숫자/객체 모두 처리
     {
-      const gainByEnt = lookup[period]['__투자부동산처분이익'] || {};
-      const lossByEnt = lookup[period]['__투자부동산처분손실'] || {};
-      const g = Object.values(gainByEnt).reduce((s, v) => s + Number(v || 0), 0);
-      const l = Object.values(lossByEnt).reduce((s, v) => s + Number(v || 0), 0);
+      const gainRaw = lookup[period]['__투자부동산처분이익'];
+      const lossRaw = lookup[period]['__투자부동산처분손실'];
+      const toNum = (v) => typeof v === 'object' && v !== null
+        ? Object.values(v).reduce((s, x) => s + Number(x || 0), 0)
+        : Number(v || 0);
+      const g = toNum(gainRaw);
+      const l = toNum(lossRaw);
       lookup[period].투자부동산처분손익 = Math.round(g - l);
       if (lookup[period].기타손익 !== undefined) {
         lookup[period].기타손익_순 = Math.round(Number(lookup[period].기타손익) - lookup[period].투자부동산처분손익);
@@ -895,6 +899,7 @@ export default function FnFQ1_2026Dashboard() {
   const [plInsightExpanded, setPlInsightExpanded] = useState(false);   // 실적분석 텍스트 접기/펼치기
   const [costInsightExpanded, setCostInsightExpanded] = useState(false); // 비용구조 텍스트 접기/펼치기
   const [nwcInsightExpanded, setNwcInsightExpanded] = useState(false);  // NWC 추세 시사점 접기/펼치기
+  const [nwcDetailTab, setNwcDetailTab] = useState(null); // null | 'prev' | 'yoy' — 구성요소 상세 기간 탭
   const [incomeViewMode, setIncomeViewMode] = useState('quarter'); // 'quarter' | 'annual'
   const [selectedPeriod, setSelectedPeriod] = useState('2026_Q1'); // 선택된 조회기간 ('2026_Q1' ~ '2026_Q4')
   const [summaryKpiMode, setSummaryKpiMode] = useState('quarter'); // 'quarter' | 'cumulative' - 손익 요약 카드 보기 모드
@@ -7442,7 +7447,7 @@ export default function FnFQ1_2026Dashboard() {
         </div>
 
         {/* 영업 섹션 법인별 증감 분석 - 전체 너비 */}
-        {selectedAccount !== '지분법손익' && !['외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순'].includes(selectedAccount) && (
+        {selectedAccount !== '지분법손익' && !['매출액', '외환손익', '선물환손익', '금융상품손익', '이자손익', '배당수익', '기부금', '투자부동산처분손익', '기타손익', '기타손익_순'].includes(selectedAccount) && (
         <>
         {/* 숨겨진 섹션 - 항상 복원 링크 표시 */}
         {isDetailSectionHidden(selectedAccount) ? (
@@ -10681,7 +10686,25 @@ export default function FnFQ1_2026Dashboard() {
                     {/* ──── 우 (50%): 구성요소 상세 + 추세분석 시사점 + 리스크 + 개선방향 ──── */}
                     <div className="space-y-4">
                     <div>
-                      <p className="text-[12px] font-semibold text-zinc-700 mb-2.5">구성요소 상세</p>
+                      {/* 헤더: 제목 + 기간 탭 버튼 */}
+                      <div className="flex items-center justify-between mb-2.5">
+                        <p className="text-[12px] font-semibold text-zinc-700">구성요소 상세</p>
+                        <div className="flex items-center gap-1">
+                          {[
+                            { key: 'prev', label: `전분기(${prevQKey ? prevQKey.replace('20','').replace('_','.') : '—'})` },
+                            { key: 'yoy',  label: `전동분기(${yoyQLabel || '—'})` },
+                          ].map(({ key, label }) => (
+                            <button key={key}
+                              onClick={() => setNwcDetailTab(v => v === key ? null : key)}
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded border transition-colors ${
+                                nwcDetailTab === key
+                                  ? 'bg-emerald-600 text-white border-emerald-600'
+                                  : 'bg-white text-zinc-500 border-zinc-200 hover:border-emerald-400 hover:text-emerald-600'
+                              }`}
+                            >{label}</button>
+                          ))}
+                        </div>
+                      </div>
                       <table className="w-full text-[11px] border-collapse mb-0">
                         <thead>
                           <tr className="bg-zinc-50 text-zinc-500">
@@ -10733,6 +10756,65 @@ export default function FnFQ1_2026Dashboard() {
                           </tr>
                         </tbody>
                       </table>
+                      {/* 기간 상세 테이블 — 탭 선택 시 현재 테이블 바로 아래 표시 */}
+                      {nwcDetailTab && (() => {
+                        const isPrev = nwcDetailTab === 'prev';
+                        const tabLabel = isPrev
+                          ? (prevQKey ? prevQKey.replace('20','').replace('_','.') : '전분기')
+                          : (yoyQLabel || '전동분기');
+                        const tabAR  = isPrev ? arMPrev  : arYoY;
+                        const tabINV = isPrev ? invMPrev : invYoY;
+                        const tabAP  = isPrev ? apMPrev  : apYoY;
+                        const tabNWC = tabAR + tabINV - tabAP;
+                        const tabSales = isPrev ? qSalesPrevM : qSalesYoYM;
+                        const tabCogs  = isPrev ? qCogsPrevM  : qCogsYoYM;
+                        const tabDSO = tabAR  > 0 && tabSales > 0 ? (tabAR  / tabSales * 90).toFixed(1) : null;
+                        const tabDIO = tabINV > 0 && tabCogs  > 0 ? (tabINV / tabCogs  * 90).toFixed(1) : null;
+                        const tabDPO = tabAP  > 0 && tabCogs  > 0 ? (tabAP  / tabCogs  * 90).toFixed(1) : null;
+                        const rows = [
+                          { label: '매출채권', val: tabAR,  color: 'text-indigo-600' },
+                          { label: '재고자산', val: tabINV, color: 'text-amber-600'  },
+                          { label: '매입채무', val: tabAP,  color: 'text-emerald-600'},
+                        ];
+                        return (
+                          <div className="mt-2 border border-emerald-100 rounded-lg overflow-hidden">
+                            <div className="bg-emerald-50 px-3 py-1.5 flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-emerald-700">{tabLabel} 금액 상세</span>
+                              <span className="text-[10px] text-emerald-500">매출 {tabSales > 0 ? formatNumber(Math.round(tabSales/100)) : '—'}억</span>
+                            </div>
+                            <table className="w-full text-[11px] border-collapse">
+                              <thead>
+                                <tr className="bg-zinc-50 text-zinc-500">
+                                  <th className="text-left py-1.5 px-2.5 font-semibold border border-zinc-100">항목</th>
+                                  <th className="text-right py-1.5 px-2.5 font-semibold border border-zinc-100">금액(억)</th>
+                                  <th className="text-right py-1.5 px-2.5 font-semibold border border-zinc-100">매출대비</th>
+                                  <th className="text-right py-1.5 px-2.5 font-semibold border border-zinc-100">회전일</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {rows.map((r, i) => {
+                                  const pct = tabSales > 0 ? (r.val / tabSales * 100).toFixed(1) : null;
+                                  const days = i === 0 ? tabDSO : i === 1 ? tabDIO : tabDPO;
+                                  return (
+                                    <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
+                                      <td className={`py-1.5 px-2.5 font-semibold border border-zinc-100 ${r.color}`}>{r.label}</td>
+                                      <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 font-semibold">{formatNumber(Math.round(r.val/100))}</td>
+                                      <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100">{pct != null ? `${pct}%` : '—'}</td>
+                                      <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-zinc-500">{days != null ? `${days}일` : '—'}</td>
+                                    </tr>
+                                  );
+                                })}
+                                <tr className="bg-emerald-50 font-bold">
+                                  <td className="py-1.5 px-2.5 border border-zinc-100 text-emerald-800">NWC 합계</td>
+                                  <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-emerald-800">{formatNumber(Math.round(tabNWC/100))}</td>
+                                  <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-emerald-700">{tabSales > 0 ? `${(tabNWC/tabSales*100).toFixed(1)}%` : '—'}</td>
+                                  <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-emerald-600">{tabDSO && tabDIO && tabDPO ? `CCC ${(parseFloat(tabDSO)+parseFloat(tabDIO)-parseFloat(tabDPO)).toFixed(0)}일` : '—'}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* 추세 분석 시사점 */}
