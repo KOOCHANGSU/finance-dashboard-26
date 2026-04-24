@@ -10029,7 +10029,7 @@ export default function FnFQ1_2026Dashboard() {
 
               {/* 분기별 추이 - 우측 패널 내, 법인별 구성 테이블 아래 */}
               {balanceItems.find(i => i.key === selectedBSAccount)?.selectable && quarterlyEntityData[selectedBSAccount] && (
-                <div className="mt-4">
+                <div className="mt-4 pt-4 border-t border-zinc-100">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-xs font-bold text-zinc-700 tracking-tight">분기별 추이</h4>
                     <div className="flex items-center gap-3">
