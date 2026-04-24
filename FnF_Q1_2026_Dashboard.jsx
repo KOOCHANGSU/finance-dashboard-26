@@ -8061,6 +8061,116 @@ export default function FnFQ1_2026Dashboard() {
                 </table>
                 <p className="text-[10px] text-zinc-400 px-2 py-1 bg-zinc-50 border-t border-zinc-100">* 단위: 백만원</p>
               </div>
+
+              {/* 선물환손익 선택 시: 파생상품 거래손익 상세 테이블 */}
+              {selectedNonOpAccount === '선물환손익' && (() => {
+                // ── 25.1Q CSV 기반 하드코딩 데이터 ──────────────────────────
+                // USD계약: T1(CNY120,000K→USD16,354K, -231백만), T3(CNY58,000K→USD7,970K, +14백만), T5(CNY78,000K→USD10,701K, -38백만)
+                // KRW계약: T2(CNY21,500K, +47백만), T4(CNY71,000K, -12백만)
+                const fwd25 = {
+                  usd: { cny: 256000, rate: 7.31, pnl: -254 },
+                  krw: { cny: 92500,  rate: 197.50, rateEnd: 198.00, chg: '+0.3%', pnl: 35 },
+                  total: { cny: 348500, pnl: -219 },
+                };
+                const summary25 = { trade: -219, eval: -3114, total: -3333 };
+                // 26.1Q: 해당손익 없음
+                const noActivity = '해당손익 없음';
+
+                const fmt = (v) => {
+                  if (v === null || v === undefined || v === '-') return '-';
+                  const abs = Math.abs(v);
+                  const s = abs.toLocaleString('ko-KR');
+                  return v < 0 ? `(${s})` : s;
+                };
+                const fmtRate = (v, dec=2) => v != null ? v.toFixed(dec) : '-';
+
+                return (
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 mt-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <span className="text-xs font-bold text-zinc-800">[파생상품 거래손익]</span>
+                      <span className="text-xs text-zinc-500 ml-1">CNY 선물환 계약 기준</span>
+                    </div>
+                    <span className="text-[10px] text-zinc-400">CNY: 천 단위 | KRW: 백만원</span>
+                  </div>
+
+                  {/* 메인 테이블 */}
+                  <table className="w-full text-xs border-collapse mb-4">
+                    <thead>
+                      <tr className="bg-zinc-50">
+                        <th rowSpan={2} className="text-center px-2 py-1.5 font-semibold text-zinc-600 border border-zinc-200 min-w-[70px]">구분</th>
+                        <th colSpan={3} className="text-center px-1 py-1 font-semibold text-zinc-700 border border-zinc-200 bg-blue-50">25.1Q</th>
+                        <th colSpan={3} className="text-center px-1 py-1 font-semibold text-zinc-500 border border-zinc-200 bg-zinc-50">{currPeriodLabel}</th>
+                      </tr>
+                      <tr className="bg-zinc-50 text-[10px]">
+                        <th className="text-center px-1 py-1 font-medium text-zinc-500 border border-zinc-200 min-w-[60px]">USD계약</th>
+                        <th className="text-center px-1 py-1 font-medium text-zinc-500 border border-zinc-200 min-w-[60px]">KRW계약</th>
+                        <th className="text-center px-1 py-1 font-medium text-zinc-500 border border-zinc-200 min-w-[55px]">계</th>
+                        <th colSpan={3} className="text-center px-1 py-1 font-medium text-zinc-400 border border-zinc-200">{noActivity}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-[11px]">
+                      <tr>
+                        <td className="px-2 py-1.5 text-zinc-600 font-medium border border-zinc-200 bg-zinc-50">계약(CNY)</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200">{fwd25.usd.cny.toLocaleString('ko-KR')}</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200">{fwd25.krw.cny.toLocaleString('ko-KR')}</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums font-semibold border border-zinc-200">{fwd25.total.cny.toLocaleString('ko-KR')}</td>
+                        <td colSpan={3} className="text-center px-2 py-1.5 text-zinc-300 border border-zinc-200">-</td>
+                      </tr>
+                      <tr className="bg-zinc-50/50">
+                        <td className="px-2 py-1.5 text-zinc-600 font-medium border border-zinc-200 bg-zinc-50">계약환율</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-blue-600">{fmtRate(fwd25.usd.rate)}</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-blue-600">{fmtRate(fwd25.krw.rate)}</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-zinc-400">-</td>
+                        <td colSpan={3} className="text-center px-2 py-1.5 text-zinc-300 border border-zinc-200">-</td>
+                      </tr>
+                      <tr>
+                        <td className="px-2 py-1.5 text-zinc-600 font-medium border border-zinc-200 bg-zinc-50">만기환율</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-zinc-400">-</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-blue-600">{fmtRate(fwd25.krw.rateEnd)}</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-zinc-400">-</td>
+                        <td colSpan={3} className="text-center px-2 py-1.5 text-zinc-300 border border-zinc-200">-</td>
+                      </tr>
+                      <tr className="bg-zinc-50/50">
+                        <td className="px-2 py-1.5 text-zinc-600 font-medium border border-zinc-200 bg-zinc-50">환율변동</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-zinc-400">-</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-emerald-600">{fwd25.krw.chg}</td>
+                        <td className="text-right px-2 py-1.5 tabular-nums border border-zinc-200 text-zinc-400">-</td>
+                        <td colSpan={3} className="text-center px-2 py-1.5 text-zinc-300 border border-zinc-200">-</td>
+                      </tr>
+                      <tr>
+                        <td className="px-2 py-1.5 text-zinc-700 font-semibold border border-zinc-200 bg-zinc-50">손익(KRW)</td>
+                        <td className={`text-right px-2 py-1.5 tabular-nums font-medium border border-zinc-200 ${fwd25.usd.pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(fwd25.usd.pnl)}</td>
+                        <td className={`text-right px-2 py-1.5 tabular-nums font-medium border border-zinc-200 ${fwd25.krw.pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(fwd25.krw.pnl)}</td>
+                        <td className={`text-right px-2 py-1.5 tabular-nums font-bold border border-zinc-200 ${fwd25.total.pnl >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{fmt(fwd25.total.pnl)}</td>
+                        <td colSpan={3} className="text-center px-2 py-1.5 text-zinc-300 border border-zinc-200">-</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  {/* 하단 요약: 거래손익 / 평가손익 / 합계 */}
+                  <div className="border-t border-zinc-200 pt-3 grid grid-cols-3 gap-4 text-[11px]">
+                    {[
+                      { label: '거래손익', val25: summary25.trade },
+                      { label: '평가손익', val25: summary25.eval },
+                      { label: '선물환손익 합계', val25: summary25.total, bold: true },
+                    ].map(({ label, val25, bold }) => (
+                      <div key={label} className={`flex justify-between items-center ${bold ? 'font-semibold border-t border-zinc-300 pt-2 mt-1' : ''}`}>
+                        <span className="text-zinc-600">{label}</span>
+                        <div className="flex gap-4 tabular-nums">
+                          <span className="text-zinc-400 text-[10px]">25.1Q</span>
+                          <span className={val25 >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{fmt(val25)}</span>
+                          <span className="text-zinc-300">|</span>
+                          <span className="text-zinc-400 text-[10px]">{currPeriodLabel}</span>
+                          <span className="text-zinc-400">-</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-2">* 계약환율: USD계약 CNY/USD, KRW계약 KRW/CNY (가중평균) | 4Q 분기(3개월) 기준 선물환 계약</p>
+                </div>
+                );
+              })()}
               </>
                 );
               })()}
