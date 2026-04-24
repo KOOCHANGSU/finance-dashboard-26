@@ -3164,14 +3164,16 @@ export default function FnFQ1_2026Dashboard() {
       '2024_3Q_Year': { 'OC(국내)': 613025, '중국': 643674, '홍콩': 54735, 'ST미국': 26662, '기타': 11369 },
       '2024_4Q': { 'OC(국내)': 301138, '중국': 214166, '홍콩': 20299, 'ST미국': 10115, '기타': 826 },
       '2024_Year': { 'OC(국내)': 914163, '중국': 857840, '홍콩': 75034, 'ST미국': 36777, '기타': 12195 },
-      '2025_1Q': { 'OC(국내)': 217218, '중국': 258540, '홍콩': 20663, 'ST미국': 8443, '기타': 752 },
-      '2025_1Q_Year': { 'OC(국내)': 217218, '중국': 258540, '홍콩': 20663, 'ST미국': 8443, '기타': 752 },
+      '2025_1Q': { 'OC(국내)': 215194, '중국': 258540, '홍콩': 20663, 'ST미국': 8443, '엔터테인먼트': 759, '기타': 2016 },
+      '2025_1Q_Year': { 'OC(국내)': 215194, '중국': 258540, '홍콩': 20663, 'ST미국': 8443, '엔터테인먼트': 759, '기타': 2016 },
       '2025_2Q': { 'OC(국내)': 182702, '중국': 170703, '홍콩': 15742, 'ST미국': 8590, '기타': 1134 },
       '2025_2Q_Year': { 'OC(국내)': 399920, '중국': 429243, '홍콩': 36405, 'ST미국': 17033, '기타': 1886 },
       '2025_3Q': { 'OC(국내)': 154598, '중국': 283919, '홍콩': 16908, 'ST미국': 16123, '기타': 2709 },
       '2025_3Q_Year': { 'OC(국내)': 554518, '중국': 713162, '홍콩': 53313, 'ST미국': 33156, '기타': 4595 },
       '2025_4Q': { 'OC(국내)': 287542, '중국': 247172, '홍콩': 22962, 'ST미국': 15082, '기타': 2494 },
       '2025_Year': { 'OC(국내)': 842060, '중국': 960334, '홍콩': 76275, 'ST미국': 48238, '기타': 7089 },
+      '2026_1Q': { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3234 },
+      '2026_1Q_Year': { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3234 },
     },
     '매출원가': {
       '2024_1Q': { 'OC(국내)': 84861, '중국': 80578, '홍콩': 4359, 'ST미국': 2031, '기타': 2716 },
@@ -6602,6 +6604,7 @@ export default function FnFQ1_2026Dashboard() {
       '중국': '#F59E0B',
       '홍콩': '#8B5CF6',
       'ST미국': '#10B981',
+      '엔터테인먼트': '#EC4899',
       '기타': '#6B7280',
       '연결조정': '#9CA3AF',
     };
@@ -6656,6 +6659,14 @@ export default function FnFQ1_2026Dashboard() {
       const csvPeriodKey = fallbackPeriod.replace(/_\dQ_Year$/, match => match.replace('_Year', ''));
       const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
 
+      // 매출액: 연도 관계없이 큐레이션된 entityData를 항상 우선 사용
+      if (accountKey === '매출액') {
+        const direct = entityData?.['매출액']?.[period];
+        if (direct && Object.keys(direct).length > 0) return direct;
+        const fromFallback = entityData?.['매출액']?.[fallbackPeriod];
+        if (fromFallback && Object.keys(fromFallback).length > 0) return fromFallback;
+      }
+
       // 2026 이후: normalizeYearDataset가 2025 데이터를 클론하므로 CSV를 우선 사용
       const isCurrentOrFuture = period.startsWith('2026') || period.startsWith('2027');
       if (isCurrentOrFuture) {
@@ -6690,15 +6701,9 @@ export default function FnFQ1_2026Dashboard() {
         return { '연결조정': consolidatedTotal };
       }
 
-      // 매출액: CSV 원본 OC(국내)에는 중국/홍콩 법인 수출분(내부거래)이 포함되어 있어
-      // 연결조정 제거 후 NET OC(국내) = 연결합계 − 기타법인 합산으로 재계산
-      // (2025 하드코딩 방식과 동일 → 분기/연도 간 비교 정합성 확보)
-      if (accountKey === '매출액' && consolidatedTotal > 0) {
-        const nonOcSum = baseKeys
-          .filter(k => k !== 'OC(국내)')
-          .reduce((sum, k) => sum + (base[k] || 0), 0);
-        const netOC = consolidatedTotal - nonOcSum;
-        return { ...base, 'OC(국내)': netOC, '연결조정': 0 };
+      // 매출액: 큐레이션된 entityData를 직접 사용 (연결조정 없이 표시)
+      if (accountKey === '매출액') {
+        return { ...base };
       }
 
       // 스케일링 없이 원본 값 그대로 사용, 차이분은 연결조정에 표시
@@ -6719,6 +6724,11 @@ export default function FnFQ1_2026Dashboard() {
 
     // 비교용: 전기/당기 둘 다를 고려하여, 한 기간이라도 유의미하면 개별로 유지
     const getGroupedEntityBreakdownForComparison = (accountKey, prevPeriod, currPeriod) => {
+      // 매출액: 모든 법인을 개별 표시 (기타(연결조정) 미사용)
+      if (accountKey === '매출액') {
+        return { ...getAlignedEntityBreakdown(accountKey, currPeriod) };
+      }
+
       const totalCurr = getConsolidatedTotal(accountKey, currPeriod);
       const totalPrev = getConsolidatedTotal(accountKey, prevPeriod);
       const alignedCurr = getAlignedEntityBreakdown(accountKey, currPeriod);
