@@ -945,6 +945,9 @@ export default function FnFQ1_2026Dashboard() {
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
+  const [cashFlowData, setCashFlowData] = useState([]);              // 현금흐름.csv 파싱 결과
+  const [cashEntityNotes, setCashEntityNotes] = useState(() => loadFromStorage('fnf_q1_2026_cash_entity_notes') || {});
+  const [cashEntityEditMode, setCashEntityEditMode] = useState(false);
   const [expandedBrandRows, setExpandedBrandRows] = useState(new Set()); // 브랜드 소계 펼침 상태
   const [epsAdjExpanded, setEpsAdjExpanded] = useState(false); // 조정 EPS 접기/펼치기
   // EPS(주당순이익) 데이터 — EPS.csv 로드
@@ -1242,6 +1245,23 @@ export default function FnFQ1_2026Dashboard() {
       cancelled = true;
     };
   }, []);
+
+  // 현금흐름.csv 로드
+  React.useEffect(() => {
+    async function loadCashFlow() {
+      try {
+        const text = await fetchCsvTextWithFallback('/현금흐름.csv');
+        const rows = parseCsvText(text);
+        if (rows?.length) setCashFlowData(rows);
+      } catch {}
+    }
+    loadCashFlow();
+  }, []);
+
+  // cashEntityNotes localStorage 저장
+  React.useEffect(() => {
+    try { localStorage.setItem('fnf_q1_2026_cash_entity_notes', JSON.stringify(cashEntityNotes)); } catch {}
+  }, [cashEntityNotes]);
 
   // 모든 설정 변경 시 localStorage 저장 + 서버 자동 저장 (debounce 2초)
   React.useEffect(() => {
@@ -10016,6 +10036,152 @@ export default function FnFQ1_2026Dashboard() {
             )}
           </div>
         </div>
+
+        {/* ───── 현금성자산 선택 시: 변동내역(좌) + 구성상세 카드(우) ───── */}
+        {selectedBSAccount === '현금성자산' && cashFlowData.length > 0 && (() => {
+          const parseAmt = (s) => {
+            const str = String(s || '').replace(/\s/g, '');
+            if (!str) return null;
+            const neg = str.includes('(') && str.includes(')');
+            const n = Number(str.replace(/[(),]/g, ''));
+            if (!isFinite(n) || n === 0) return null;
+            return (neg ? -n : n) / 1e8; // 원 → 억원
+          };
+          const fmtAmt = (v) => {
+            if (v === null) return '—';
+            return `${v >= 0 ? '+' : ''}${Math.round(v).toLocaleString('ko-KR')}억`;
+          };
+          const amtCls = (v) => v === null ? 'text-zinc-400' : v >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold';
+
+          // cashFlowData: skip first 2 rows (blank/title)
+          const cfRows = (cashFlowData || []).slice(2).filter(r => r && (String(r[1]||'').trim() || String(r[2]||'').trim()));
+
+          // entity cards
+          const cfEntityColors = { 'OC(국내)': '#3b82f6', '중국': '#f59e0b', '홍콩': '#8b5cf6', 'ST미국': '#10b981', '기타(연결조정)': '#6b7280' };
+          const cfEntityOrder = ['OC(국내)', '중국', '홍콩', 'ST미국', '기타(연결조정)'];
+          const getCashVal = (period, entity) => {
+            const csvKey = '현금및현금성자산';
+            for (const ek of (entity === '기타(연결조정)' ? ['기타(연결조정)', '기타', '연결조정'] : [entity])) {
+              const v = entityCsvLookup?.bs?.[period]?.[csvKey]?.[ek];
+              if (v !== undefined) return v;
+            }
+            return entityBSData?.[period]?.현금성자산?.[entity] ?? 0;
+          };
+          const totalCurr = balanceSheetData[bsCurrentPeriod]?.현금성자산 || 0;
+          const totalPrev = balanceSheetData[bsPrevPeriod]?.현금성자산 || 0;
+          const totalDiffBil = Math.round((totalCurr - totalPrev) / 100);
+          const totalYoY = totalPrev ? (((totalCurr - totalPrev) / Math.abs(totalPrev)) * 100).toFixed(1) : null;
+
+          return (
+            <div className="flex gap-4 mt-4">
+              {/* 좌: 현금 변동내역 */}
+              <div className="flex-1 min-w-0 bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                <div className="bg-zinc-50 px-4 py-2.5 border-b border-zinc-200">
+                  <h3 className="text-sm font-semibold text-zinc-800">▷ 현금 및 현금성자산 변동내역</h3>
+                </div>
+                <table className="w-full text-xs">
+                  <tbody>
+                    {cfRows.map((row, i) => {
+                      const col1 = String(row[1] || '').trim();
+                      const col2 = String(row[2] || '').trim();
+                      const amt  = parseAmt(row[3]);
+                      const note = String(row[4] || '').trim();
+                      // 구분
+                      const isTotal   = /^[12]\./.test(col1) || /현금및/.test(col1);
+                      const isCatOnly = !isTotal && col1 && !col2; // OC(국내), 자회사, 기타
+                      const isSubItem = col2.startsWith('-') || col2.startsWith('    -');
+                      const isItem    = col2 && !isSubItem;
+                      if (isTotal) return (
+                        <tr key={i} className="bg-zinc-100 border-t-2 border-zinc-300">
+                          <td className="px-4 py-2 font-bold text-zinc-900 w-[38%]">{col1}</td>
+                          <td className={`text-right px-3 py-2 w-[18%] ${amtCls(amt)}`}>{fmtAmt(amt)}</td>
+                          <td className="px-3 py-2 text-zinc-400 text-[10px] leading-relaxed">{note}</td>
+                        </tr>
+                      );
+                      if (isCatOnly) return (
+                        <tr key={i} className="bg-blue-50/50 border-t border-zinc-200">
+                          <td colSpan={3} className="px-4 py-1 font-semibold text-blue-700 text-[11px]">{col1}</td>
+                        </tr>
+                      );
+                      if (isSubItem) return (
+                        <tr key={i} className="border-b border-zinc-50">
+                          <td className="px-4 py-1 pl-12 text-zinc-400 text-[10px] w-[38%]">{col2.replace(/^\s+-\s*/, '- ')}</td>
+                          <td className={`text-right px-3 py-1 text-[10px] w-[18%] ${amtCls(amt)}`}>{fmtAmt(amt)}</td>
+                          <td className="px-3 py-1 text-zinc-300 text-[10px]">{note}</td>
+                        </tr>
+                      );
+                      if (isItem) return (
+                        <tr key={i} className="border-b border-zinc-100">
+                          <td className="px-4 py-1.5 pl-6 text-zinc-700 w-[38%]">{col2}</td>
+                          <td className={`text-right px-3 py-1.5 w-[18%] ${amtCls(amt)}`}>{fmtAmt(amt)}</td>
+                          <td className="px-3 py-1.5 text-zinc-400 text-[10px] leading-relaxed">{note}</td>
+                        </tr>
+                      );
+                      return null;
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 우: 현금성자산 구성 상세 카드 */}
+              <div className="w-[40%] flex-shrink-0 bg-white rounded-lg border border-zinc-200 shadow-sm flex flex-col">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-zinc-200 bg-zinc-50">
+                  <h3 className="text-sm font-semibold text-zinc-800">현금성자산 구성 상세</h3>
+                  <button onClick={() => setCashEntityEditMode(m => !m)} title="편집" className="text-zinc-400 hover:text-blue-500 transition-colors">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                  </button>
+                </div>
+                <div className="p-3 space-y-2 flex-1">
+                  {cfEntityOrder.map(entity => {
+                    const curr = getCashVal(bsCurrentPeriod, entity);
+                    const prev = getCashVal(bsPrevPeriod, entity);
+                    const diffBil = Math.round((curr - prev) / 100);
+                    if (curr === 0 && prev === 0) return null;
+                    const noteKey = `cash_${entity}`;
+                    const noteText = cashEntityNotes[noteKey] || '';
+                    const color = cfEntityColors[entity] || '#6b7280';
+                    return (
+                      <div key={entity} className="rounded-lg border border-zinc-100 px-3 py-2 bg-zinc-50/60">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></span>
+                            <span className="text-xs font-semibold text-zinc-700">{entity}</span>
+                          </div>
+                          <span className={`text-xs font-bold ${diffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {diffBil >= 0 ? '+' : ''}{diffBil.toLocaleString('ko-KR')}억원
+                          </span>
+                        </div>
+                        {cashEntityEditMode ? (
+                          <textarea
+                            value={noteText}
+                            onChange={e => setCashEntityNotes(prev => ({ ...prev, [noteKey]: e.target.value }))}
+                            rows={2}
+                            placeholder="변동 내용 입력"
+                            className="w-full text-[10px] text-zinc-600 bg-white border border-blue-200 rounded px-2 py-1 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          />
+                        ) : (
+                          <p className="text-[10px] text-zinc-400 leading-relaxed min-h-[1.5rem]">
+                            {noteText || '유의미한 변동 없음'}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="px-4 py-2.5 border-t border-zinc-200 bg-zinc-50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-500">전체 YoY 변동</span>
+                    <span className={`text-xs font-bold ${totalDiffBil >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {totalDiffBil >= 0 ? '+' : ''}{totalDiffBil.toLocaleString('ko-KR')}억원
+                      {totalYoY ? ` (${parseFloat(totalYoY) >= 0 ? '+' : ''}${totalYoY}%)` : ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+        {/* ─────────────────────────────────────────────────────────────── */}
 
         {/* 구성 상세 - 전체 너비 */}
         <>
