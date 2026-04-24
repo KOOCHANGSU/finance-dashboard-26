@@ -9587,9 +9587,9 @@ export default function FnFQ1_2026Dashboard() {
         {bsSubTabBar}
         <div className="space-y-6">
         {/* 재무상태표 테이블 & 법인별 구성 */}
-        <div className="flex flex-col xl:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* 좌측: 재무상태표 테이블 */}
-          <div className="flex-1 min-w-0 xl:max-w-[55%]">
+          <div className="flex-1 min-w-0 lg:max-w-[55%]">
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
                 <div className="flex items-center justify-between">
@@ -9682,7 +9682,7 @@ export default function FnFQ1_2026Dashboard() {
           </div>
 
           {/* 우측: 법인별 구성 */}
-          <div className="w-full xl:w-[45%] xl:min-w-[420px] flex-shrink-0 space-y-3">
+          <div className="w-full lg:w-[45%] lg:min-w-[420px] flex-shrink-0 space-y-3">
             {/* ── 현금성자산: 변동내역 테이블 (우측 패널) ── */}
             {selectedBSAccount === '현금성자산' && cashFlowData.length > 1 && (() => {
               const parseAmt = (s) => {
@@ -9728,33 +9728,33 @@ export default function FnFQ1_2026Dashboard() {
                     <h3 className="text-sm font-semibold text-zinc-800">▷ 현금 및 현금성자산 변동내역</h3>
                     <span className="text-[11px] text-zinc-400">(단위: 억원)</span>
                   </div>
-                  <table className="w-full text-[13px]">
+                  <table className="w-full text-[14px]">
                     <tbody>
                       {processedRows.map((pr, i) => {
                         if (pr.type === 'total') return (
                           <tr key={i} className="bg-zinc-100 border-t-2 border-zinc-300">
                             <td className="px-3 py-1.5 font-bold text-zinc-900">{pr.label}</td>
                             <td className={`text-right px-3 py-1.5 font-bold tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
-                            {pr.note && <td className="px-2 py-1.5 text-zinc-400 text-[11px]">{pr.note}</td>}
+                            {pr.note && <td className="px-2 py-1.5 text-zinc-400 text-[12px]">{pr.note}</td>}
                           </tr>
                         );
                         if (pr.type === 'cat') return (
                           <tr key={i} className="bg-blue-50/50 border-t border-zinc-200">
-                            <td colSpan={3} className="px-3 py-1 font-semibold text-blue-700 text-[12px]">{pr.label}</td>
+                            <td colSpan={3} className="px-3 py-1 font-semibold text-blue-700 text-[13px]">{pr.label}</td>
                           </tr>
                         );
                         if (pr.type === 'sub') return (
                           <tr key={i} className="border-b border-zinc-50">
-                            <td className="px-3 py-0.5 pl-10 text-zinc-400 text-[11px]">{pr.label}</td>
-                            <td className={`text-right px-3 py-0.5 text-[11px] tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
-                            {pr.note && <td className="px-2 py-0.5 text-zinc-300 text-[10px]">{pr.note}</td>}
+                            <td className="px-3 py-0.5 pl-10 text-zinc-400 text-[12px]">{pr.label}</td>
+                            <td className={`text-right px-3 py-0.5 text-[12px] tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                            {pr.note && <td className="px-2 py-0.5 text-zinc-300 text-[11px]">{pr.note}</td>}
                           </tr>
                         );
                         return (
                           <tr key={i} className="border-b border-zinc-100">
                             <td className="px-3 py-1 pl-5 text-zinc-700">{pr.label}</td>
                             <td className={`text-right px-3 py-1 tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
-                            {pr.note && <td className="px-2 py-1 text-zinc-400 text-[11px] leading-relaxed">{pr.note}</td>}
+                            {pr.note && <td className="px-2 py-1 text-zinc-400 text-[12px] leading-relaxed">{pr.note}</td>}
                           </tr>
                         );
                       })}
@@ -11247,7 +11247,8 @@ export default function FnFQ1_2026Dashboard() {
             const gross = csvBs['매출채권']?.[ek];
             if (gross !== undefined) {
               const allowance = csvBs['매출채권대손충당금']?.[ek] ?? 0;
-              return Math.round(Number(gross) + Number(allowance));
+              const longTerm = csvBs['장기매출채권']?.[ek] ?? 0;
+              return Math.round(Number(gross) + Number(allowance) + Number(longTerm));
             }
           }
         }
