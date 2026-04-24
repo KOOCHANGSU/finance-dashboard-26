@@ -10695,8 +10695,8 @@ export default function FnFQ1_2026Dashboard() {
                             <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-emerald-600">매출비<br/><span className="font-normal text-zinc-400">회전일</span></th>
                             <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-blue-600">{prevQLabel || '전분기'}<br/><span className="font-normal text-zinc-400">금액(억)</span></th>
                             <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-violet-600">{yoyQLabel || '전동분기'}<br/><span className="font-normal text-zinc-400">금액(억)</span></th>
-                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100">QoQ</th>
-                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100">YoY</th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100">QoQ<br/><span className="font-normal text-zinc-400">vs {prevQLabel || '전분기'}</span></th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100">YoY<br/><span className="font-normal text-zinc-400">vs {yoyQLabel || '전동분기'}</span></th>
                           </tr>
                         </thead>
                         <tbody>
