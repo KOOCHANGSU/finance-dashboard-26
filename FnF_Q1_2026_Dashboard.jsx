@@ -11108,6 +11108,39 @@ export default function FnFQ1_2026Dashboard() {
         부채총계: ['부채총계'],
         자본총계: ['자본총계'],
       };
+      // ─── Entity CSV 순자산 계산 (충당금·감가상각누계액 차감, 유무형 합산) ───
+      // 우선순위: 이 블록 → 일반 alias 루프 → entityBSData 폴백
+      const csvBs = entityCsvLookup?.bs?.[resolvedPeriod];
+      if (csvBs) {
+        if (account === '매출채권') {
+          for (const ek of entityCandidates) {
+            const gross = csvBs['매출채권']?.[ek];
+            if (gross !== undefined) {
+              const allowance = csvBs['매출채권대손충당금']?.[ek] ?? 0;
+              return Math.round(Number(gross) + Number(allowance));
+            }
+          }
+        }
+        if (account === '사용권자산') {
+          for (const ek of entityCandidates) {
+            const gross = csvBs['사용권자산']?.[ek];
+            if (gross !== undefined) {
+              const depr = csvBs['사용권자산감가상각누계액']?.[ek] ?? 0;
+              return Math.round(Number(gross) + Number(depr)); // depr은 음수
+            }
+          }
+        }
+        if (account === '유무형자산') {
+          for (const ek of entityCandidates) {
+            const tangible = csvBs['유형자산']?.[ek];
+            const intangible = csvBs['무형자산']?.[ek];
+            if (tangible !== undefined || intangible !== undefined) {
+              return Math.round(Number(tangible || 0) + Number(intangible || 0));
+            }
+          }
+        }
+      }
+      // ────────────────────────────────────────────────────────────────────
       const candidates = bsAliasMap[account] || [account];
       for (const c of candidates) {
         const csvKey = normalizeAccount(c);
