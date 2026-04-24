@@ -9624,49 +9624,41 @@ export default function FnFQ1_2026Dashboard() {
                       {/* 1. 당기순손익 */}
                       <tr className="border-b border-zinc-100 bg-emerald-50/30">
                         <td className="px-4 py-2 text-zinc-800 font-medium">1. 당기순손익</td>
-                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+4,032억</td>
+                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+1,961억</td>
                       </tr>
                       <tr className="border-b border-zinc-50">
                         <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 연결당기순이익</td>
-                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+4,027억</td>
+                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+1,960억</td>
                       </tr>
                       <tr className="border-b border-zinc-100">
                         <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">② 확정급여제도 재측정요소</td>
-                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+5억</td>
+                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+1억</td>
                       </tr>
-                      
+
                       {/* 2. 기타자본거래 */}
                       <tr className="border-b border-zinc-100 bg-rose-50/30">
                         <td className="px-4 py-2 text-zinc-800 font-medium">2. 기타자본거래</td>
-                        <td className="px-4 py-2 text-right text-rose-600 font-semibold tabular-nums">△980억</td>
-                      </tr>
-                      <tr className="border-b border-zinc-50">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 연차배당</td>
-                        <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△639억</td>
-                      </tr>
-                      <tr className="border-b border-zinc-50">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">② 자기주식취득</td>
-                        <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△65억</td>
+                        <td className="px-4 py-2 text-right text-rose-600 font-semibold tabular-nums">△1,012억</td>
                       </tr>
                       <tr className="border-b border-zinc-100">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">③ STE 지분취득 자본조정 <span className="text-zinc-600">(모빈지분 인수 USD 19.16M)</span><span className="text-zinc-400">*</span></td>
-                        <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△276억</td>
+                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 연차배당</td>
+                        <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△1,012억</td>
                       </tr>
-                      
+
                       {/* 3. 기타포괄손익 */}
-                      <tr className="border-b border-zinc-100 bg-rose-50/30">
+                      <tr className="border-b border-zinc-100 bg-emerald-50/30">
                         <td className="px-4 py-2 text-zinc-800 font-medium">3. 기타포괄손익</td>
-                        <td className="px-4 py-2 text-right text-rose-600 font-semibold tabular-nums">△29억</td>
+                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+26억</td>
                       </tr>
                       <tr className="border-b border-zinc-200">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 해외사업환산손실</td>
-                        <td className="px-4 py-1.5 text-right text-rose-500 text-xs tabular-nums">△29억</td>
+                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 해외사업환산이익</td>
+                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+26억</td>
                       </tr>
-                      
+
                       {/* 합계 */}
                       <tr className="bg-zinc-100">
                         <td className="px-4 py-2.5 text-zinc-900 font-semibold">자본총계 변동(1+2+3)</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-600 font-bold tabular-nums text-base">+3,023억</td>
+                        <td className="px-4 py-2.5 text-right text-emerald-600 font-bold tabular-nums text-base">+975억</td>
                       </tr>
                     </tbody>
                   </table>
@@ -10944,7 +10936,7 @@ export default function FnFQ1_2026Dashboard() {
       { key: '기부금', label: '(6)기부금', depth: 1, selectable: true },
       ...(selectedEntityKey === 'OC(국내)' ? [
         { key: '투자부동산처분손익', label: '(7)투자부동산처분손익', depth: 1, selectable: true },
-        { key: '기타손익_순', label: '(8)기타손익', depth: 1, selectable: true },
+        { key: '기타손익', label: '(8)기타손익', depth: 1, selectable: true },
       ] : [
         { key: '기타손익', label: '(7)기타손익', depth: 1, selectable: true },
       ]),
