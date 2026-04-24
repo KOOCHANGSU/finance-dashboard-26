@@ -8813,8 +8813,6 @@ export default function FnFQ1_2026Dashboard() {
               const MISC_ITEMS = [
                 { key: '잡이익',            label: '잡이익',             sign: 1,  csvRaw: '__잡이익'  },
                 { key: '잡손실',            label: '잡손실',             sign: -1, csvRaw: '__잡손실'  },
-                { key: '투자부동산처분이익', label: '투자부동산처분이익', sign: 1,  csvRaw: '__투자부동산처분이익' },
-                { key: '투자부동산처분손실', label: '투자부동산처분손실', sign: -1, csvRaw: '__투자부동산처분손실' },
                 { key: '유형자산처분이익',  label: '유형자산처분이익',   sign: 1,  csvRaw: '__유형자산처분이익'  },
                 { key: '유형자산처분손실',  label: '유형자산처분손실',   sign: -1, csvRaw: '__유형자산처분손실' },
                 { key: '수수료수익',        label: '수수료수익',         sign: 1  },
@@ -8871,7 +8869,8 @@ export default function FnFQ1_2026Dashboard() {
               const calcTotal = (period) =>
                 MISC_ITEMS.reduce((s, it) => s + (getVal(it, period) !== null ? getVal(it, period) : 0), 0);
 
-              const actualTotal = (period) => (incomeStatementData[period]?.기타손익 || 0) / 100; // 백만원 → 억원
+              // 투자부동산처분손익 제외한 순 기타손익 (IS의 기타손익_순)
+              const actualTotal = (period) => (incomeStatementData[period]?.기타손익_순 ?? (incomeStatementData[period]?.기타손익 || 0)) / 100;
 
               const startEdit = () => {
                 const d = {};
@@ -9033,7 +9032,7 @@ export default function FnFQ1_2026Dashboard() {
                                 <td className={`text-right px-2 py-1.5 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{diff !== 0 ? (diff > 0 ? '+' : '') + diff.toFixed(1) : '-'}</td>
                               </tr>
                               <tr className="bg-amber-50 text-[11px]">
-                                <td className="px-3 py-1 text-amber-700 border-r border-zinc-100">연결 기타손익 (참고)</td>
+                                <td className="px-3 py-1 text-amber-700 border-r border-zinc-100">연결 기타손익_순 (참고)</td>
                                 <td className="text-right px-2 py-1 tabular-nums text-zinc-500 border-r border-zinc-100">{(actualTotal(prevPeriod)).toFixed(1)}</td>
                                 <td className="text-right px-2 py-1 tabular-nums text-amber-800 font-semibold border-r border-zinc-100">{actual.toFixed(1)}</td>
                                 <td className={`text-right px-2 py-1 tabular-nums font-medium ${Math.abs(gap) < 0.5 ? 'text-emerald-600' : 'text-rose-600'}`}>
