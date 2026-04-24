@@ -5263,45 +5263,8 @@ export default function FnFQ1_2026Dashboard() {
               </button>
             </div>
           </div>
-          {/* 손익 컴팩트 스트립 */}
-          <div className="flex items-stretch bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden divide-x divide-zinc-100">
-            {incomeCards.map((card, idx) => {
-              const chg = card.prevValue !== 0
-                ? ((card.value - card.prevValue) / Math.abs(card.prevValue) * 100).toFixed(1)
-                : '0';
-              const isPos = parseFloat(chg) >= 0;
-              const fmtVal = card.isEPS
-                ? Number(card.value).toLocaleString('ko-KR') + '원'
-                : (() => {
-                    const abs = Math.abs(Math.round(card.value));
-                    const sign = card.value < 0 ? '-' : '';
-                    if (abs >= 10000) {
-                      const t = Math.floor(abs / 10000);
-                      const b = abs % 10000;
-                      return `${sign}${t}조${b > 0 ? ' ' + formatNumber(b) : ''}억`;
-                    }
-                    return `${sign}${formatNumber(abs)}억`;
-                  })();
-              return (
-                <div key={idx} className="flex-1 px-4 py-3.5 flex flex-col gap-0.5 hover:bg-zinc-50 transition-colors">
-                  <span className="text-[10px] font-semibold text-zinc-400 tracking-wide whitespace-nowrap">{card.title}</span>
-                  <span className="text-[17px] font-bold text-zinc-900 tabular-nums leading-tight">{fmtVal}</span>
-                  <span className={`text-[11px] font-semibold ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    YoY {isPos ? '+' : ''}{chg}%
-                  </span>
-                  {card.hasRate && card.rateCurr !== undefined && (
-                    <span className="text-[10px] text-zinc-400 mt-0.5">
-                      {card.rateLabel} <span className="font-semibold text-zinc-600">{card.rateCurr.toFixed(1)}%</span>
-                      {card.ratePrev !== undefined && (
-                        <span className={`ml-1 ${(card.rateCurr - card.ratePrev) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                          {(card.rateCurr - card.ratePrev) >= 0 ? '+' : ''}{(card.rateCurr - card.ratePrev).toFixed(1)}%p
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-3 gap-4">
+            {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
 
@@ -5336,45 +5299,8 @@ export default function FnFQ1_2026Dashboard() {
               </button>
             </div>
           </div>
-          {/* 재무상태 컴팩트 스트립 */}
-          <div className="flex items-stretch bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden divide-x divide-zinc-100">
-            {balanceCards.map((card, idx) => {
-              const chg = card.isPercent
-                ? (card.value - card.prevValue).toFixed(1)
-                : (card.prevValue !== 0
-                    ? ((card.value - card.prevValue) / Math.abs(card.prevValue) * 100).toFixed(1)
-                    : '0');
-              const isPos = parseFloat(chg) >= 0;
-              const unit  = card.isPercent ? '%p' : '%';
-              const fmtVal = card.isPercent
-                ? card.value.toFixed(1) + '%'
-                : (() => {
-                    const abs = Math.abs(Math.round(card.value));
-                    const sign = card.value < 0 ? '-' : '';
-                    if (abs >= 10000) {
-                      const t = Math.floor(abs / 10000);
-                      const b = abs % 10000;
-                      return `${sign}${t}조${b > 0 ? ' ' + formatNumber(b) : ''}억`;
-                    }
-                    return `${sign}${formatNumber(abs)}억`;
-                  })();
-              return (
-                <div key={idx} className="flex-1 px-4 py-3.5 flex flex-col gap-0.5 hover:bg-zinc-50 transition-colors">
-                  <span className="text-[10px] font-semibold text-zinc-400 tracking-wide whitespace-nowrap">{card.title}</span>
-                  <span className="text-[17px] font-bold text-zinc-900 tabular-nums leading-tight">{fmtVal}</span>
-                  <span className={`text-[11px] font-semibold ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {card.isPercent ? 'YoY' : 'YoY'} {isPos ? '+' : ''}{chg}{unit}
-                  </span>
-                  {card.isYearEndMode && card.yoyValue != null && (
-                    <span className="text-[10px] text-zinc-400 mt-0.5">
-                      동분기 <span className={`font-semibold ${(card.value - card.yoyValue) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {(card.value - card.yoyValue) >= 0 ? '+' : ''}{(card.value - card.yoyValue).toFixed(card.isPercent ? 1 : 0)}{card.isPercent ? '%p' : '억'}
-                      </span>
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-4">
+            {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
           </div>
         </div>
 
