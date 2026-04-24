@@ -712,26 +712,48 @@ const buildConsolidatedBSLookup = (rows, year) => {
     const qKey = `${year}_${q}Q`;
     const qCol = offset + 13;
 
-    // Pass 1: exact match (plain account names without numeric prefix)
+    // ── 이중계산 방지: 소계행과 개별행이 같은 카테고리에 중복 기여하는지 사전 탐지 ──
+    // 예) "(1)투자자산"(소계) AND "관계기업및종속기업투자"(개별) 모두 → 투자자산 → 이중계산
+    // 예) "(5)사용권자산"(소계) AND "사용권자산"(개별) 모두 → 사용권자산 → 이중계산
+    // 해결: 두 종류가 겹치는 카테고리는 개별행(plain)만 사용, 소계행(section)은 skip
+    const categoryFromSection = new Set(); // "(n)계정" 패턴 행이 기여하는 카테고리
+    const categoryFromPlain   = new Set(); // 일반 행이 기여하는 카테고리
+    for (let r = 1; r < rows.length; r += 1) {
+      const rawAcc = String(rows[r][offset] ?? '').trim();
+      if (!rawAcc) continue;
+      const mapped = accountMap[normalizeAccount(rawAcc)];
+      if (!mapped) continue;
+      if (/^\(\d+\)/.test(rawAcc)) categoryFromSection.add(mapped);
+      else                          categoryFromPlain.add(mapped);
+    }
+    // 두 집합 모두에 속하는 카테고리: 소계 skip, 개별행으로만 집계
+    const skipSectionForCategory = new Set(
+      [...categoryFromSection].filter(cat => categoryFromPlain.has(cat))
+    );
+
+    // Pass 1: exact match
     for (let r = 1; r < rows.length; r += 1) {
       const row = rows[r];
-      const mapped = accountMap[normalizeAccount(row[offset])];
+      const rawAcc = String(row[offset] ?? '').trim();
+      const normalKey = normalizeAccount(rawAcc);
+      const mapped = accountMap[normalKey];
       if (!mapped) continue;
+      // 소계행이 개별행과 겹치는 카테고리면 소계행 skip (이중계산 방지)
+      if (/^\(\d+\)/.test(rawAcc) && skipSectionForCategory.has(mapped)) continue;
       addSum(lookup, qKey, mapped, parseCsvNumber(row[qCol]));
     }
 
-    // Pass 2: for accounts not yet loaded, try rows with leading-digit prefix
-    // e.g. "(2)재고자산" → normalizeAccount → "2재고자산" → strip → "재고자산" → accountMap match
+    // Pass 2: "(n)계정명" 형태 소계행 fallback (개별행이 없는 카테고리에만 적용)
     const loadedAccounts = new Set(Object.keys(lookup[qKey] || {}));
     for (let r = 1; r < rows.length; r += 1) {
       const row = rows[r];
       const normalKey = normalizeAccount(row[offset]);
-      if (accountMap[normalKey]) continue; // already handled in pass 1
+      if (accountMap[normalKey]) continue;
       const stripped = normalKey.replace(/^\d+/, '');
       if (!stripped || stripped === normalKey) continue;
       const mapped = accountMap[stripped];
       if (!mapped) continue;
-      if (loadedAccounts.has(mapped)) continue; // plain row already loaded this account
+      if (loadedAccounts.has(mapped)) continue;
       addSum(lookup, qKey, mapped, parseCsvNumber(row[qCol]));
     }
   });
