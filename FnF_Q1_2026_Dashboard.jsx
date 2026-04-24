@@ -9417,12 +9417,219 @@ export default function FnFQ1_2026Dashboard() {
     };
 
     const getBaseBSBreakdown = (accountKey, period) => {
-      // 1. 먼저 entityBSData에서 찾기
+      // ── getBSRaw와 동일한 로직으로 CSV에서 법인별 값 산출 ──
+      // getBSRaw는 단일 법인, getBaseBSBreakdown은 전 법인 딕셔너리 반환
+      const ENTITIES_ALL = ['OC(국내)', '중국', '홍콩', '베트남', '엔터테인먼트', 'ST미국'];
+      const csvBsE = entityCsvLookup?.bs?.[period];
+
+      if (csvBsE) {
+        const buildResult = (fn) => {
+          const r = {};
+          ENTITIES_ALL.forEach(ek => {
+            const v = fn(ek);
+            if (v !== undefined) r[ek] = Math.round(v);
+          });
+          return Object.keys(r).length > 0 ? r : null;
+        };
+
+        // ── 자산 계정 ────────────────────────────────────────────────────────
+
+        // 현금성자산
+        if (accountKey === '현금성자산') {
+          const r = buildResult(ek => csvBsE['현금및현금성자산']?.[ek]);
+          if (r) return r;
+        }
+
+        // 매출채권: gross + 대손충당금(음수) + 장기매출채권
+        if (accountKey === '매출채권') {
+          const r = buildResult(ek => {
+            const gross = csvBsE['매출채권']?.[ek];
+            if (gross === undefined) return undefined;
+            const allow = Number(csvBsE['매출채권대손충당금']?.[ek] ?? 0);
+            const longTerm = Number(csvBsE['장기매출채권']?.[ek] ?? 0);
+            return Number(gross) + allow + longTerm;
+          });
+          if (r) return r;
+        }
+
+        // 금융자산: 유동·비유동 금융자산 전체 합산
+        if (accountKey === '금융자산') {
+          const FA_KEYS = [
+            '기타유동금융자산', '통화선도', '유동당기손익공정가치측정금융자산',
+            '장기금융상품', '당기손익공정가치측정금융자산',
+            '기타포괄손익공정가치측정금융자산', '상각후원가금융자산', '파생상품자산',
+          ];
+          const r = buildResult(ek => {
+            let sum = 0; let found = false;
+            FA_KEYS.forEach(k => {
+              const v = csvBsE[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) { sum += Number(v); found = true; }
+            });
+            return found ? sum : undefined;
+          });
+          if (r) return r;
+        }
+
+        // 대여금: 단기+장기 대여금 (충당금 포함)
+        if (accountKey === '대여금') {
+          const LOAN_KEYS = ['단기대여금', '단기대여금대손충당금', '장기대여금', '장기대여금대손충당금'];
+          const r = buildResult(ek => {
+            let sum = 0; let found = false;
+            LOAN_KEYS.forEach(k => {
+              const v = csvBsE[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) { sum += Number(v); found = true; }
+            });
+            return found ? sum : undefined;
+          });
+          if (r) return r;
+        }
+
+        // 재고자산: CSV 소계 행 직접 사용
+        if (accountKey === '재고자산') {
+          const r = buildResult(ek => csvBsE['재고자산']?.[ek]);
+          if (r) return r;
+        }
+
+        // 투자자산: 관계기업및종속기업투자만
+        if (accountKey === '투자자산') {
+          const r = buildResult(ek => csvBsE['관계기업및종속기업투자']?.[ek] ?? 0);
+          if (r) return r;
+        }
+
+        // 유무형자산: 유형자산 + 투자부동산 + 무형자산
+        if (accountKey === '유무형자산') {
+          const r = buildResult(ek => {
+            const tangible    = csvBsE['유형자산']?.[ek];
+            const intangible  = csvBsE['무형자산']?.[ek];
+            const investProp  = Number(csvBsE['투자부동산']?.[ek] ?? 0);
+            if (tangible === undefined && intangible === undefined) return undefined;
+            return Number(tangible || 0) + Number(intangible || 0) + investProp;
+          });
+          if (r) return r;
+        }
+
+        // 사용권자산: gross + 감가상각누계액(음수) = 순액
+        if (accountKey === '사용권자산') {
+          const r = buildResult(ek => {
+            const gross = csvBsE['사용권자산']?.[ek];
+            const depr  = csvBsE['사용권자산감가상각누계액']?.[ek] ?? 0;
+            if (gross === undefined) return undefined;
+            return Number(gross) + Number(depr);
+          });
+          if (r) return r;
+        }
+
+        // 기타자산: 잔차법 (자산총계 − 명시 카테고리 합계)
+        if (accountKey === '기타자산') {
+          const FA_KEYS = [
+            '기타유동금융자산', '통화선도', '유동당기손익공정가치측정금융자산',
+            '장기금융상품', '당기손익공정가치측정금융자산',
+            '기타포괄손익공정가치측정금융자산', '상각후원가금융자산', '파생상품자산',
+          ];
+          const LOAN_KEYS = ['단기대여금', '단기대여금대손충당금', '장기대여금', '장기대여금대손충당금'];
+          const r = buildResult(ek => {
+            const total = csvBsE['자산총계']?.[ek];
+            if (total === undefined) return undefined;
+            const cash    = Number(csvBsE['현금및현금성자산']?.[ek] || 0);
+            const fin     = FA_KEYS.reduce((s, k) => s + Number(csvBsE[normalizeAccount(k)]?.[ek] || 0), 0);
+            const ar      = Number(csvBsE['매출채권']?.[ek] || 0)
+                          + Number(csvBsE['매출채권대손충당금']?.[ek] || 0)
+                          + Number(csvBsE['장기매출채권']?.[ek] || 0);
+            const loans   = LOAN_KEYS.reduce((s, k) => s + Number(csvBsE[normalizeAccount(k)]?.[ek] || 0), 0);
+            const inv     = Number(csvBsE['재고자산']?.[ek] || 0);
+            const invest  = Number(csvBsE['관계기업및종속기업투자']?.[ek] || 0);
+            const ppe     = Number(csvBsE['유형자산']?.[ek] || 0)
+                          + Number(csvBsE['투자부동산']?.[ek] || 0)
+                          + Number(csvBsE['무형자산']?.[ek] || 0);
+            const rou     = Number(csvBsE['사용권자산']?.[ek] || 0)
+                          + Number(csvBsE['사용권자산감가상각누계액']?.[ek] || 0);
+            return Number(total) - cash - fin - ar - loans - inv - invest - ppe - rou;
+          });
+          if (r) return r;
+        }
+
+        // ── 부채 계정 ────────────────────────────────────────────────────────
+
+        // 매입채무
+        if (accountKey === '매입채무') {
+          const r = buildResult(ek => csvBsE['매입채무']?.[ek]);
+          if (r) return r;
+        }
+
+        // 미지급금: 유동 + 장기
+        if (accountKey === '미지급금') {
+          const r = buildResult(ek => {
+            const curr = csvBsE['미지급금']?.[ek];
+            const long = csvBsE['장기미지급금']?.[ek];
+            if (curr === undefined && long === undefined) return undefined;
+            return Number(curr || 0) + Number(long || 0);
+          });
+          if (r) return r;
+        }
+
+        // 보증금(부채측): 유동성장기예수보증금 + 장기성예수보증금
+        if (accountKey === '보증금') {
+          const result = {};
+          ENTITIES_ALL.forEach(ek => {
+            const curr  = csvBsE['유동성장기예수보증금']?.[ek];
+            const ncurr = csvBsE['장기성예수보증금']?.[ek];
+            result[ek] = Math.round(Number(curr || 0) + Number(ncurr || 0));
+          });
+          return result;
+        }
+
+        // 차입금: 단기 + 유동성장기 + 장기 + 사채
+        if (accountKey === '차입금') {
+          const BORR_KEYS = ['단기차입금', '유동성장기차입금', '장기차입금', '사채'];
+          const r = buildResult(ek => {
+            let sum = 0; let found = false;
+            BORR_KEYS.forEach(k => {
+              const v = csvBsE[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) { sum += Number(v); found = true; }
+            });
+            return found ? sum : undefined;
+          });
+          if (r) return r;
+        }
+
+        // 리스부채: 유동 + 비유동
+        if (accountKey === '리스부채') {
+          const r = buildResult(ek => {
+            const curr  = csvBsE['유동리스부채']?.[ek];
+            const ncurr = csvBsE['리스부채']?.[ek];
+            if (curr === undefined && ncurr === undefined) return undefined;
+            return Number(curr || 0) + Number(ncurr || 0);
+          });
+          if (r) return r;
+        }
+
+        // 기타부채: 잔차법 (부채총계 − 매입채무 − 미지급금 − 보증금 − 차입금 − 리스부채)
+        if (accountKey === '기타부채') {
+          const BORR_KEYS = ['단기차입금', '유동성장기차입금', '장기차입금', '사채'];
+          const r = buildResult(ek => {
+            const total = csvBsE['부채총계']?.[ek];
+            if (total === undefined) return undefined;
+            const payables = Number(csvBsE['매입채무']?.[ek] || 0);
+            const accrued  = Number(csvBsE['미지급금']?.[ek] || 0)
+                           + Number(csvBsE['장기미지급금']?.[ek] || 0);
+            const deposit  = Number(csvBsE['유동성장기예수보증금']?.[ek] || 0)
+                           + Number(csvBsE['장기성예수보증금']?.[ek] || 0);
+            const borr     = BORR_KEYS.reduce((s, k) =>
+                               s + Number(csvBsE[normalizeAccount(k)]?.[ek] || 0), 0);
+            const lease    = Number(csvBsE['유동리스부채']?.[ek] || 0)
+                           + Number(csvBsE['리스부채']?.[ek] || 0);
+            return Number(total) - payables - accrued - deposit - borr - lease;
+          });
+          if (r) return r;
+        }
+      }
+
+      // 1. entityBSData에서 찾기 (CSV 미로드 시 폴백)
       const p = entityBSData?.[period];
       if (p && p[accountKey]) {
         return p[accountKey];
       }
-      
+
       // 2. bsDetailData에서 찾기 (사용권자산 등)
       const detailData = bsDetailData?.[accountKey]?.[period];
       if (detailData) {
@@ -9430,7 +9637,7 @@ export default function FnFQ1_2026Dashboard() {
         const { 연결, category, ...entityData } = detailData;
         return entityData;
       }
-      
+
       // 3. 둘 다 없으면 자산총계 반환
       if (p) return p['자산총계'] || {};
       return {};
