@@ -931,6 +931,7 @@ export default function FnFQ1_2026Dashboard() {
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
   const [expandedBrandRows, setExpandedBrandRows] = useState(new Set()); // 브랜드 소계 펼침 상태
+  const [epsAdjExpanded, setEpsAdjExpanded] = useState(false); // 조정 EPS 접기/펼치기
   // EPS(주당순이익) 데이터 — EPS.csv 로드
   const [epsData, setEpsData] = useState({ curr: 0, prev: 0, currAdj: 0, prevAdj: 0 });
   const [impairmentData, setImpairmentData] = useState(() => loadFromStorage(STORAGE_KEYS.IMPAIRMENT) || {
@@ -4782,16 +4783,41 @@ export default function FnFQ1_2026Dashboard() {
                 </span>
               )}
             </div>
-            {/* 조정 EPS (투자부동산처분이익 제외) */}
+            {/* EPS 산출 근거 (지배지분 순이익 / 주식수) */}
+            <div className="mt-1 pt-1 border-t border-zinc-100">
+              <table className="w-full text-[10px] text-zinc-500">
+                <tbody>
+                  <tr>
+                    <td className="py-0.5">지배지분 분기순이익</td>
+                    <td className="text-right tabular-nums font-medium text-zinc-700">195,986 백만원</td>
+                  </tr>
+                  <tr>
+                    <td className="py-0.5">가중평균 유통보통주식수</td>
+                    <td className="text-right tabular-nums font-medium text-zinc-700">37,481,574 주</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            {/* 조정 EPS (투자부동산처분이익 제외) — 접기/펼치기 */}
             {card.epsAdj > 0 && (
-              <div className="pt-2 border-t border-zinc-200 mt-1 bg-indigo-50 rounded-b-lg -mx-4 -mb-4 px-4 pb-3 pt-2">
-                <div className="text-[10px] font-medium text-indigo-500 mb-1">조정 EPS (투자부동산처분이익 제외)</div>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-lg font-bold text-indigo-700">{formatEPS(card.epsAdj)}<span className="text-xs font-normal ml-0.5">원</span></span>
-                  {card.epsPrevAdj > 0 && (
-                    <span className="text-[10px] text-indigo-400">전년 동분기 {formatEPS(card.epsPrevAdj)}원</span>
-                  )}
-                </div>
+              <div className="mt-1 -mx-4 -mb-4">
+                <button
+                  onClick={() => setEpsAdjExpanded(v => !v)}
+                  className="w-full flex items-center justify-between px-4 py-1.5 bg-indigo-50 hover:bg-indigo-100 transition-colors border-t border-indigo-100 text-[10px] font-medium text-indigo-500"
+                >
+                  <span>조정 EPS (투자부동산처분이익 제외)</span>
+                  <span className="text-indigo-400">{epsAdjExpanded ? '▲ 접기' : '▼ 펼치기'}</span>
+                </button>
+                {epsAdjExpanded && (
+                  <div className="bg-indigo-50 px-4 pb-3 pt-1">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-lg font-bold text-indigo-700">{formatEPS(card.epsAdj)}<span className="text-xs font-normal ml-0.5">원</span></span>
+                      {card.epsPrevAdj > 0 && (
+                        <span className="text-[10px] text-indigo-400">전년 동분기 {formatEPS(card.epsPrevAdj)}원</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
