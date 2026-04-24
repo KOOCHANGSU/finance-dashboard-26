@@ -10073,7 +10073,7 @@ export default function FnFQ1_2026Dashboard() {
           rawRows.forEach(row => {
             const col1 = String(row[1]||'').trim();
             const col2 = String(row[2]||'').trim();
-            const isTotal = /^[12]\./.test(col1) || /현금및/.test(col1);
+            const isTotal = /^[123]\./.test(col1);
             if (isTotal) {
               lastCat = '';
               processedRows.push({ type: 'total', label: col1, amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
