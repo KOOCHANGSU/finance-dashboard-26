@@ -9976,6 +9976,10 @@ export default function FnFQ1_2026Dashboard() {
           <div className="flex-1 min-w-0 lg:max-w-[55%]">
         {/* 법인별 테이블 */}
         <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-zinc-100 bg-zinc-50/60">
+            <h3 className="text-sm font-semibold text-zinc-900">현금성자산 법인별 구성</h3>
+            <p className="text-xs text-zinc-400">기말 기준 법인별 비중</p>
+          </div>
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-zinc-50 border-b border-zinc-200">
@@ -11492,6 +11496,52 @@ export default function FnFQ1_2026Dashboard() {
             return Math.round(Number(total) - cash - fin - ar - loans - inv - invest - ppe - rou);
           }
         }
+        // ── 미지급금: 미지급금 + 장기미지급금 합산 ──
+        if (account === '미지급금') {
+          for (const ek of entityCandidates) {
+            const curr = csvBs['미지급금']?.[ek];
+            const long = csvBs['장기미지급금']?.[ek];
+            if (curr !== undefined || long !== undefined) {
+              return Math.round(Number(curr || 0) + Number(long || 0));
+            }
+          }
+        }
+        // ── 보증금(부채): 유동성장기예수보증금 + 장기성예수보증금 합산 (자산측 '보증금' 아님) ──
+        if (account === '보증금') {
+          for (const ek of entityCandidates) {
+            const curr = csvBs['유동성장기예수보증금']?.[ek];
+            const ncurr = csvBs['장기성예수보증금']?.[ek];
+            if (curr !== undefined || ncurr !== undefined) {
+              return Math.round(Number(curr || 0) + Number(ncurr || 0));
+            }
+          }
+          // 위 계정이 없으면 0 반환 (자산측 보증금으로 오인하지 않도록)
+          for (const ek of entityCandidates) {
+            if (csvBs['부채총계']?.[ek] !== undefined) return 0;
+          }
+        }
+        // ── 차입금: 단기+유동성장기+장기차입금+사채 전체 합산 ──
+        if (account === '차입금') {
+          const BORR_KEYS = ['단기차입금', '유동성장기차입금', '장기차입금', '사채'];
+          for (const ek of entityCandidates) {
+            let sum = 0; let found = false;
+            BORR_KEYS.forEach((k) => {
+              const v = csvBs[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) { sum += Number(v); found = true; }
+            });
+            if (found) return Math.round(sum);
+          }
+        }
+        // ── 리스부채: 유동리스부채 + 비유동리스부채 합산 ──
+        if (account === '리스부채') {
+          for (const ek of entityCandidates) {
+            const curr = csvBs['유동리스부채']?.[ek];
+            const ncurr = csvBs['리스부채']?.[ek];
+            if (curr !== undefined || ncurr !== undefined) {
+              return Math.round(Number(curr || 0) + Number(ncurr || 0));
+            }
+          }
+        }
         // ── 기타부채: 잔차법 (부채총계 − 명시 카테고리 합계) — 부채 항목 합계 = 부채총계 보장 ──
         if (account === '기타부채') {
           for (const ek of entityCandidates) {
@@ -11500,8 +11550,8 @@ export default function FnFQ1_2026Dashboard() {
             const payables = Number(csvBs['매입채무']?.[ek] || 0);
             const accrued = Number(csvBs['미지급금']?.[ek] || 0)
               + Number(csvBs['장기미지급금']?.[ek] || 0);
-            const deposit = Number(csvBs['보증금']?.[ek] || 0)
-              + Number(csvBs['유동성장기예수보증금']?.[ek] || 0)
+            // 부채측 보증금만 차감 (자산측 '보증금' 제외)
+            const deposit = Number(csvBs['유동성장기예수보증금']?.[ek] || 0)
               + Number(csvBs['장기성예수보증금']?.[ek] || 0);
             const BORR_KEYS = ['단기차입금', '유동성장기차입금', '장기차입금', '사채'];
             const borr = BORR_KEYS.reduce((s, k) => s + Number(csvBs[normalizeAccount(k)]?.[ek] || 0), 0);
