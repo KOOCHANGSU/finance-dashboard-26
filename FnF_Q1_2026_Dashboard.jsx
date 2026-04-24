@@ -11238,7 +11238,7 @@ export default function FnFQ1_2026Dashboard() {
         부채총계: ['부채총계'],
         자본총계: ['자본총계'],
       };
-      // ─── Entity CSV 순자산 계산 (충당금·감가상각누계액 차감, 유무형 합산) ───
+      // ─── Entity CSV 순자산 계산 (충당금·감가상각누계액 차감, 매핑표 기준 카테고리 합산) ───
       // 우선순위: 이 블록 → 일반 alias 루프 → entityBSData 폴백
       const csvBs = entityCsvLookup?.bs?.[resolvedPeriod];
       if (csvBs) {
@@ -11260,13 +11260,78 @@ export default function FnFQ1_2026Dashboard() {
             }
           }
         }
+        // ── 금융자산: 모든 금융자산 계정 합산 (매핑표 기준 — first-match 아닌 전체 합산) ──
+        if (account === '금융자산') {
+          const FA_KEYS = [
+            '기타유동금융자산', '통화선도', '유동당기손익공정가치측정금융자산',
+            '장기금융상품', '당기손익공정가치측정금융자산',
+            '기타포괄손익공정가치측정금융자산', '상각후원가금융자산', '파생상품자산',
+          ];
+          for (const ek of entityCandidates) {
+            let sum = 0; let found = false;
+            FA_KEYS.forEach((k) => {
+              const v = csvBs[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) { sum += Number(v); found = true; }
+            });
+            if (found) return Math.round(sum);
+          }
+        }
+        // ── 대여금: 단기+장기 대여금 합산 (충당금 포함 — 음수 차감) ──
+        if (account === '대여금') {
+          const LOAN_KEYS = ['단기대여금', '단기대여금대손충당금', '장기대여금', '장기대여금대손충당금'];
+          for (const ek of entityCandidates) {
+            let sum = 0; let found = false;
+            LOAN_KEYS.forEach((k) => {
+              const v = csvBs[normalizeAccount(k)]?.[ek];
+              if (v !== undefined) { sum += Number(v); found = true; }
+            });
+            if (found) return Math.round(sum);
+          }
+        }
+        // ── 투자자산: 관계기업및종속기업투자만 사용 (section subtotal 이중계산 방지) ──
+        if (account === '투자자산') {
+          for (const ek of entityCandidates) {
+            const v = csvBs['관계기업및종속기업투자']?.[ek];
+            if (v !== undefined) return Math.round(Number(v));
+          }
+          const v = sumFromDetail(['관계기업투자']);
+          if (v !== 0) return v;
+          return 0;
+        }
+        // ── 유무형자산: 유형자산 + 투자부동산 + 무형자산 합산 (매핑표 기준) ──
         if (account === '유무형자산') {
           for (const ek of entityCandidates) {
             const tangible = csvBs['유형자산']?.[ek];
             const intangible = csvBs['무형자산']?.[ek];
+            const investProp = csvBs['투자부동산']?.[ek] ?? 0;
             if (tangible !== undefined || intangible !== undefined) {
-              return Math.round(Number(tangible || 0) + Number(intangible || 0));
+              return Math.round(Number(tangible || 0) + Number(intangible || 0) + Number(investProp));
             }
+          }
+        }
+        // ── 기타자산: 잔차법 (자산총계 − 명시 카테고리 합계) ──
+        if (account === '기타자산') {
+          for (const ek of entityCandidates) {
+            const total = csvBs['자산총계']?.[ek];
+            if (total === undefined) continue;
+            const cash = Number(csvBs['현금및현금성자산']?.[ek] || 0);
+            const FA_KEYS = ['기타유동금융자산', '통화선도', '유동당기손익공정가치측정금융자산',
+              '장기금융상품', '당기손익공정가치측정금융자산',
+              '기타포괄손익공정가치측정금융자산', '상각후원가금융자산', '파생상품자산'];
+            const fin = FA_KEYS.reduce((s, k) => s + Number(csvBs[normalizeAccount(k)]?.[ek] || 0), 0);
+            const ar = Number(csvBs['매출채권']?.[ek] || 0)
+              + Number(csvBs['매출채권대손충당금']?.[ek] || 0)
+              + Number(csvBs['장기매출채권']?.[ek] || 0);
+            const LOAN_KEYS = ['단기대여금', '단기대여금대손충당금', '장기대여금', '장기대여금대손충당금'];
+            const loans = LOAN_KEYS.reduce((s, k) => s + Number(csvBs[normalizeAccount(k)]?.[ek] || 0), 0);
+            const inv = Number(csvBs['재고자산']?.[ek] || 0);
+            const invest = Number(csvBs['관계기업및종속기업투자']?.[ek] || 0);
+            const ppe = Number(csvBs['유형자산']?.[ek] || 0)
+              + Number(csvBs['투자부동산']?.[ek] || 0)
+              + Number(csvBs['무형자산']?.[ek] || 0);
+            const rou = Number(csvBs['사용권자산']?.[ek] || 0)
+              + Number(csvBs['사용권자산감가상각누계액']?.[ek] || 0);
+            return Math.round(Number(total) - cash - fin - ar - loans - inv - invest - ppe - rou);
           }
         }
       }
