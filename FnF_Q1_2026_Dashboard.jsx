@@ -10685,135 +10685,86 @@ export default function FnFQ1_2026Dashboard() {
                     {/* ──── 우 (50%): 구성요소 상세 + 추세분석 시사점 + 리스크 + 개선방향 ──── */}
                     <div className="space-y-4">
                     <div>
-                      {/* 헤더: 제목 + 기간 탭 버튼 */}
-                      <div className="flex items-center justify-between mb-2.5">
-                        <p className="text-[12px] font-semibold text-zinc-700">구성요소 상세</p>
-                        <div className="flex items-center gap-1">
-                          {[
-                            { key: 'prev', label: `전분기(${prevQKey ? prevQKey.replace('20','').replace('_','.') : '—'})` },
-                            { key: 'yoy',  label: `전동분기(${yoyQLabel || '—'})` },
-                          ].map(({ key, label }) => (
-                            <button key={key}
-                              onClick={() => setNwcDetailTab(v => v === key ? null : key)}
-                              className={`px-2 py-0.5 text-[10px] font-semibold rounded border transition-colors ${
-                                nwcDetailTab === key
-                                  ? 'bg-emerald-600 text-white border-emerald-600'
-                                  : 'bg-white text-zinc-500 border-zinc-200 hover:border-emerald-400 hover:text-emerald-600'
-                              }`}
-                            >{label}</button>
-                          ))}
-                        </div>
-                      </div>
-                      <table className="w-full text-[11px] border-collapse mb-0">
+                      <p className="text-[12px] font-semibold text-zinc-700 mb-2">구성요소 상세</p>
+                      {/* 단일 통합 비교 테이블 (26.1Q / 전분기 / 전동분기) */}
+                      <table className="w-full text-[10px] border-collapse">
                         <thead>
                           <tr className="bg-zinc-50 text-zinc-500">
-                            <th className="text-left py-2 px-2.5 font-semibold border border-zinc-100">항목</th>
-                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">금액(억)</th>
-                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">매출 대비</th>
-                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">전분기比</th>
-                            <th className="text-right py-2 px-2.5 font-semibold border border-zinc-100">전년동분기比</th>
+                            <th className="text-left py-1.5 px-2 font-semibold border border-zinc-100">항목</th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-emerald-700">26.1Q<br/><span className="font-normal text-zinc-400">금액(억)</span></th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-emerald-600">매출비<br/><span className="font-normal text-zinc-400">회전일</span></th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-blue-600">{prevQLabel || '전분기'}<br/><span className="font-normal text-zinc-400">금액(억)</span></th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100 text-violet-600">{yoyQLabel || '전동분기'}<br/><span className="font-normal text-zinc-400">금액(억)</span></th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100">QoQ</th>
+                            <th className="text-right py-1.5 px-2 font-semibold border border-zinc-100">YoY</th>
                           </tr>
                         </thead>
                         <tbody>
                           {[
-                            { label: '매출채권', valM: arM, valAMPrev: arMPrev, valYoY: arYoY, pct: qSalesM > 0 ? (arM/qSalesM*100).toFixed(1) : null, color: 'text-indigo-600' },
-                            { label: '재고자산', valM: invM, valAMPrev: invMPrev, valYoY: invYoY, pct: qSalesM > 0 ? (invM/qSalesM*100).toFixed(1) : null, color: 'text-amber-600' },
-                            { label: '매입채무', valM: apM, valAMPrev: apMPrev, valYoY: apYoY, pct: qSalesM > 0 ? (apM/qSalesM*100).toFixed(1) : null, color: 'text-emerald-600' },
+                            { label: '매출채권', valM: arM,  prevM: arMPrev,  yoyM: arYoY,  color: 'text-indigo-600', daysCurr: dsoNWC, daysPrev: dsoPrev, daysYoY: dsoYoY },
+                            { label: '재고자산', valM: invM, prevM: invMPrev, yoyM: invYoY, color: 'text-amber-600',  daysCurr: dioNWC, daysPrev: dioPrev, daysYoY: dioYoY },
+                            { label: '매입채무', valM: apM,  prevM: apMPrev,  yoyM: apYoY,  color: 'text-emerald-600', daysCurr: dpoNWC, daysPrev: dpoPrev, daysYoY: dpoYoY },
                           ].map((row, i) => {
-                            const d2 = row.valM - row.valAMPrev;
-                            const diffPct = row.valAMPrev > 0 ? (d2 / row.valAMPrev * 100).toFixed(1) : null;
-                            const isUp = d2 > 0; const isAsset = i < 2;
-                            const isAlert = (isAsset && isUp && Math.abs(d2) > 5000) || (!isAsset && !isUp && Math.abs(d2) > 5000);
-                            const dYoY = row.valM - row.valYoY;
-                            const yoyPct = row.valYoY > 0 ? (dYoY / row.valYoY * 100).toFixed(1) : null;
+                            const isAsset = i < 2;
+                            const dQoQ = row.valM - row.prevM;
+                            const qoqPct = row.prevM > 0 ? (dQoQ / row.prevM * 100).toFixed(1) : null;
+                            const isQoQUp = dQoQ > 0;
+                            const isQoQAlert = (isAsset && isQoQUp && Math.abs(dQoQ) > 5000) || (!isAsset && !isQoQUp && Math.abs(dQoQ) > 5000);
+                            const dYoY = row.valM - row.yoyM;
+                            const yoyPct = row.yoyM > 0 ? (dYoY / row.yoyM * 100).toFixed(1) : null;
                             const isYoYUp = dYoY > 0;
                             const isYoYAlert = (isAsset && isYoYUp && Math.abs(dYoY) > 5000) || (!isAsset && !isYoYUp && Math.abs(dYoY) > 5000);
+                            const salesPct = qSalesM > 0 ? (row.valM / qSalesM * 100).toFixed(1) : null;
                             return (
                               <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
-                                <td className={`py-2 px-2.5 font-semibold border border-zinc-100 ${row.color}`}>{row.label}</td>
-                                <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold">{formatNumber(Math.round(row.valM/100))}</td>
-                                <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100">{row.pct != null ? `${row.pct}%` : '—'}</td>
-                                <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold ${isAlert ? 'text-rose-600' : isUp ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                                  {diffPct != null ? `${isUp ? '↑' : '↓'}${Math.abs(diffPct)}%` : '—'}{isAlert && ' 🚨'}
+                                <td className={`py-1.5 px-2 font-semibold border border-zinc-100 ${row.color}`}>{row.label}</td>
+                                <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-bold">{formatNumber(Math.round(row.valM/100))}</td>
+                                <td className="text-right py-1.5 px-2 border border-zinc-100 leading-tight">
+                                  <span className="block tabular-nums text-zinc-500">{salesPct != null ? `${salesPct}%` : '—'}</span>
+                                  <span className="block tabular-nums text-[9px] text-zinc-400">{row.daysCurr != null ? `${Math.round(row.daysCurr)}일` : '—'}</span>
                                 </td>
-                                <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 font-semibold ${isYoYAlert ? 'text-rose-600' : isYoYUp ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                                  {yoyPct != null ? `${isYoYUp ? '↑' : '↓'}${Math.abs(yoyPct)}%` : '—'}{isYoYAlert && ' 🚨'}
+                                <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-blue-700">
+                                  {formatNumber(Math.round(row.prevM/100))}
+                                  <span className="block text-[9px] text-zinc-400">{row.daysPrev != null ? `${Math.round(row.daysPrev)}일` : ''}</span>
+                                </td>
+                                <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-violet-700">
+                                  {formatNumber(Math.round(row.yoyM/100))}
+                                  <span className="block text-[9px] text-zinc-400">{row.daysYoY != null ? `${Math.round(row.daysYoY)}일` : ''}</span>
+                                </td>
+                                <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-semibold text-[10px] ${isQoQAlert ? 'text-rose-600' : isQoQUp ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                                  {qoqPct != null ? `${isQoQUp ? '↑' : '↓'}${Math.abs(qoqPct)}%` : '—'}{isQoQAlert ? ' 🚨' : ''}
+                                </td>
+                                <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 font-semibold text-[10px] ${isYoYAlert ? 'text-rose-600' : isYoYUp ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                                  {yoyPct != null ? `${isYoYUp ? '↑' : '↓'}${Math.abs(yoyPct)}%` : '—'}{isYoYAlert ? ' 🚨' : ''}
                                 </td>
                               </tr>
                             );
                           })}
+                          {/* NWC 합계 행 */}
                           <tr className="bg-emerald-50 font-bold">
-                            <td className="py-2 px-2.5 border border-zinc-100 text-emerald-800">NWC 합계</td>
-                            <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-emerald-800">{formatNumber(Math.round(nwcM/100))}</td>
-                            <td className="text-right py-2 px-2.5 tabular-nums border border-zinc-100 text-emerald-700">{nwcPctRev != null ? `${nwcPctRev}%` : '—'}</td>
-                            <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 ${nwcMPrev > 0 ? (nwcM > nwcMPrev ? 'text-rose-600' : 'text-emerald-700') : 'text-zinc-400'}`}>
+                            <td className="py-1.5 px-2 border border-zinc-100 text-emerald-800">NWC 합계</td>
+                            <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-emerald-800">{formatNumber(Math.round(nwcM/100))}</td>
+                            <td className="text-right py-1.5 px-2 border border-zinc-100 leading-tight">
+                              <span className="block tabular-nums text-emerald-700">{nwcPctRev != null ? `${nwcPctRev}%` : '—'}</span>
+                              <span className="block text-[9px] text-emerald-600">{cccNWC != null ? `CCC ${Math.round(cccNWC)}일` : '—'}</span>
+                            </td>
+                            <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-blue-700">
+                              {formatNumber(Math.round(nwcMPrev/100))}
+                              <span className="block text-[9px] text-zinc-400">{cccPrev != null ? `CCC ${Math.round(cccPrev)}일` : ''}</span>
+                            </td>
+                            <td className="text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-violet-700">
+                              {formatNumber(Math.round(nwcYoY/100))}
+                              <span className="block text-[9px] text-zinc-400">{cccYoY != null ? `CCC ${Math.round(cccYoY)}일` : ''}</span>
+                            </td>
+                            <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-[10px] ${nwcMPrev > 0 ? (nwcM > nwcMPrev ? 'text-rose-600' : 'text-emerald-700') : 'text-zinc-400'}`}>
                               {nwcMPrev > 0 ? `${nwcM >= nwcMPrev ? '↑' : '↓'}${Math.abs(((nwcM-nwcMPrev)/nwcMPrev*100)).toFixed(1)}%` : '—'}
                             </td>
-                            <td className={`text-right py-2 px-2.5 tabular-nums border border-zinc-100 ${nwcYoY > 0 ? (nwcM > nwcYoY ? 'text-rose-600' : 'text-emerald-700') : 'text-zinc-400'}`}>
+                            <td className={`text-right py-1.5 px-2 tabular-nums border border-zinc-100 text-[10px] ${nwcYoY > 0 ? (nwcM > nwcYoY ? 'text-rose-600' : 'text-emerald-700') : 'text-zinc-400'}`}>
                               {nwcYoY > 0 ? `${nwcM >= nwcYoY ? '↑' : '↓'}${Math.abs(((nwcM-nwcYoY)/nwcYoY*100)).toFixed(1)}%` : '—'}
                             </td>
                           </tr>
                         </tbody>
                       </table>
-                      {/* 기간 상세 테이블 — 탭 선택 시 현재 테이블 바로 아래 표시 */}
-                      {nwcDetailTab && (() => {
-                        const isPrev = nwcDetailTab === 'prev';
-                        const tabLabel = isPrev
-                          ? (prevQKey ? prevQKey.replace('20','').replace('_','.') : '전분기')
-                          : (yoyQLabel || '전동분기');
-                        const tabAR  = isPrev ? arMPrev  : arYoY;
-                        const tabINV = isPrev ? invMPrev : invYoY;
-                        const tabAP  = isPrev ? apMPrev  : apYoY;
-                        const tabNWC = tabAR + tabINV - tabAP;
-                        const tabSales = isPrev ? qSalesPrevM : qSalesYoYM;
-                        const tabCogs  = isPrev ? qCogsPrevM  : qCogsYoYM;
-                        const tabDSO = tabAR  > 0 && tabSales > 0 ? (tabAR  / tabSales * 90).toFixed(1) : null;
-                        const tabDIO = tabINV > 0 && tabCogs  > 0 ? (tabINV / tabCogs  * 90).toFixed(1) : null;
-                        const tabDPO = tabAP  > 0 && tabCogs  > 0 ? (tabAP  / tabCogs  * 90).toFixed(1) : null;
-                        const rows = [
-                          { label: '매출채권', val: tabAR,  color: 'text-indigo-600' },
-                          { label: '재고자산', val: tabINV, color: 'text-amber-600'  },
-                          { label: '매입채무', val: tabAP,  color: 'text-emerald-600'},
-                        ];
-                        return (
-                          <div className="mt-2 border border-emerald-100 rounded-lg overflow-hidden">
-                            <div className="bg-emerald-50 px-3 py-1.5 flex items-center gap-2">
-                              <span className="text-[10px] font-bold text-emerald-700">{tabLabel} 금액 상세</span>
-                              <span className="text-[10px] text-emerald-500">매출 {tabSales > 0 ? formatNumber(Math.round(tabSales/100)) : '—'}억</span>
-                            </div>
-                            <table className="w-full text-[11px] border-collapse">
-                              <thead>
-                                <tr className="bg-zinc-50 text-zinc-500">
-                                  <th className="text-left py-1.5 px-2.5 font-semibold border border-zinc-100">항목</th>
-                                  <th className="text-right py-1.5 px-2.5 font-semibold border border-zinc-100">금액(억)</th>
-                                  <th className="text-right py-1.5 px-2.5 font-semibold border border-zinc-100">매출대비</th>
-                                  <th className="text-right py-1.5 px-2.5 font-semibold border border-zinc-100">회전일</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {rows.map((r, i) => {
-                                  const pct = tabSales > 0 ? (r.val / tabSales * 100).toFixed(1) : null;
-                                  const days = i === 0 ? tabDSO : i === 1 ? tabDIO : tabDPO;
-                                  return (
-                                    <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
-                                      <td className={`py-1.5 px-2.5 font-semibold border border-zinc-100 ${r.color}`}>{r.label}</td>
-                                      <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 font-semibold">{formatNumber(Math.round(r.val/100))}</td>
-                                      <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100">{pct != null ? `${pct}%` : '—'}</td>
-                                      <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-zinc-500">{days != null ? `${days}일` : '—'}</td>
-                                    </tr>
-                                  );
-                                })}
-                                <tr className="bg-emerald-50 font-bold">
-                                  <td className="py-1.5 px-2.5 border border-zinc-100 text-emerald-800">NWC 합계</td>
-                                  <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-emerald-800">{formatNumber(Math.round(tabNWC/100))}</td>
-                                  <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-emerald-700">{tabSales > 0 ? `${(tabNWC/tabSales*100).toFixed(1)}%` : '—'}</td>
-                                  <td className="text-right py-1.5 px-2.5 tabular-nums border border-zinc-100 text-emerald-600">{tabDSO && tabDIO && tabDPO ? `CCC ${(parseFloat(tabDSO)+parseFloat(tabDIO)-parseFloat(tabDPO)).toFixed(0)}일` : '—'}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        );
-                      })()}
                     </div>
 
                     {/* 추세 분석 시사점 */}
