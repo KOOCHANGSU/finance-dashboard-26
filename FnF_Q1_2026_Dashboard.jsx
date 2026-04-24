@@ -6743,6 +6743,21 @@ export default function FnFQ1_2026Dashboard() {
       const csvPeriodKey = fallbackPeriod.replace(/_\dQ_Year$/, match => match.replace('_Year', ''));
       const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
 
+      // 투자부동산처분손익: 파생 계정이므로 처분이익/손실 raw 계정에서 법인별 계산
+      if (accountKey === '투자부동산처분손익') {
+        const gainData = entityCsvLookup?.is?.[csvPeriodKey]?.['투자부동산처분이익'] || {};
+        const lossData = entityCsvLookup?.is?.[csvPeriodKey]?.['투자부동산처분손실'] || {};
+        const result = {};
+        const allEntities = new Set([...Object.keys(gainData), ...Object.keys(lossData)]);
+        allEntities.forEach(ent => {
+          const g = Number(gainData[ent] || 0);
+          const l = Number(lossData[ent] || 0);
+          const net = g - l;
+          if (net !== 0) result[ent] = Math.round(net);
+        });
+        if (Object.keys(result).length > 0) return result;
+      }
+
       // 매출액: 연도 관계없이 큐레이션된 entityData를 항상 우선 사용
       if (accountKey === '매출액') {
         const direct = entityData?.['매출액']?.[period];
@@ -8830,12 +8845,22 @@ export default function FnFQ1_2026Dashboard() {
                 return null;
               };
 
+              // 기타손익 구성 중 CSV에 없는 항목의 하드코딩 기본값 (억원 단위)
+              const MISC_PRESETS = {
+                수수료수익:    { '2026_1Q': 5.2, '2025_1Q': 3.7 },
+                대손충당금환입: { '2026_1Q': 0.2 },
+              };
+
               const getVal = (item, period) => {
                 // 1) 수동 입력 우선
                 const v = incomeEditData?.[editKey(item.key, period)];
                 if (v !== undefined && v !== '' && !isNaN(Number(v))) return Number(v);
                 // 2) CSV 자동값
-                return getCsvMiscVal(item, period);
+                const csvVal = getCsvMiscVal(item, period);
+                if (csvVal !== null) return csvVal;
+                // 3) 하드코딩 기본값 (CSV 미제공 항목)
+                const preset = MISC_PRESETS[item.key]?.[period];
+                return preset !== undefined ? preset : null;
               };
               const getDisp = (it, period) => {
                 const v = getVal(it, period);
