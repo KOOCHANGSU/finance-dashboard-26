@@ -11294,9 +11294,7 @@ export default function FnFQ1_2026Dashboard() {
             const v = csvBs['관계기업및종속기업투자']?.[ek];
             if (v !== undefined) return Math.round(Number(v));
           }
-          const v = sumFromDetail(['관계기업투자']);
-          if (v !== 0) return v;
-          return 0;
+          return 0; // csvBs에 관계기업및종속기업투자 없으면 0 반환
         }
         // ── 유무형자산: 유형자산 + 투자부동산 + 무형자산 합산 (매핑표 기준) ──
         if (account === '유무형자산') {
