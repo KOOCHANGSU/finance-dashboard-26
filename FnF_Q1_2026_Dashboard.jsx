@@ -9661,6 +9661,86 @@ export default function FnFQ1_2026Dashboard() {
 
           {/* 우측: 법인별 구성 */}
           <div className="w-full xl:w-[45%] xl:min-w-[420px] flex-shrink-0 space-y-3">
+            {/* ── 현금성자산: 변동내역 테이블 (우측 패널) ── */}
+            {selectedBSAccount === '현금성자산' && cashFlowData.length > 1 && (() => {
+              const parseAmt = (s) => {
+                const str = String(s || '').replace(/\s/g, '');
+                if (!str) return null;
+                const neg = str.includes('(') && str.includes(')');
+                const n = Number(str.replace(/[(),]/g, ''));
+                if (!isFinite(n) || n === 0) return null;
+                return Math.round((neg ? -n : n) / 1e8);
+              };
+              const fmtAmt = (v) => v === null ? '—' : `${v >= 0 ? '+' : ''}${v.toLocaleString('ko-KR')}억`;
+              const amtCls = (v) => v === null ? 'text-zinc-400' : v >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold';
+              const rawRows = (cashFlowData || []).slice(1).filter(r => {
+                if (!r) return false;
+                const c1 = String(r[1]||'').trim(); const c2 = String(r[2]||'').trim();
+                if (!c1 && !c2) return false;
+                if (c1.startsWith('#')) return false;
+                return true;
+              });
+              const processedRows = [];
+              let lastCat = '';
+              rawRows.forEach(row => {
+                const col1 = String(row[1]||'').trim();
+                const col2 = String(row[2]||'').trim();
+                const isTotal = /^[123]\./.test(col1);
+                if (isTotal) {
+                  lastCat = '';
+                  processedRows.push({ type: 'total', label: col1, amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
+                } else if (col1 && col2) {
+                  if (col1 !== lastCat) { processedRows.push({ type: 'cat', label: col1 }); lastCat = col1; }
+                  const isSub = col2.trimStart().startsWith('-');
+                  processedRows.push({ type: isSub ? 'sub' : 'item', label: col2.trim(), amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
+                } else if (col1 && !col2) {
+                  processedRows.push({ type: 'cat', label: col1 }); lastCat = col1;
+                } else if (!col1 && col2) {
+                  const isSub = col2.trimStart().startsWith('-');
+                  processedRows.push({ type: isSub ? 'sub' : 'item', label: col2.trim(), amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
+                }
+              });
+              return (
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between bg-zinc-50 px-3 py-2 border-b border-zinc-200">
+                    <h3 className="text-sm font-semibold text-zinc-800">▷ 현금 및 현금성자산 변동내역</h3>
+                    <span className="text-[11px] text-zinc-400">(단위: 억원)</span>
+                  </div>
+                  <table className="w-full text-[13px]">
+                    <tbody>
+                      {processedRows.map((pr, i) => {
+                        if (pr.type === 'total') return (
+                          <tr key={i} className="bg-zinc-100 border-t-2 border-zinc-300">
+                            <td className="px-3 py-1.5 font-bold text-zinc-900">{pr.label}</td>
+                            <td className={`text-right px-3 py-1.5 font-bold tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                            {pr.note && <td className="px-2 py-1.5 text-zinc-400 text-[11px]">{pr.note}</td>}
+                          </tr>
+                        );
+                        if (pr.type === 'cat') return (
+                          <tr key={i} className="bg-blue-50/50 border-t border-zinc-200">
+                            <td colSpan={3} className="px-3 py-1 font-semibold text-blue-700 text-[12px]">{pr.label}</td>
+                          </tr>
+                        );
+                        if (pr.type === 'sub') return (
+                          <tr key={i} className="border-b border-zinc-50">
+                            <td className="px-3 py-0.5 pl-10 text-zinc-400 text-[11px]">{pr.label}</td>
+                            <td className={`text-right px-3 py-0.5 text-[11px] tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                            {pr.note && <td className="px-2 py-0.5 text-zinc-300 text-[10px]">{pr.note}</td>}
+                          </tr>
+                        );
+                        return (
+                          <tr key={i} className="border-b border-zinc-100">
+                            <td className="px-3 py-1 pl-5 text-zinc-700">{pr.label}</td>
+                            <td className={`text-right px-3 py-1 tabular-nums whitespace-nowrap ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
+                            {pr.note && <td className="px-2 py-1 text-zinc-400 text-[11px] leading-relaxed">{pr.note}</td>}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
             {/* 자본총계 변동 분석 - 자본총계 선택 시에만 표시 */}
             {selectedBSAccount === '자본총계' && (
               <>
@@ -9784,8 +9864,8 @@ export default function FnFQ1_2026Dashboard() {
               </>
             )}
 
-            {/* 법인별 분석 헤더 */}
-            <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
+            {/* 법인별 분석 헤더 - 현금성자산 선택 시 숨김(변동내역 테이블로 대체) */}
+            {selectedBSAccount !== '현금성자산' && <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4">
               <h3 className="text-sm font-semibold text-zinc-900 mb-0.5">
                 {balanceItems.find(i => i.key === selectedBSAccount)?.label || selectedBSAccount} 법인별 구성
               </h3>
@@ -9975,7 +10055,7 @@ export default function FnFQ1_2026Dashboard() {
                   })()}
                 </tbody>
               </table>
-            </div>
+            </div>}
 
             {/* 분기별 추이 그래프 */}
             {balanceItems.find(i => i.key === selectedBSAccount)?.selectable && quarterlyEntityData[selectedBSAccount] && (
@@ -10043,97 +10123,6 @@ export default function FnFQ1_2026Dashboard() {
           </div>
         </div>
 
-        {/* ───── 현금성자산 선택 시: 변동내역(좌) + 구성상세 카드(우) ───── */}
-        {selectedBSAccount === '현금성자산' && cashFlowData.length > 1 && (() => {
-          // 원 → 억원 변환 (commas inside quotes are kept by parseCsvText)
-          const parseAmt = (s) => {
-            const str = String(s || '').replace(/\s/g, '');
-            if (!str) return null;
-            const neg = str.includes('(') && str.includes(')');
-            const n = Number(str.replace(/[(),]/g, ''));
-            if (!isFinite(n) || n === 0) return null;
-            return Math.round((neg ? -n : n) / 1e8); // 원 → 억원(반올림)
-          };
-          const fmtAmt = (v) => {
-            if (v === null) return '—';
-            return `${v >= 0 ? '+' : ''}${v.toLocaleString('ko-KR')}억`;
-          };
-          const amtCls = (v) => v === null ? 'text-zinc-400' : v >= 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold';
-
-          // ── 행 전처리: slice(1)으로 title만 제거, 카테고리 헤더 자동 주입 ──
-          const rawRows = (cashFlowData || []).slice(1).filter(r => {
-            if (!r) return false;
-            const c1 = String(r[1]||'').trim(); const c2 = String(r[2]||'').trim();
-            if (!c1 && !c2) return false;         // 완전 빈 행
-            if (c1.startsWith('#')) return false;  // #REF! 등 Excel 오류 셀
-            return true;
-          });
-          const processedRows = [];
-          let lastCat = '';
-          rawRows.forEach(row => {
-            const col1 = String(row[1]||'').trim();
-            const col2 = String(row[2]||'').trim();
-            const isTotal = /^[123]\./.test(col1);
-            if (isTotal) {
-              lastCat = '';
-              processedRows.push({ type: 'total', label: col1, amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
-            } else if (col1 && col2) {
-              // 카테고리 + 항목이 같은 행 → 카테고리 헤더 먼저 주입
-              if (col1 !== lastCat) { processedRows.push({ type: 'cat', label: col1 }); lastCat = col1; }
-              const isSub = col2.trimStart().startsWith('-');
-              processedRows.push({ type: isSub ? 'sub' : 'item', label: col2.trim(), amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
-            } else if (col1 && !col2) {
-              processedRows.push({ type: 'cat', label: col1 }); lastCat = col1;
-            } else if (!col1 && col2) {
-              const isSub = col2.trimStart().startsWith('-');
-              processedRows.push({ type: isSub ? 'sub' : 'item', label: col2.trim(), amt: parseAmt(row[3]), note: String(row[4]||'').trim() });
-            }
-          });
-
-          return (
-            <div className="mt-4">
-              <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between bg-zinc-50 px-4 py-2.5 border-b border-zinc-200">
-                  <h3 className="text-sm font-semibold text-zinc-800">▷ 현금 및 현금성자산 변동내역</h3>
-                  <span className="text-[10px] text-zinc-400 font-normal">(단위: 억원)</span>
-                </div>
-                <table className="w-full text-xs">
-                  <tbody>
-                    {processedRows.map((pr, i) => {
-                      if (pr.type === 'total') return (
-                        <tr key={i} className="bg-zinc-100 border-t-2 border-zinc-300">
-                          <td className="px-4 py-2 font-bold text-zinc-900 w-[38%]">{pr.label}</td>
-                          <td className={`text-right px-4 py-2 w-[15%] tabular-nums ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
-                          <td className="px-3 py-2 text-zinc-400 text-[10px] leading-relaxed">{pr.note}</td>
-                        </tr>
-                      );
-                      if (pr.type === 'cat') return (
-                        <tr key={i} className="bg-blue-50/50 border-t border-zinc-200">
-                          <td colSpan={3} className="px-4 py-1 font-semibold text-blue-700 text-[11px]">{pr.label}</td>
-                        </tr>
-                      );
-                      if (pr.type === 'sub') return (
-                        <tr key={i} className="border-b border-zinc-50">
-                          <td className="px-4 py-1 pl-12 text-zinc-400 text-[10px] w-[38%]">{pr.label}</td>
-                          <td className={`text-right px-4 py-1 text-[10px] w-[15%] tabular-nums ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
-                          <td className="px-3 py-1 text-zinc-300 text-[10px]">{pr.note}</td>
-                        </tr>
-                      );
-                      // type === 'item'
-                      return (
-                        <tr key={i} className="border-b border-zinc-100">
-                          <td className="px-4 py-1.5 pl-6 text-zinc-700 w-[38%]">{pr.label}</td>
-                          <td className={`text-right px-4 py-1.5 w-[15%] tabular-nums ${amtCls(pr.amt)}`}>{fmtAmt(pr.amt)}</td>
-                          <td className="px-3 py-1.5 text-zinc-400 text-[10px] leading-relaxed">{pr.note}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          );
-        })()}
         {/* ─────────────────────────────────────────────────────────────── */}
 
         {/* 구성 상세 - 전체 너비 */}
