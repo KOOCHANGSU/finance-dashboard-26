@@ -930,6 +930,7 @@ export default function FnFQ1_2026Dashboard() {
   const isInitialLoadRef = React.useRef(true); // 초기 로드 여부
   const [availableQuarters2026, setAvailableQuarters2026] = useState([1]);
   const [entityCsvLookup, setEntityCsvLookup] = useState({ is: {}, bs: {} });
+  const [expandedBrandRows, setExpandedBrandRows] = useState(new Set()); // 브랜드 소계 펼침 상태
   // EPS(주당순이익) 데이터 — EPS.csv 로드
   const [epsData, setEpsData] = useState({ curr: 0, prev: 0, currAdj: 0, prevAdj: 0 });
   const [impairmentData, setImpairmentData] = useState(() => loadFromStorage(STORAGE_KEYS.IMPAIRMENT) || {
@@ -1255,9 +1256,16 @@ export default function FnFQ1_2026Dashboard() {
     return () => clearTimeout(timeoutId);
   }, [incomeEditData, bsEditData, aiAnalysisData, entityStmtReasons, hiddenEntityCards, hiddenDetailSections, impairmentData]);
 
-  // 컴포넌트 마운트 시 서버에서 모든 설정 불러오기
+  // 컴포넌트 마운트 시 서버에서 모든 설정 불러오기 + 30초 자동 polling
   React.useEffect(() => {
     loadAllSettingsFromServer();
+    // 30초마다 Redis에서 최신 데이터 자동 갱신 (실시간 협업)
+    const pollInterval = setInterval(() => {
+      if (!isInitialLoadRef.current) {
+        loadAllSettingsFromServer();
+      }
+    }, 30000);
+    return () => clearInterval(pollInterval);
   }, []);
 
   // 서버에서 모든 설정 불러오기
@@ -1287,11 +1295,9 @@ export default function FnFQ1_2026Dashboard() {
             saveToStorage(STORAGE_KEYS.BS_EDIT, data.bsEditData);
           }
           if (data.entityStmtReasons) {
-            // localStorage 데이터를 우선 보존 (Redis 덮어쓰기 방지)
-            const localReasons = loadFromStorage(STORAGE_KEYS.ENTITY_STMT_REASONS);
-            const merged = { ...data.entityStmtReasons, ...localReasons };
-            setEntityStmtReasons(merged);
-            saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, merged);
+            // Redis 데이터 우선 (실시간 협업 - 서버가 항상 최신 기준)
+            setEntityStmtReasons(data.entityStmtReasons);
+            saveToStorage(STORAGE_KEYS.ENTITY_STMT_REASONS, data.entityStmtReasons);
           }
           if (data.hiddenEntityCards) {
             setHiddenEntityCards(data.hiddenEntityCards);
@@ -6603,6 +6609,33 @@ export default function FnFQ1_2026Dashboard() {
       ? currPeriod.replace('_', '.')   // e.g. 2026_1Q → 2026.1Q
       : currPeriod.split('_')[0] + '년'; // e.g. 2026_Year → 2026년
 
+    // 매출액 법인 표시명 매핑 (기타 → 기타(임대/외식 등))
+    const getEntityDisplayName = (entity) => {
+      if (selectedAccount === '매출액' && entity === '기타') return '기타(임대/외식 등)';
+      return entity;
+    };
+
+    // 매출액 브랜드별 소계 데이터 (25.1Q / 26.1Q)
+    const ENTITY_BRAND_DATA = {
+      '매출액': {
+        'OC(국내)': [
+          { name: 'M',       prevVal: 100487, currVal: 103402 },
+          { name: 'MK',      prevVal:  19092, currVal:  22220 },
+          { name: 'DX',      prevVal:  88195, currVal:  86107 },
+          { name: 'DV',      prevVal:   4998, currVal:   7124 },
+          { name: 'SP',      prevVal:    681, currVal:    145 },
+          { name: 'ST(국내)', prevVal:   1741, currVal:   1686 },
+        ],
+        '중국': [
+          { name: 'M',  prevVal: 245480, currVal: 287241 },
+          { name: 'MK', prevVal:  10533, currVal:  11765 },
+          { name: 'DX', prevVal:   1298, currVal:   1517 },
+          { name: 'DV', prevVal:    919, currVal:   1520 },
+          { name: 'SP', prevVal:    310, currVal:   1040 },
+        ],
+      },
+    };
+
     // 법인 색상
     const entityColors = {
       'OC(국내)': '#3B82F6',
@@ -7273,17 +7306,27 @@ export default function FnFQ1_2026Dashboard() {
                   const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                   const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
                   
-                  return data.map((row, idx) => {
+                  return data.flatMap((row, idx) => {
                     const diff = row.currVal - row.prevVal;
                     const prevRatio = totalPrev !== 0 ? ((row.prevVal / totalPrev) * 100).toFixed(1) : '0.0';
-                    return (
-                    <tr key={idx} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                    const hasBrands = !!(ENTITY_BRAND_DATA[selectedAccount]?.[row.entity]);
+                    const isExpanded = expandedBrandRows.has(row.entity);
+                    const brands = ENTITY_BRAND_DATA[selectedAccount]?.[row.entity] || [];
+
+                    const mainRow = (
+                    <tr key={`main-${idx}`} className={`border-b border-zinc-100 transition-colors ${hasBrands ? 'cursor-pointer hover:bg-blue-50' : 'hover:bg-zinc-50'}`}
+                      onClick={hasBrands ? () => setExpandedBrandRows(prev => {
+                        const next = new Set(prev);
+                        if (next.has(row.entity)) next.delete(row.entity); else next.add(row.entity);
+                        return next;
+                      }) : undefined}
+                    >
                       <td className="px-2 py-1.5 text-zinc-700 whitespace-nowrap border-r border-zinc-100">
-                        <span 
-                          className="inline-block w-1.5 h-1.5 rounded-full mr-1" 
-                          style={{ backgroundColor: entityColors[row.entity] }}
-                        ></span>
-                        {row.entity}
+                        <span className="inline-block w-1.5 h-1.5 rounded-full mr-1" style={{ backgroundColor: entityColors[row.entity] }}></span>
+                        {getEntityDisplayName(row.entity)}
+                        {hasBrands && (
+                          <span className="ml-1 text-[9px] text-blue-400">{isExpanded ? '▲' : '▼'}</span>
+                        )}
                       </td>
                       <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums">{formatNumber(row.prevVal)}</td>
                       <td className="text-right px-1 py-1.5 text-zinc-400 tabular-nums border-r border-zinc-100">{prevRatio}%</td>
@@ -7297,6 +7340,30 @@ export default function FnFQ1_2026Dashboard() {
                       </td>
                     </tr>
                     );
+
+                    const brandRows = (hasBrands && isExpanded) ? brands.map((b, bi) => {
+                      const bDiff = b.currVal - b.prevVal;
+                      const bChange = b.prevVal !== 0 ? (((b.currVal - b.prevVal) / Math.abs(b.prevVal)) * 100).toFixed(1) : '-';
+                      return (
+                        <tr key={`brand-${idx}-${bi}`} className="border-b border-zinc-50 bg-blue-50/40">
+                          <td className="px-2 py-1 text-zinc-500 whitespace-nowrap border-r border-zinc-100 pl-6 text-[11px]">
+                            <span className="mr-1 text-zinc-300">└</span>{b.name}
+                          </td>
+                          <td className="text-right px-1 py-1 text-zinc-400 tabular-nums text-[11px]">{formatNumber(b.prevVal)}</td>
+                          <td className="text-right px-1 py-1 text-zinc-300 tabular-nums border-r border-zinc-100 text-[11px]">-</td>
+                          <td className="text-right px-1 py-1 text-zinc-600 tabular-nums text-[11px]">{formatNumber(b.currVal)}</td>
+                          <td className="text-right px-1 py-1 text-zinc-300 tabular-nums border-r border-zinc-100 text-[11px]">-</td>
+                          <td className={`text-right px-1 py-1 tabular-nums border-r border-zinc-100 text-[11px] ${bDiff >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {bDiff >= 0 ? '+' : ''}{formatNumber(bDiff)}
+                          </td>
+                          <td className={`text-right px-1 py-1 tabular-nums text-[11px] ${bChange !== '-' && parseFloat(bChange) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {bChange !== '-' ? `${parseFloat(bChange) >= 0 ? '+' : ''}${bChange}%` : '-'}
+                          </td>
+                        </tr>
+                      );
+                    }) : [];
+
+                    return [mainRow, ...brandRows];
                   });
                 })()}
                 {/* 합계 행 */}
