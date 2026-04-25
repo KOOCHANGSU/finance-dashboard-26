@@ -10764,12 +10764,18 @@ export default function FnFQ1_2026Dashboard() {
                             <textarea
                               value={text}
                               onChange={(e) => {
-                                const newTexts = [...bsAnalysisTexts];
-                                newTexts[i] = e.target.value;
-                                setBsEditData(prev => ({
-                                  ...prev,
-                                  [editKey]: newTexts
-                                }));
+                                const val = e.target.value;
+                                // 붙여넣기 등으로 줄바꿈 포함 시 → 각 줄을 별도 항목으로 분리
+                                if (val.includes('\n')) {
+                                  const lines = val.split('\n');
+                                  const newTexts = [...bsAnalysisTexts];
+                                  newTexts.splice(i, 1, ...lines);
+                                  setBsEditData(prev => ({ ...prev, [editKey]: newTexts }));
+                                } else {
+                                  const newTexts = [...bsAnalysisTexts];
+                                  newTexts[i] = val;
+                                  setBsEditData(prev => ({ ...prev, [editKey]: newTexts }));
+                                }
                               }}
                               className="flex-1 text-[11px] text-zinc-600 leading-relaxed px-1.5 py-1 rounded bg-white border border-zinc-300 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
                               rows={2}
@@ -10808,7 +10814,7 @@ export default function FnFQ1_2026Dashboard() {
                         <div className="space-y-1">
                           {bsAnalysisTexts.map((text, i) => (
                             text && (
-                              <p key={i} className="text-[11px] text-zinc-600 leading-relaxed">
+                              <p key={i} className="text-[11px] text-zinc-600 leading-relaxed whitespace-pre-wrap">
                                 • {text}
                               </p>
                             )
