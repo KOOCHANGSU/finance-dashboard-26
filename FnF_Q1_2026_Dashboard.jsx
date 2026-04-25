@@ -5499,7 +5499,7 @@ export default function FnFQ1_2026Dashboard() {
                         <table className="w-full text-xs border-collapse">
                           <thead>
                             <tr className="bg-zinc-50">
-                              <th className="text-left py-1.5 px-2 font-semibold text-zinc-500 border border-zinc-100 w-24">항목</th>
+                              <th className="text-left py-1.5 px-2 font-semibold text-zinc-500 border border-zinc-100 w-28 whitespace-nowrap">항목</th>
                               {cols.map(d => (
                                 <th key={d.name} className={`text-right py-1.5 px-2 font-semibold border border-zinc-100 ${d.name === latest?.name ? 'bg-blue-50 text-blue-800' : 'text-zinc-500'}`}>
                                   {d.name}
@@ -5513,7 +5513,7 @@ export default function FnFQ1_2026Dashboard() {
                               const diff = latest?.[key] != null && prev?.[key] != null ? (latest[key] - prev[key]).toFixed(1) : null;
                               return (
                                 <tr key={key} className="hover:bg-zinc-50/60">
-                                  <td className="py-1.5 px-2 border border-zinc-100 text-zinc-700 font-medium">
+                                  <td className="py-1.5 px-2 border border-zinc-100 text-zinc-700 font-medium whitespace-nowrap">
                                     <span className="flex items-center gap-1.5">
                                       <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
                                       {label}
