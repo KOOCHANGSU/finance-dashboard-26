@@ -11953,8 +11953,8 @@ export default function FnFQ1_2026Dashboard() {
       return '';
     };
 
-    // 자산총계·자본총계는 증감사유 입력 불필요 → 비활성화 (부채총계는 편집 가능)
-    const NO_REASON_KEYS = new Set(['자산총계', '자본총계']);
+    // 자산총계·부채총계는 증감사유 입력 불필요 → 비활성화 (자본총계는 편집 가능)
+    const NO_REASON_KEYS = new Set(['자산총계', '부채총계']);
 
     const renderReasonCell = (stmt, rowKey) => {
       const text = getEntityReason(stmt, rowKey);
