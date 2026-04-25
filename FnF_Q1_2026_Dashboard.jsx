@@ -11941,7 +11941,13 @@ export default function FnFQ1_2026Dashboard() {
       });
     };
 
-    const getEntityReason = (stmt, rowKey) => entityStmtReasons[entityReasonKey(stmt, rowKey)] || '';
+    const getEntityReason = (stmt, rowKey) => {
+      const newKey = entityReasonKey(stmt, rowKey);
+      if (entityStmtReasons[newKey]) return entityStmtReasons[newKey];
+      // 구키 폴백: 모드 태그 추가 전 형식으로도 검색 (기존 저장 데이터 복구)
+      const oldKey = `${selectedPeriod}::${selectedEntityKey}::${stmt}::${rowKey}`;
+      return entityStmtReasons[oldKey] || '';
+    };
 
     // 자산총계·자본총계는 증감사유 입력 불필요 → 비활성화 (부채총계는 편집 가능)
     const NO_REASON_KEYS = new Set(['자산총계', '자본총계']);
