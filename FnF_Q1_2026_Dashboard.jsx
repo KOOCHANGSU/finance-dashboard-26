@@ -346,6 +346,11 @@ const buildEntityQuarterLookup = (rows, year) => {
         });
       }
     }
+    // (3-1) 기타손익순 = 기타손익 per entity (= 잡이익-잡손실, 투자부동산처분이익 미포함)
+    // normalizeAccount('기타손익_순') = '기타손익순' 이므로 getBaseEntityBreakdown Step1에서 직접 반환됨
+    if (lookup[period]['기타손익']) {
+      lookup[period]['기타손익순'] = { ...lookup[period]['기타손익'] };
+    }
     // (4) 금융상품손익 = (당기손익공정가치금융자산 평가/처분 이익 + 단기매매증권 평가/처분 이익)
     //                  − (당기손익공정가치금융자산 평가/처분 손실)
     {
@@ -6903,12 +6908,26 @@ export default function FnFQ1_2026Dashboard() {
             if (r) return r;
           }
 
-          // 기타손익_순 = 기타손익 − 투자부동산처분손익
+          // 기타손익_순 = 영업외손익(총) − 명시항목 − 투자부동산처분손익 (잔차법)
+          // ※ 엔터티 기타손익(잡이익-잡손실)은 투자부동산처분이익 미포함 → 단순 차감 시 OC 이중차감 오류
+          //   → 영업외수익/비용 합계에서 각 명시 항목과 투자부동산을 직접 차감해 정확한 법인별 기여분 산출
           if (accountKey === '기타손익_순') {
             const r = buildR(ek => {
-              const etc = getE('기타손익', ek) ?? (Number(getE('잡이익',ek)||0) - Number(getE('잡손실',ek)||0));
-              const prop = Number(getE('투자부동산처분이익',ek)||0) - Number(getE('투자부동산처분손실',ek)||0);
-              return etc - prop;
+              const rev = getE('영업외수익', ek);
+              const exp = getE('영업외비용', ek);
+              if (rev !== undefined || exp !== undefined) {
+                const nonOpTotal = Number(rev||0) - Number(exp||0);
+                const fx  = Number(getE('외환손익',   ek)||0);
+                const fwd = Number(getE('선물환손익',  ek)||0);
+                const fin = Number(getE('금융상품손익', ek)||0);
+                const int = Number(getE('이자손익',   ek)||0);
+                const div = Number(getE('배당수익',   ek)||0) + Number(getE('배당금수익', ek)||0);
+                const don = Number(getE('기부금',     ek)||0);
+                const prop = Number(getE('투자부동산처분이익',ek)||0) - Number(getE('투자부동산처분손실',ek)||0);
+                return nonOpTotal - fx - fwd - fin - int - div - don - prop;
+              }
+              // 폴백: 영업외수익/비용 행 없을 때 잡이익-잡손실 사용 (투자부동산 미포함이므로 추가 차감 불필요)
+              return getE('기타손익', ek) ?? (Number(getE('잡이익',ek)||0) - Number(getE('잡손실',ek)||0));
             });
             if (r) return r;
           }
@@ -7037,9 +7056,19 @@ export default function FnFQ1_2026Dashboard() {
         }
         if (accountKey === '기타손익_순') {
           const r = buildR2(ek => {
-            const etc=getE2('기타손익',ek)??(Number(getE2('잡이익',ek)||0)-Number(getE2('잡손실',ek)||0));
-            const prop=Number(getE2('투자부동산처분이익',ek)||0)-Number(getE2('투자부동산처분손실',ek)||0);
-            return etc-prop;
+            const rev2=getE2('영업외수익',ek), exp2=getE2('영업외비용',ek);
+            if (rev2!==undefined||exp2!==undefined) {
+              const tot2=Number(rev2||0)-Number(exp2||0);
+              const fx2 =Number(getE2('외환손익',  ek)||0);
+              const fwd2=Number(getE2('선물환손익', ek)||0);
+              const fin2=Number(getE2('금융상품손익',ek)||0);
+              const int2=Number(getE2('이자손익',  ek)||0);
+              const div2=Number(getE2('배당수익',  ek)||0)+Number(getE2('배당금수익',ek)||0);
+              const don2=Number(getE2('기부금',    ek)||0);
+              const prop2=Number(getE2('투자부동산처분이익',ek)||0)-Number(getE2('투자부동산처분손실',ek)||0);
+              return tot2-fx2-fwd2-fin2-int2-div2-don2-prop2;
+            }
+            return getE2('기타손익',ek)??(Number(getE2('잡이익',ek)||0)-Number(getE2('잡손실',ek)||0));
           });
           if (r) return r;
         }
