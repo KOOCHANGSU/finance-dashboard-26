@@ -9470,41 +9470,6 @@ export default function FnFQ1_2026Dashboard() {
     // 법인별 데이터는 컴포넌트 상위 레벨에서 정의됨 (entityBSData)
     // 아래 중복 정의는 제거됨 - 상위 레벨의 entityBSData 사용
 
-    // 분기별 법인별 추이 데이터 (24.1Q ~ 25.4Q) - 그래프용 (홍콩+ST미국 = 기타로 합산)
-    // ── 분기별 추이 차트: 동적 생성 (새 분기 추가 시 자동 반영) ──────────────
-    const TREND_PERIODS = [
-      { key: '2024_1Q', label: '24.1Q' },
-      { key: '2024_2Q', label: '24.2Q' },
-      { key: '2024_3Q', label: '24.3Q' },
-      { key: '2024_4Q', label: '24.4Q' },
-      { key: '2025_1Q', label: '25.1Q' },
-      { key: '2025_2Q', label: '25.2Q' },
-      { key: '2025_3Q', label: '25.3Q' },
-      { key: '2025_4Q', label: '25.4Q' },
-      { key: '2026_1Q', label: '26.1Q' },
-    ];
-    const TREND_ACCOUNTS = [
-      '현금성자산','매출채권','재고자산','금융자산','투자자산',
-      '유무형자산','사용권자산','기타자산','자산총계',
-      '매입채무','미지급금','보증금','차입금','리스부채','기타부채',
-      '부채총계','자본총계',
-    ];
-    const quarterlyEntityData = Object.fromEntries(
-      TREND_ACCOUNTS.map(account => {
-        const rows = TREND_PERIODS.map(({ key, label }) => {
-          const breakdown = getBaseBSBreakdown(account, key);
-          const total = balanceSheetData?.[key]?.[account];
-          const oc = breakdown['OC(국내)'] ?? 0;
-          const cn = breakdown['중국'] ?? 0;
-          // 기타 = 연결합계 − OC − 중국 (연결조정 포함)
-          const other = (typeof total === 'number' && total !== 0)
-            ? total - oc - cn
-            : ['홍콩','ST미국','베트남','엔터테인먼트'].reduce((s, k) => s + (breakdown[k] ?? 0), 0);
-          return { quarter: label, 'OC(국내)': oc, 중국: cn, 기타: other };
-        }).filter(d => d['OC(국내)'] !== 0 || d['중국'] !== 0 || d['기타'] !== 0);
-        return [account, rows];
-      })
-    );
     const entityColors = {
       'OC(국내)': '#3B82F6',
       중국: '#F59E0B',
@@ -9759,6 +9724,42 @@ export default function FnFQ1_2026Dashboard() {
       if (p) return p['자산총계'] || {};
       return {};
     };
+
+    // ── 분기별 추이 차트: 동적 생성 (새 분기 추가 시 자동 반영) ──────────────
+    // getBaseBSBreakdown 이후에 정의해야 TDZ 에러 없음
+    const TREND_PERIODS = [
+      { key: '2024_1Q', label: '24.1Q' },
+      { key: '2024_2Q', label: '24.2Q' },
+      { key: '2024_3Q', label: '24.3Q' },
+      { key: '2024_4Q', label: '24.4Q' },
+      { key: '2025_1Q', label: '25.1Q' },
+      { key: '2025_2Q', label: '25.2Q' },
+      { key: '2025_3Q', label: '25.3Q' },
+      { key: '2025_4Q', label: '25.4Q' },
+      { key: '2026_1Q', label: '26.1Q' },
+    ];
+    const TREND_ACCOUNTS = [
+      '현금성자산','매출채권','재고자산','금융자산','투자자산',
+      '유무형자산','사용권자산','기타자산','자산총계',
+      '매입채무','미지급금','보증금','차입금','리스부채','기타부채',
+      '부채총계','자본총계',
+    ];
+    const quarterlyEntityData = Object.fromEntries(
+      TREND_ACCOUNTS.map(account => {
+        const rows = TREND_PERIODS.map(({ key, label }) => {
+          const breakdown = getBaseBSBreakdown(account, key);
+          const total = balanceSheetData?.[key]?.[account];
+          const oc = breakdown['OC(국내)'] ?? 0;
+          const cn = breakdown['중국'] ?? 0;
+          // 기타 = 연결합계 − OC − 중국 (연결조정 포함)
+          const other = (typeof total === 'number' && total !== 0)
+            ? total - oc - cn
+            : ['홍콩','ST미국','베트남','엔터테인먼트'].reduce((s, k) => s + (breakdown[k] ?? 0), 0);
+          return { quarter: label, 'OC(국내)': oc, 중국: cn, 기타: other };
+        }).filter(d => d['OC(국내)'] !== 0 || d['중국'] !== 0 || d['기타'] !== 0);
+        return [account, rows];
+      })
+    );
 
     const getAlignedBSBreakdown = (accountKey, period) => {
       const consolidatedTotal = getBSConsolidatedTotal(accountKey, period);
