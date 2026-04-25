@@ -11924,7 +11924,11 @@ export default function FnFQ1_2026Dashboard() {
     const valBS = (key, period) => Number(getBSRaw(key, period) ?? 0);
 
     // selectedEntityKey 사용 → forceEntity 모드에서도 법인별 분리 저장
-    const entityReasonKey = (stmt, rowKey) => `${selectedPeriod}::${selectedEntityKey}::${stmt}::${rowKey}`;
+    // BS는 동분기/전기말 모드별로 별도 저장 (is는 모드 구분 없음)
+    const entityReasonKey = (stmt, rowKey) => {
+      const modeTag = stmt === 'bs' ? `::${entityBsCompareMode}` : '';
+      return `${selectedPeriod}::${selectedEntityKey}::${stmt}${modeTag}::${rowKey}`;
+    };
 
     const setEntityReason = (stmt, rowKey, text) => {
       const k = entityReasonKey(stmt, rowKey);
@@ -11939,8 +11943,8 @@ export default function FnFQ1_2026Dashboard() {
 
     const getEntityReason = (stmt, rowKey) => entityStmtReasons[entityReasonKey(stmt, rowKey)] || '';
 
-    // 자산총계·부채총계·자본총계는 증감사유 입력 불필요 → 비활성화
-    const NO_REASON_KEYS = new Set(['자산총계', '부채총계', '자본총계']);
+    // 자산총계·자본총계는 증감사유 입력 불필요 → 비활성화 (부채총계는 편집 가능)
+    const NO_REASON_KEYS = new Set(['자산총계', '자본총계']);
 
     const renderReasonCell = (stmt, rowKey) => {
       const text = getEntityReason(stmt, rowKey);
