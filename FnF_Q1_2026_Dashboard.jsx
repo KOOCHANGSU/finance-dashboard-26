@@ -11944,9 +11944,13 @@ export default function FnFQ1_2026Dashboard() {
     const getEntityReason = (stmt, rowKey) => {
       const newKey = entityReasonKey(stmt, rowKey);
       if (entityStmtReasons[newKey]) return entityStmtReasons[newKey];
-      // 구키 폴백: 모드 태그 추가 전 형식으로도 검색 (기존 저장 데이터 복구)
-      const oldKey = `${selectedPeriod}::${selectedEntityKey}::${stmt}::${rowKey}`;
-      return entityStmtReasons[oldKey] || '';
+      // 구키 폴백: 전기말 모드에서만 적용 (기존 저장 데이터는 전기말 기준)
+      // 동분기 모드에서는 폴백 안 함 → 전기말 내용이 동분기에 보이는 현상 방지
+      if (stmt === 'bs' && entityBsCompareMode === 'prevYearEnd') {
+        const oldKey = `${selectedPeriod}::${selectedEntityKey}::${stmt}::${rowKey}`;
+        return entityStmtReasons[oldKey] || '';
+      }
+      return '';
     };
 
     // 자산총계·자본총계는 증감사유 입력 불필요 → 비활성화 (부채총계는 편집 가능)
