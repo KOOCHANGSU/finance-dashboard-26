@@ -346,6 +346,10 @@ const buildEntityQuarterLookup = (rows, year) => {
         });
       }
     }
+    // (3-1) 기타손익순 = 기타손익 per entity (normalizeAccount('기타손익_순') → '기타손익순')
+    if (lookup[period]['기타손익']) {
+      lookup[period]['기타손익순'] = { ...lookup[period]['기타손익'] };
+    }
     // (4) 금융상품손익 = (당기손익공정가치금융자산 평가/처분 이익 + 단기매매증권 평가/처분 이익)
     //                  − (당기손익공정가치금융자산 평가/처분 손실)
     {
@@ -5003,7 +5007,7 @@ export default function FnFQ1_2026Dashboard() {
       }
       
       return (
-        <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+        <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200 h-full">
           {/* 헤더: 제목과 증감률 박스 */}
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">{card.title}</span>
@@ -5285,75 +5289,78 @@ export default function FnFQ1_2026Dashboard() {
 
     return (
       <div className="space-y-7 mt-4">
-        {/* 손익 요약 섹션 */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-5 bg-blue-500 rounded"></span>
-              손익 요약
-            </h3>
-            {/* 손익 조회 옵션 */}
-            <div className="flex items-center border-b border-zinc-200">
-              <button
-                onClick={() => setSummaryKpiMode('quarter')}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-                  summaryKpiMode === 'quarter'
-                    ? 'text-zinc-900 border-zinc-900'
-                    : 'text-zinc-400 border-transparent hover:text-zinc-600'
-                }`}
-              >
-                분기(3개월)
-              </button>
-              <button
-                onClick={() => setSummaryKpiMode('cumulative')}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-                  summaryKpiMode === 'cumulative'
-                    ? 'text-zinc-900 border-zinc-900'
-                    : 'text-zinc-400 border-transparent hover:text-zinc-600'
-                }`}
-              >
-                누적(연간)
-              </button>
+        {/* 손익 요약 + 재무상태 요약 한 줄 */}
+        <div className="flex gap-4 items-stretch">
+          {/* 손익 요약 섹션 */}
+          <div className="flex-[3] min-w-0 flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
+                <span className="w-1.5 h-5 bg-blue-500 rounded"></span>
+                손익 요약
+              </h3>
+              {/* 손익 조회 옵션 */}
+              <div className="flex items-center border-b border-zinc-200">
+                <button
+                  onClick={() => setSummaryKpiMode('quarter')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+                    summaryKpiMode === 'quarter'
+                      ? 'text-zinc-900 border-zinc-900'
+                      : 'text-zinc-400 border-transparent hover:text-zinc-600'
+                  }`}
+                >
+                  분기(3개월)
+                </button>
+                <button
+                  onClick={() => setSummaryKpiMode('cumulative')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+                    summaryKpiMode === 'cumulative'
+                      ? 'text-zinc-900 border-zinc-900'
+                      : 'text-zinc-400 border-transparent hover:text-zinc-600'
+                  }`}
+                >
+                  누적(연간)
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 flex-1">
+              {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
-          </div>
-        </div>
 
-        {/* 재무상태 요약 섹션 */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
-              <span className="w-1.5 h-5 bg-amber-500 rounded"></span>
-              재무상태 요약
-            </h3>
-            {/* 재무상태 조회 옵션 */}
-            <div className="flex items-center border-b border-zinc-200">
-              <button
-                onClick={() => setBalanceKpiMode('sameQuarter')}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-                  balanceKpiMode === 'sameQuarter'
-                    ? 'text-zinc-900 border-zinc-900'
-                    : 'text-zinc-400 border-transparent hover:text-zinc-600'
-                }`}
-              >
-                동분기
-              </button>
-              <button
-                onClick={() => setBalanceKpiMode('yearEnd')}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
-                  balanceKpiMode === 'yearEnd'
-                    ? 'text-zinc-900 border-zinc-900'
-                    : 'text-zinc-400 border-transparent hover:text-zinc-600'
-                }`}
-              >
-                전기말
-              </button>
+          {/* 재무상태 요약 섹션 */}
+          <div className="flex-[2] min-w-0 flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
+                <span className="w-1.5 h-5 bg-amber-500 rounded"></span>
+                재무상태 요약
+              </h3>
+              {/* 재무상태 조회 옵션 */}
+              <div className="flex items-center border-b border-zinc-200">
+                <button
+                  onClick={() => setBalanceKpiMode('sameQuarter')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+                    balanceKpiMode === 'sameQuarter'
+                      ? 'text-zinc-900 border-zinc-900'
+                      : 'text-zinc-400 border-transparent hover:text-zinc-600'
+                  }`}
+                >
+                  동분기
+                </button>
+                <button
+                  onClick={() => setBalanceKpiMode('yearEnd')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors border-b-2 -mb-px ${
+                    balanceKpiMode === 'yearEnd'
+                      ? 'text-zinc-900 border-zinc-900'
+                      : 'text-zinc-400 border-transparent hover:text-zinc-600'
+                  }`}
+                >
+                  전기말
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
+            <div className="grid grid-cols-2 gap-4 flex-1">
+              {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
+            </div>
           </div>
         </div>
 
