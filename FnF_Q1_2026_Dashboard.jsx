@@ -6826,11 +6826,12 @@ export default function FnFQ1_2026Dashboard() {
         if (Object.keys(result).length > 0) return result;
       }
 
-      // 매출액: 연도 관계없이 큐레이션된 entityData를 항상 우선 사용
-      if (accountKey === '매출액') {
-        const direct = entityData?.['매출액']?.[period];
+      // 매출액/매출원가/매출총이익: 연도 관계없이 큐레이션된 entityData를 항상 우선 사용
+      // (연결운전자본 CSV 기반 확정 데이터 — IS CSV gross 값보다 정확)
+      if (accountKey === '매출액' || accountKey === '매출원가' || accountKey === '매출총이익') {
+        const direct = entityData?.[accountKey]?.[period];
         if (direct && Object.keys(direct).length > 0) return direct;
-        const fromFallback = entityData?.['매출액']?.[fallbackPeriod];
+        const fromFallback = entityData?.[accountKey]?.[fallbackPeriod];
         if (fromFallback && Object.keys(fromFallback).length > 0) return fromFallback;
       }
 
