@@ -5631,15 +5631,7 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
                 </div>
                 )}
-                {/* ③ 핵심포인트 */}
-                <div>
-                  <p className="text-[12px] font-semibold text-zinc-700 mb-2">③ 핵심포인트</p>
-                  <ul className="text-xs text-zinc-600 space-y-2 list-none pl-0">
-                    {plHighlights.map((t, i) => (
-                      <li key={i} className="flex gap-1.5 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">{t}</li>
-                    ))}
-                  </ul>
-                </div>
+                {/* ③ 핵심포인트 — 숨김 */}
               </div>
             </div>
 
