@@ -5120,34 +5120,31 @@ export default function FnFQ1_2026Dashboard() {
       const firstY = completedYears[0];
       const lastY  = completedYears[completedYears.length - 1];
 
-      // ① 매출 CAGR + 피크 연도
+      // ① 매출 성장
       if (firstY && lastY && firstY !== lastY) {
         const nYears = allYears.indexOf(lastY) - allYears.indexOf(firstY);
         const cagr = nYears > 0 ? ((Math.pow(lastY.매출액 / firstY.매출액, 1 / nYears) - 1) * 100).toFixed(1) : null;
         const yoyLast = allYears.length >= 2 ? ((lastY.매출액 - allYears[allYears.indexOf(lastY) - 1]?.매출액) / (allYears[allYears.indexOf(lastY) - 1]?.매출액 || 1) * 100).toFixed(1) : null;
         yearlyInsights.push(
-          `매출 성장 추이: ${firstY.name} ${formatNumber(firstY.매출액)}억 → ${lastY.name} ${formatNumber(lastY.매출액)}억` +
+          `매출성장 - ${firstY.name} ${formatNumber(firstY.매출액)}억 → ${lastY.name} ${formatNumber(lastY.매출액)}억` +
           (cagr ? ` (CAGR +${cagr}%/년)` : '') +
-          (yoyLast ? `. 직전연도 대비 YoY ${parseFloat(yoyLast) >= 0 ? '+' : ''}${yoyLast}%.` : '.')
+          (yoyLast ? `, YoY ${parseFloat(yoyLast) >= 0 ? '+' : ''}${yoyLast}%` : '')
         );
       }
 
-      // ② 영업이익률 밴드 — 최고·최저·최근 흐름
+      // ② 이익률 밴드
       if (bestMarginYear && worstMarginYear && bestMarginYear !== worstMarginYear) {
         const marginSpread = (bestMarginYear.영업이익률 - worstMarginYear.영업이익률).toFixed(1);
         const avgMargin = completedYears.length > 0
           ? (completedYears.reduce((s, y) => s + (y.영업이익률 || 0), 0) / completedYears.length).toFixed(1)
           : null;
-        const lastMargin = lastY?.영업이익률;
-        const vsAvg = avgMargin && lastMargin != null ? (lastMargin - parseFloat(avgMargin)).toFixed(1) : null;
         yearlyInsights.push(
-          `영업이익률 밴드: 최고 ${bestMarginYear.name} ${bestMarginYear.영업이익률}% / 최저 ${worstMarginYear.name} ${worstMarginYear.영업이익률}% (격차 ${marginSpread}%p)` +
-          (avgMargin ? `, 연평균 ${avgMargin}%` : '') +
-          (vsAvg != null ? `. 최근 연도 평균 대비 ${parseFloat(vsAvg) >= 0 ? '+' : ''}${vsAvg}%p.` : '.')
+          `이익률 밴드 - 최고 ${bestMarginYear.name} ${bestMarginYear.영업이익률}% / 최저 ${worstMarginYear.name} ${worstMarginYear.영업이익률}% (격차 ${marginSpread}%p` +
+          (avgMargin ? `, 연평균 ${avgMargin}%` : '') + `)`
         );
       }
 
-      // ③ 분기 계절성 패턴 (전 연도 기준)
+      // ③ 분기 계절성 — 수출 집중 구조 설명
       const qs = ['1Q','2Q','3Q','4Q'];
       const seasonality = qs.map(q => {
         const vals = completedYears.map(y => y[`${q}매출`] || 0).filter(v => v > 0);
@@ -5156,37 +5153,40 @@ export default function FnFQ1_2026Dashboard() {
       });
       const totalAvg = seasonality.reduce((s, d) => s + d.avg, 0);
       if (totalAvg > 0) {
-        const seasonStr = seasonality.map(d => `${d.q} ${totalAvg > 0 ? (d.avg / totalAvg * 100).toFixed(0) : 0}%`).join(' / ');
-        const peakQ = seasonality.reduce((b, d) => d.avg > b.avg ? d : b, seasonality[0]);
+        const seasonStr = seasonality.map(d => `${d.q} ${(d.avg / totalAvg * 100).toFixed(0)}%`).join(' / ');
         yearlyInsights.push(
-          `분기 계절성(연평균 비중): ${seasonStr}. ${peakQ.q}가 연중 매출 집중 구간 — 시즌 재고·마케팅 선행 투자 타이밍 고려 필요.`
+          `계절성(분기구조) - 분기 매출비중: ${seasonStr}. 1Q·3Q는 중국·홍콩 수출 선적 집중으로 매출·이익률 고점. 2Q는 내수 춘·하계 전환기(비수기) 구조적 저점`
         );
       }
 
-      // ④ 이익률 방향성 — 최근 3년 추세
+      // ④ 이익률 추세 (최근 3개년)
       const recent3 = completedYears.slice(-3);
       if (recent3.length >= 2) {
         const marginTrend = recent3.map(y => y.영업이익률);
         const isRising   = marginTrend.every((v, i) => i === 0 || v >= marginTrend[i-1]);
         const isFalling  = marginTrend.every((v, i) => i === 0 || v <= marginTrend[i-1]);
-        const trendWord  = isRising ? '지속 개선' : isFalling ? '지속 하락' : '등락 반복';
+        const trendWord  = isRising ? '개선 흐름' : isFalling ? '하락 흐름' : '등락 반복';
         yearlyInsights.push(
-          `최근 ${recent3.length}개년 영업이익률: ${recent3.map(y => `${y.name.replace('년','')} ${y.영업이익률}%`).join(' → ')} (${trendWord}). ` +
-          (isFalling ? '수익성 구조 점검 — 원가율·판관비 증가 요인 분리 분석 필요.' :
-           isRising  ? '비용 효율화·채널믹스 개선 효과 지속 여부 모니터링.' :
-           '이익률 변동성 관리 및 안정적 마진 밴드 유지 전략 필요.')
+          `이익률 추세 - ${recent3.map(y => `${y.name.replace('년','')} ${y.영업이익률}%`).join(' → ')} (${trendWord}). ` +
+          (isFalling ? '원가율·판관비 증가 요인 분리 점검 필요.' :
+           isRising  ? '비용 효율화 효과 지속 여부 모니터링.' :
+           '이익률 변동성 관리 필요.')
         );
       }
 
-      // ⑤ 미완분기(진행 중) 26.1Q 맥락
+      // ⑤ 진행 중 연도 — 수출/내수 성장 맥락 포함
       const currentY = allYears.find(y => y.quarters < 4);
       if (currentY && firstY && lastY) {
-        const q1Share = lastY['1Q매출'] > 0 && lastY.매출액 > 0
-          ? (lastY['1Q매출'] / lastY.매출액 * 100).toFixed(0) : null;
+        const q1Rev   = currentY['1Q매출'] || 0;
+        const q1Op    = currentY['1Q영업이익'] || 0;
+        const q1Margin = q1Rev > 0 ? (q1Op / q1Rev * 100).toFixed(1) : null;
+        const prevQ1Rev = lastY['1Q매출'] || 0;
+        const q1Yoy  = prevQ1Rev > 0 ? ((q1Rev - prevQ1Rev) / prevQ1Rev * 100).toFixed(1) : null;
         yearlyInsights.push(
-          `${currentY.name} 진행 현황: 1Q 매출 ${formatNumber(currentY['1Q매출'] || 0)}억` +
-          (q1Share ? ` (전년도 연간 대비 ${q1Share}% 수준, 계절성 감안 필요)` : '') +
-          `. 연간 예상치는 하반기(3Q·4Q) 성수기 실적에 좌우.`
+          `${currentY.name} 1Q 현황 - 매출 ${formatNumber(q1Rev)}억` +
+          (q1Yoy ? ` (YoY ${parseFloat(q1Yoy) >= 0 ? '+' : ''}${q1Yoy}%)` : '') +
+          (q1Margin ? `, 이익률 ${q1Margin}%` : '') +
+          `. 이익률 개선 요인: ① 수출 — 환율 우호(USD·CNY 강세)·중국 수출물량 회복 ② 내수 — 채널 효율화(직매장 확대, 수수료 비중 최적화). 연간 예상치는 3Q·4Q 성수기 실적에 좌우`
         );
       }
     }
@@ -5221,23 +5221,50 @@ export default function FnFQ1_2026Dashboard() {
     const earliestDt = yoyDtName ? (detailedCostData.find(d => d.name === yoyDtName) ?? detailedCostData[0]) : detailedCostData[0];
     const costInsights = [];
     if (latestDt) {
-      costInsights.push(`수수료(지급수수료) ${latestDt.name} 기준 매출액 대비 ${latestDt.수수료율}% — 단일 최대 판관비 항목. 백화점·면세·온라인 채널 수수료로 매출 연동 변동비 성격.`);
+      // ① 유통수수료 성격 설명
+      costInsights.push(
+        `유통수수료(계정: 지급수수료) - ${latestDt.name} 매출 대비 ${latestDt.수수료율}%. 단일 최대 판관비. 백화점·면세·온라인 채널 수수료로 매출 연동 변동비 성격 ※ 계정명 '지급수수료'가 유통수수료 전체인지 별도 확인 필요`
+      );
       if (earliestDt && earliestDt !== latestDt) {
         const feeDiff = +(latestDt.수수료율 - earliestDt.수수료율).toFixed(1);
-        costInsights.push(`수수료율 ${earliestDt.name}(${earliestDt.수수료율}%) → ${latestDt.name}(${latestDt.수수료율}%), ${feeDiff >= 0 ? '+' : ''}${feeDiff}%p. 직매장·D2C 채널 비중 확대로 수수료 비중 최적화 검토 필요.`);
+        // 수수료 추이
+        costInsights.push(
+          `수수료율 추이 - ${earliestDt.name} ${earliestDt.수수료율}% → ${latestDt.name} ${latestDt.수수료율}% (${feeDiff >= 0 ? '+' : ''}${feeDiff}%p YoY). 직매장·D2C 비중 확대 시 비율 하락 여지 있음`
+        );
+        // 광고선전비
         const adDiff = +(latestDt.광고선전비율 - earliestDt.광고선전비율).toFixed(1);
-        costInsights.push(`광고선전비율 ${earliestDt.name}(${earliestDt.광고선전비율}%) → ${latestDt.name}(${latestDt.광고선전비율}%), ${adDiff >= 0 ? '+' : ''}${adDiff}%p. 4Q 집중 집행 패턴(패션 시즌성) — 분기별 ROI 효율 점검 필요.`);
+        costInsights.push(
+          `광고선전비율 - ${earliestDt.name} ${earliestDt.광고선전비율}% → ${latestDt.name} ${latestDt.광고선전비율}% (${adDiff >= 0 ? '+' : ''}${adDiff}%p). 패션 시즌성으로 1Q·4Q 집중 집행 패턴 — 분기 ROI 효율 모니터링 필요`
+        );
+        // 감가상각 — 고정비 성격 분리 설명
         const depDiff = +(latestDt.감가상각비율 - earliestDt.감가상각비율).toFixed(1);
-        if (Math.abs(depDiff) >= 0.2) costInsights.push(`감가상각비율 ${earliestDt.name}(${earliestDt.감가상각비율}%) → ${latestDt.name}(${latestDt.감가상각비율}%), ${depDiff >= 0 ? '+' : ''}${depDiff}%p. IFRS16 리스 자산 또는 유·무형 고정자산 투자 증감 모니터링.`);
+        const depRateDown = depDiff < 0;
+        // 매출 기준 실제 금액 추정 (율 × 매출액, incomeStatementData 참조)
+        const latestRevM  = (incomeStatementData[costTrendPeriodKeys[costTrendPeriodKeys.length - 1]] || {}).매출액 || 0;
+        const earliestRevM = (incomeStatementData[costTrendPeriodKeys.find((k,i) => costTrendData[i]?.name === earliestDt.name)] || {}).매출액 || 0;
+        const latestDepAmt  = latestRevM  > 0 ? Math.round(latestRevM  * latestDt.감가상각비율  / 100) : null;
+        const earliestDepAmt = earliestRevM > 0 ? Math.round(earliestRevM * earliestDt.감가상각비율 / 100) : null;
+        const depAmtDiff = (latestDepAmt != null && earliestDepAmt != null) ? latestDepAmt - earliestDepAmt : null;
+        costInsights.push(
+          `감가·판관 고정비 성격 - 감가상각비율 ${earliestDt.name} ${earliestDt.감가상각비율}% → ${latestDt.name} ${latestDt.감가상각비율}% (${depDiff >= 0 ? '+' : ''}${depDiff}%p).` +
+          (depAmtDiff != null ? ` 실제 금액: ${earliestDepAmt != null ? formatNumber(earliestDepAmt) : '?'}억 → ${latestDepAmt != null ? formatNumber(latestDepAmt) : '?'}억 (${depAmtDiff >= 0 ? '+' : ''}${formatNumber(Math.abs(depAmtDiff))}억).` : '') +
+          ` ※ 비율 ${depRateDown ? '하락' : '상승'} 원인 구분 필요 — ` +
+          (depRateDown
+            ? '매출 성장에 따른 레버리지 효과(고정비 금액 유지)인지, 실제 감가 감소인지 확인'
+            : '신규 자본지출(IFRS16 리스 포함) 증가인지, 매출 대비 감가 금액 자체 증가인지 확인')
+        );
       }
+      // 영업이익률 YoY
       const lastAll = costTrendData[costTrendData.length - 1];
       const yoyAll  = yoyDtName ? costTrendData.find(d => d.name === yoyDtName) : null;
       const firstAll = yoyAll ?? costTrendData[0];
       if (firstAll && lastAll && firstAll !== lastAll) {
         const opDiff = +(lastAll.영업이익률 - firstAll.영업이익률).toFixed(1);
-        costInsights.push(`영업이익률 ${firstAll.name}(${firstAll.영업이익률}%) → ${lastAll.name}(${lastAll.영업이익률}%), ${opDiff >= 0 ? '+' : ''}${opDiff}%p (YoY). ${opDiff < 0 ? '원가율·수수료 비중 증가가 마진 하락 주요 원인 — 고수익 채널 확대·원가 절감 병행 필요.' : '비용 효율화 성과 지속.'}`);
+        costInsights.push(
+          `영업이익률 YoY - ${firstAll.name} ${firstAll.영업이익률}% → ${lastAll.name} ${lastAll.영업이익률}% (${opDiff >= 0 ? '+' : ''}${opDiff}%p). ` +
+          (opDiff >= 0 ? '수출 회복·내수 채널 효율화로 비용 레버리지 효과 실현.' : '원가율·수수료 증가 요인 분리 분석 필요.')
+        );
       }
-      costInsights.push('개선 제안: ① 수수료 최적화(직매장·D2C 채널 비중 확대) ② 광고비 ROI 분석 기반 집행 효율화 ③ 감가상각 증가 구간 신규 자본지출 타당성 검토');
     }
 
     const plHighlights = [];
@@ -5492,8 +5519,16 @@ export default function FnFQ1_2026Dashboard() {
                   {yearlyInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
                       <p className="text-xs font-semibold text-zinc-500 mb-1">실적 분석</p>
-                      <ul className="text-xs text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
-                        {yearlyInsights.map((t, i) => <li key={i}>{t}</li>)}
+                      <ul className="text-xs text-zinc-600 space-y-1.5 leading-relaxed">
+                        {yearlyInsights.map((t, i) => {
+                          const dashIdx = t.indexOf(' - ');
+                          if (dashIdx > -1) {
+                            const kw = t.slice(0, dashIdx);
+                            const desc = t.slice(dashIdx + 3);
+                            return <li key={i} className="flex gap-1.5"><span className="mt-px text-zinc-400 shrink-0">▪</span><span><span className="font-semibold text-zinc-700">{kw}</span> — {desc}</span></li>;
+                          }
+                          return <li key={i} className="flex gap-1.5"><span className="mt-px text-zinc-400 shrink-0">▪</span><span>{t}</span></li>;
+                        })}
                       </ul>
                     </div>
                   )}
@@ -5580,8 +5615,16 @@ export default function FnFQ1_2026Dashboard() {
                   {costInsights.length > 0 && (
                     <div className="mt-2 space-y-1">
                       <p className="text-xs font-semibold text-zinc-500 mb-1">비용구조 분석 및 시사점</p>
-                      <ul className="text-xs text-zinc-600 space-y-1 list-disc pl-4 leading-relaxed">
-                        {costInsights.map((t, i) => <li key={i}>{t}</li>)}
+                      <ul className="text-xs text-zinc-600 space-y-1.5 leading-relaxed">
+                        {costInsights.map((t, i) => {
+                          const dashIdx = t.indexOf(' - ');
+                          if (dashIdx > -1) {
+                            const kw = t.slice(0, dashIdx);
+                            const desc = t.slice(dashIdx + 3);
+                            return <li key={i} className="flex gap-1.5"><span className="mt-px text-zinc-400 shrink-0">▪</span><span><span className="font-semibold text-zinc-700">{kw}</span> — {desc}</span></li>;
+                          }
+                          return <li key={i} className="flex gap-1.5"><span className="mt-px text-zinc-400 shrink-0">▪</span><span>{t}</span></li>;
+                        })}
                       </ul>
                     </div>
                   )}
