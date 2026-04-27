@@ -5322,8 +5322,10 @@ export default function FnFQ1_2026Dashboard() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 flex-1 grid-rows-1">
-              {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
+            <div className="flex gap-4 flex-1">
+              {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => (
+                <div key={`income-${idx}`} className="flex-1 min-w-0">{renderCard(card, idx)}</div>
+              ))}
             </div>
           </div>
 
@@ -5358,8 +5360,10 @@ export default function FnFQ1_2026Dashboard() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 flex-1 grid-rows-1">
-              {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
+            <div className="flex gap-4 flex-1">
+              {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => (
+                <div key={`balance-${idx}`} className="flex-1 min-w-0">{renderCard(card, idx)}</div>
+              ))}
             </div>
           </div>
         </div>
