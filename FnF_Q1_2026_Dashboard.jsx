@@ -5322,7 +5322,7 @@ export default function FnFQ1_2026Dashboard() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 flex-1">
+            <div className="grid grid-cols-3 gap-4 flex-1 grid-rows-1">
               {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
             </div>
           </div>
@@ -5358,7 +5358,7 @@ export default function FnFQ1_2026Dashboard() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 flex-1">
+            <div className="grid grid-cols-2 gap-4 flex-1 grid-rows-1">
               {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
             </div>
           </div>
