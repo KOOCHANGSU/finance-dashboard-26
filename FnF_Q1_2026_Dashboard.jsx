@@ -8654,29 +8654,33 @@ export default function FnFQ1_2026Dashboard() {
                     <span className="text-xs text-zinc-500">단위: 백만원</span>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-[11px]" style={{tableLayout:'fixed', minWidth:'640px'}}>
+                    <table className="w-full text-[11px]" style={{tableLayout:'fixed', minWidth:'760px'}}>
                       <colgroup>
+                        <col style={{width:'68px'}} />
+                        <col style={{width:'100px'}} />
+                        <col style={{width:'80px'}} />
+                        <col style={{width:'76px'}} />
                         <col style={{width:'72px'}} />
-                        <col style={{width:'110px'}} />
-                        <col style={{width:'90px'}} />
+                        <col style={{width:'62px'}} />
                         <col style={{width:'80px'}} />
-                        <col style={{width:'70px'}} />
-                        <col style={{width:'90px'}} />
-                        <col style={{width:'80px'}} />
-                        <col style={{width:'70px'}} />
+                        <col style={{width:'76px'}} />
+                        <col style={{width:'72px'}} />
+                        <col style={{width:'62px'}} />
                       </colgroup>
                       <thead>
                         <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
                           <th colSpan={2} className="text-left px-3 py-2 font-semibold border-r border-zinc-200">구분</th>
-                          <th colSpan={3} className="text-center px-3 py-2 font-semibold border-r border-zinc-200 text-blue-700 bg-blue-50">25.1Q</th>
-                          <th colSpan={3} className="text-center px-3 py-2 font-semibold text-emerald-700 bg-emerald-50">26.1Q</th>
+                          <th colSpan={4} className="text-center px-3 py-2 font-semibold border-r border-zinc-200 text-blue-700 bg-blue-50">25.1Q</th>
+                          <th colSpan={4} className="text-center px-3 py-2 font-semibold text-emerald-700 bg-emerald-50">26.1Q</th>
                         </tr>
                         <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
                           <th className="text-left px-3 py-1.5 font-medium border-r border-zinc-100" colSpan={2}>항목</th>
                           <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">기말잔액</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100 text-blue-600">평균잔액</th>
                           <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">이자수익</th>
                           <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-200">수익률</th>
                           <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">기말잔액</th>
+                          <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100 text-emerald-600">평균잔액</th>
                           <th className="text-right px-2 py-1.5 font-medium border-r border-zinc-100">이자수익</th>
                           <th className="text-right px-2 py-1.5 font-medium">수익률</th>
                         </tr>
@@ -8686,35 +8690,43 @@ export default function FnFQ1_2026Dashboard() {
                           <td rowSpan={3} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-100 align-top">예금</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">보통</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">41,449</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">18,102</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">49</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">1.1%</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">282,597</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-emerald-700 border-r border-zinc-100">96,209</td>
                           <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">383</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">1.6%</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">수익성</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">31,090</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">61,498</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">445</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2.9%</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">254,175</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-emerald-700 border-r border-zinc-100">245,526</td>
                           <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">1,339</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">2.2%</td>
                         </tr>
                         <tr className="border-b border-zinc-200 bg-zinc-50 font-medium">
                           <td className="px-2 py-1.5 text-zinc-700 border-r border-zinc-200">계</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">72,539</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">79,600</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-800 border-r border-zinc-100">494</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2.5%</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">536,772</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-emerald-700 border-r border-zinc-100">341,736</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-emerald-700 border-r border-zinc-100">1,722</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">2.0%</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">신탁 (자사주 매입용)</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">6,540</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">37</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400">—</td>
@@ -8722,9 +8734,11 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">대여금</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">39,765</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">392</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">4.6%</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">56,368</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">880</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">4.6%</td>
                         </tr>
@@ -8732,18 +8746,22 @@ export default function FnFQ1_2026Dashboard() {
                           <td className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-100">리스</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">보증금/전대</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">21,516</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">179</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">3.3%</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">18,285</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">135</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">2.9%</td>
                         </tr>
                         <tr className="border-b border-zinc-200 bg-blue-50 font-semibold">
                           <td colSpan={2} className="px-3 py-1.5 text-blue-800 border-r border-zinc-200">OC 별도 계</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">140,360</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-blue-800 border-r border-zinc-100">1,102</td>
                           <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-blue-700 border-r border-zinc-100">611,425</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-blue-800 border-r border-zinc-100">2,737</td>
                           <td className="text-right px-2 py-1.5"></td>
                         </tr>
@@ -8751,9 +8769,11 @@ export default function FnFQ1_2026Dashboard() {
                           <td rowSpan={2} className="px-3 py-1.5 text-zinc-600 border-r border-zinc-100 align-top text-[10px] leading-tight">기타<br/>(연결<br/>조정)</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">관계사 대여금</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-100">(39,765)</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">(392)</td>
                           <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-100">(56,368)</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">(880)</td>
                           <td className="text-right px-2 py-1.5"></td>
                         </tr>
@@ -8763,16 +8783,20 @@ export default function FnFQ1_2026Dashboard() {
                             중국 229<br/>홍콩 40 / 엔터 20<br/>ST미국 15
                           </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">304</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-200"></td>
                           <td colSpan={2} className="px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] leading-relaxed border-r border-zinc-200">
                             중국 131<br/>홍콩 42 / 엔터 20<br/>ST미국 5
                           </td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600">199</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">199</td>
+                          <td className="text-right px-2 py-1.5"></td>
                         </tr>
                         <tr className="bg-emerald-50 font-bold border-t-2 border-emerald-200">
                           <td colSpan={2} className="px-3 py-2 text-emerald-800 border-r border-zinc-200">연결 합계</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-200 text-sm">1,014</td>
+                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 tabular-nums text-emerald-700 text-sm">2,057</td>
@@ -9161,8 +9185,8 @@ export default function FnFQ1_2026Dashboard() {
               </div>
             )}
 
-            {/* ─── 기타손익 구성상세 입력 테이블 ─── */}
-            {(selectedNonOpAccount === '기타손익' || selectedNonOpAccount === '기타손익_순') && (() => {
+            {/* ─── 기타손익 구성상세 입력 테이블 ─── (숨김) */}
+            {false && (selectedNonOpAccount === '기타손익' || selectedNonOpAccount === '기타손익_순') && (() => {
               const MISC_ITEMS = [
                 { key: '잡이익',            label: '잡이익',             sign: 1,  csvRaw: '__잡이익'  },
                 { key: '잡손실',            label: '잡손실',             sign: -1, csvRaw: '__잡손실'  },
