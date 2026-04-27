@@ -5008,7 +5008,7 @@ export default function FnFQ1_2026Dashboard() {
       }
       
       return (
-        <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+        <div key={idx} className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 hover:shadow-md transition-shadow duration-200 h-full">
           {/* 헤더: 제목과 증감률 박스 */}
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">{card.title}</span>
@@ -5291,9 +5291,15 @@ export default function FnFQ1_2026Dashboard() {
     return (
       <div className="space-y-7 mt-4">
         {/* 손익 요약 + 재무상태 요약 한 줄 */}
+<<<<<<< HEAD
         <div className="flex gap-4 items-start">
           {/* 손익 요약 섹션 */}
           <div className="flex-[3] min-w-0">
+=======
+        <div className="flex gap-4 items-stretch">
+          {/* 손익 요약 섹션 */}
+          <div className="flex-[3] min-w-0 flex flex-col">
+>>>>>>> origin/claude/crazy-moser
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
                 <span className="w-1.5 h-5 bg-blue-500 rounded"></span>
@@ -5323,13 +5329,24 @@ export default function FnFQ1_2026Dashboard() {
                 </button>
               </div>
             </div>
+<<<<<<< HEAD
             <div className="grid grid-cols-3 gap-4">
               {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
+=======
+            <div className="flex gap-4 flex-1">
+              {incomeCards.filter(c => ['매출액','영업이익','당기순이익'].includes(c.title)).map((card, idx) => (
+                <div key={`income-${idx}`} className="flex-1 min-w-0">{renderCard(card, idx)}</div>
+              ))}
+>>>>>>> origin/claude/crazy-moser
             </div>
           </div>
 
           {/* 재무상태 요약 섹션 */}
+<<<<<<< HEAD
           <div className="flex-[2] min-w-0">
+=======
+          <div className="flex-[2] min-w-0 flex flex-col">
+>>>>>>> origin/claude/crazy-moser
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[13px] font-bold text-zinc-800 tracking-tight flex items-center gap-2">
                 <span className="w-1.5 h-5 bg-amber-500 rounded"></span>
@@ -5359,8 +5376,15 @@ export default function FnFQ1_2026Dashboard() {
                 </button>
               </div>
             </div>
+<<<<<<< HEAD
             <div className="grid grid-cols-2 gap-4">
               {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => renderCard(card, idx))}
+=======
+            <div className="flex gap-4 flex-1">
+              {balanceCards.filter(c => ['자산총계','자본총계'].includes(c.title)).map((card, idx) => (
+                <div key={`balance-${idx}`} className="flex-1 min-w-0">{renderCard(card, idx)}</div>
+              ))}
+>>>>>>> origin/claude/crazy-moser
             </div>
           </div>
         </div>
@@ -7650,6 +7674,7 @@ export default function FnFQ1_2026Dashboard() {
               <div className="text-xs text-zinc-500 mt-3 px-1">
                 <span className="font-medium text-zinc-600">[매출액]</span> : 내부거래(OC의 중국, 홍콩 수출)제거한 순매출액 표시.
                 <div style={{ paddingLeft: '53px' }}>OC(국내)=국내+3자수출분</div>
+                <div style={{ paddingLeft: '53px' }}>임대매출 +12억 (26년 신규발생: 강남사옥 +7억, 역삼사옥 +5억)</div>
               </div>
             )}
             {selectedAccount === '매출원가' && (
@@ -10320,6 +10345,10 @@ export default function FnFQ1_2026Dashboard() {
                   </div>
                 ))}
               </div>
+<<<<<<< HEAD
+=======
+            </div>}
+>>>>>>> origin/claude/crazy-moser
 
               {/* 법인별 구성 테이블 (우측 패널 내, 도넛 아래) */}
               <div className="mt-4 overflow-hidden rounded border border-zinc-100">
