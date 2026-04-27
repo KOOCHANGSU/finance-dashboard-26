@@ -351,17 +351,20 @@ const buildEntityQuarterLookup = (rows, year) => {
     if (lookup[period]['기타손익']) {
       lookup[period]['기타손익순'] = { ...lookup[period]['기타손익'] };
     }
-    // (4) 금융상품손익 = (당기손익공정가치금융자산 평가/처분 이익 + 단기매매증권 평가/처분 이익)
-    //                  − (당기손익공정가치금융자산 평가/처분 손실)
+    // (4) 금융상품손익 = 평가이익 + 처분이익 + 단기매매이익 − 평가손실 − 처분손실
     {
-      const fg1 = lookup[period]['당기손익공정가치측정금융자산평가이익'] || lookup[period]['당기손익인식금융자산처분이익'];
-      const fg2 = lookup[period]['단기매매증권평가이익'];
-      const fg3 = lookup[period]['단기매매증권처분이익'];
-      const fl1 = lookup[period]['당기손익공정가치측정금융자산평가손실'] || lookup[period]['당기손익인식금융자산처분손실'];
-      if (fg1 || fg2 || fg3 || fl1) {
+      const fgEval = lookup[period]['당기손익공정가치측정금융자산평가이익'];   // 평가이익
+      const fgDisp = lookup[period]['당기손익인식금융자산처분이익'];           // 처분이익
+      const fg2    = lookup[period]['단기매매증권평가이익'];
+      const fg3    = lookup[period]['단기매매증권처분이익'];
+      const flEval = lookup[period]['당기손익공정가치측정금융자산평가손실'];   // 평가손실
+      const flDisp = lookup[period]['당기손익인식금융자산처분손실'];           // 처분손실
+      if (fgEval || fgDisp || fg2 || fg3 || flEval || flDisp) {
         if (!lookup[period]['금융상품손익']) lookup[period]['금융상품손익'] = {};
         [...Object.keys(ENTITY_COL_NAMED), '기타(연결조정)'].forEach((entity) => {
-          const v = (fg1?.[entity] || 0) + (fg2?.[entity] || 0) + (fg3?.[entity] || 0) - (fl1?.[entity] || 0);
+          const v = (fgEval?.[entity] || 0) + (fgDisp?.[entity] || 0)
+                  + (fg2?.[entity] || 0) + (fg3?.[entity] || 0)
+                  - (flEval?.[entity] || 0) - (flDisp?.[entity] || 0);
           if (v !== 0) lookup[period]['금융상품손익'][entity] = Math.round(v);
         });
       }
