@@ -9670,6 +9670,356 @@ export default function FnFQ1_2026Dashboard() {
               </div>
             )}
 
+            {/* 법인세비용 상세 — F&F '26 별도 법인세 내역 */}
+            {selectedNonOpAccount === '법인세비용' && (
+              <div className="mt-4 space-y-4">
+                {/* 메인 카드 */}
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="bg-zinc-800 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">F&amp;F '26 별도 법인세 내역</span>
+                    <span className="text-xs text-zinc-400">단위: 백만원</span>
+                  </div>
+
+                  {/* 상단 요약: 차감전순이익 / 과세표준 */}
+                  <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-200">
+                    <table className="text-[11px]">
+                      <thead>
+                        <tr className="text-zinc-400 text-[10px]">
+                          <th className="text-left font-normal pb-0.5 pr-8"></th>
+                          <th className="text-right font-normal pb-0.5 pr-6 text-blue-500">2025년</th>
+                          <th className="text-right font-normal pb-0.5 text-emerald-500">2026년</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-zinc-100">
+                          <td className="py-1 pr-8 text-zinc-600 font-medium">법인세차감전순이익 (연간)</td>
+                          <td className="py-1 text-right tabular-nums text-blue-700 pr-6">105,283</td>
+                          <td className="py-1 text-right tabular-nums text-emerald-700">217,714</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100">
+                          <td className="py-1 pr-8 text-zinc-500">과세표준 (세무조정후) _ 3개월</td>
+                          <td className="py-1 text-right tabular-nums text-blue-600 pr-6">113,519</td>
+                          <td className="py-1 text-right tabular-nums text-emerald-600">220,500</td>
+                        </tr>
+                        <tr>
+                          <td className="py-1 pr-8 text-zinc-500">과세표준 (세무조정후) _ 연환산</td>
+                          <td className="py-1 text-right tabular-nums text-blue-600 pr-6">454,076</td>
+                          <td className="py-1 text-right tabular-nums text-emerald-600">881,998</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* 본문 그리드: 좌측 세율표 + 우측 유효세율 */}
+                  <div className="flex overflow-x-auto">
+                    {/* 좌: [OC 별도] 세율표 */}
+                    <div className="flex-shrink-0">
+                      <table className="text-[11px] border-collapse" style={{minWidth:'500px'}}>
+                        <thead>
+                          <tr className="bg-zinc-100 border-b border-zinc-200">
+                            <th className="px-3 py-1.5 text-left text-zinc-700 font-semibold border-r border-zinc-200">[OC 별도]</th>
+                            <th colSpan={2} className="px-3 py-1.5 text-center text-blue-700 font-semibold border-r border-zinc-200 bg-blue-50">2025년</th>
+                            <th className="px-3 py-1.5 text-center text-zinc-500 font-semibold border-r border-zinc-200">[차이]</th>
+                            <th colSpan={2} className="px-3 py-1.5 text-center text-emerald-700 font-semibold bg-emerald-50">2026년</th>
+                          </tr>
+                          <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
+                            <th className="px-3 py-1 text-left font-medium border-r border-zinc-200">세율 (주민세 포함)</th>
+                            <th className="px-3 py-1 text-right font-medium border-r border-zinc-100">세액 (연환산)</th>
+                            <th className="px-3 py-1 text-right font-medium text-[10px] border-r border-zinc-200">유효세율</th>
+                            <th className="px-3 py-1 border-r border-zinc-200"></th>
+                            <th className="px-3 py-1 text-right font-medium border-r border-zinc-100">세액 (연환산)</th>
+                            <th className="px-3 py-1 text-right font-medium text-[10px]">유효세율</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { rate: '9.9%',  amt25: 20,     amt26: 22 },
+                            { rate: '20.9%', amt25: 4138,   amt26: 4356 },
+                            { rate: '23.1%', amt25: 64680,  amt26: 67760 },
+                            { rate: '26.4%', amt25: 40676,  amt26: 160049 },
+                          ].map((row, i) => (
+                            <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50">
+                              <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono">{row.rate}</td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-blue-700 border-r border-zinc-100">{row.amt25.toLocaleString()}</td>
+                              <td className="px-3 py-1.5 border-r border-zinc-200"></td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-emerald-600 text-[10px] border-r border-zinc-200">
+                                {row.amt26 > row.amt25 ? `+${(row.amt26 - row.amt25).toLocaleString()}` : '—'}
+                              </td>
+                              <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700 border-r border-zinc-100">{row.amt26.toLocaleString()}</td>
+                              <td className="px-3 py-1.5"></td>
+                            </tr>
+                          ))}
+                          {/* 소계 */}
+                          <tr className="border-b border-zinc-200 bg-zinc-50 font-semibold">
+                            <td className="px-3 py-1.5 text-zinc-700 border-r border-zinc-200">소계</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-blue-700 border-r border-zinc-100">109,514</td>
+                            <td className="px-3 py-1.5 text-right text-blue-600 text-[10px] border-r border-zinc-200">24.1%</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px] border-r border-zinc-200">+122,673</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700 border-r border-zinc-100">232,187</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px]">26.3%</td>
+                          </tr>
+                          {/* 산출세액 */}
+                          <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                            <td className="px-3 py-1.5 text-zinc-700 border-r border-zinc-200 text-[10px] leading-tight">
+                              산출세액<br/><span className="text-zinc-400 font-normal">(차감전순이익 × 세율)</span>
+                            </td>
+                            <td className="px-3 py-1.5 text-right tabular-nums font-semibold text-blue-700 border-r border-zinc-100">25,392</td>
+                            <td className="px-3 py-1.5 text-right text-blue-600 text-[10px] border-r border-zinc-200">24.1% · 2.2%</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px] border-r border-zinc-200">+31,922</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums font-semibold text-emerald-700 border-r border-zinc-100">57,314</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px]">26.3% · 2.2%</td>
+                          </tr>
+                          {/* 미환류세제 */}
+                          <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                            <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">미환류세제</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-zinc-500 border-r border-zinc-100">0</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px] border-r border-zinc-200">0.0% · 0.0%</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 border-r border-zinc-200">—</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-zinc-500 border-r border-zinc-100">0</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px]">0.0% · 0.0%</td>
+                          </tr>
+                          {/* 세액공제 */}
+                          <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                            <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">세액공제</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-zinc-500 border-r border-zinc-100">0</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px] border-r border-zinc-200">0.0% · 0.0%</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 border-r border-zinc-200">—</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-zinc-500 border-r border-zinc-100">0</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px]">0.0% · 0.0%</td>
+                          </tr>
+                          {/* 세무조정효과 */}
+                          <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                            <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                              세무조정효과 등<br/>
+                              <span className="text-zinc-400 font-normal">☞ 퇴직급여·재고평가 등 일시적 차이</span>
+                            </td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-zinc-600 border-r border-zinc-100">52</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px] border-r border-zinc-200">0.0% · 0.0%</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px] border-r border-zinc-200">+144</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-zinc-600 border-r border-zinc-100">196</td>
+                            <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px]">0.0% · 0.0%</td>
+                          </tr>
+                          {/* 법인세 소계 */}
+                          <tr className="border-b border-zinc-200 bg-blue-50/40 font-bold">
+                            <td className="px-3 py-1.5 text-zinc-800 border-r border-zinc-200">법인세 소계</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-blue-800 border-r border-zinc-100">25,444</td>
+                            <td className="px-3 py-1.5 text-right text-blue-700 text-[10px] border-r border-zinc-200">24.2% · 2.2%</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px] border-r border-zinc-200">+32,065</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums text-emerald-800 border-r border-zinc-100">57,509</td>
+                            <td className="px-3 py-1.5 text-right text-emerald-700 text-[10px]">26.4% · 2.2%</td>
+                          </tr>
+                          {/* 미환류 제외 법인세율 */}
+                          <tr className="bg-zinc-50 text-[10px] text-zinc-400">
+                            <td className="px-3 py-1 border-r border-zinc-200 italic">(미환류 제외 법인세율)</td>
+                            <td className="px-3 py-1 text-right text-blue-500 border-r border-zinc-100">24.2%</td>
+                            <td className="border-r border-zinc-200"></td>
+                            <td className="px-3 py-1 text-right text-emerald-500 border-r border-zinc-200">+2.2%p</td>
+                            <td className="px-3 py-1 text-right text-emerald-500 border-r border-zinc-100">26.4%</td>
+                            <td></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* 우: 과세표준별 유효세율 (25년 / 26년) */}
+                    <div className="flex-shrink-0 border-l border-zinc-200">
+                      <div className="px-4 py-2 bg-zinc-100 border-b border-zinc-200">
+                        <span className="text-[11px] font-semibold text-zinc-700">※ 국내 과세표준별 유효세율</span>
+                      </div>
+                      {/* 25년 */}
+                      <div className="px-4 pt-3 pb-2 border-b border-zinc-100">
+                        <div className="text-[10px] text-blue-700 font-semibold mb-1.5">2025년</div>
+                        <table className="text-[11px] border-collapse">
+                          <thead>
+                            <tr className="bg-blue-50 text-blue-700">
+                              <th className="px-2 py-1 text-left font-medium border border-blue-200">세율</th>
+                              <th className="px-2 py-1 text-right font-medium border border-blue-200">과세표준</th>
+                              <th className="px-2 py-1 text-right font-medium border border-blue-200">법인세</th>
+                              <th className="px-2 py-1 text-right font-medium border border-blue-200">유효세율</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { rate: '20.9%', base: '20,000',  tax: '4,158',   eff: '20.8%' },
+                              { rate: '23.1%', base: '300,000', tax: '68,838',  eff: '22.9%' },
+                              { rate: '26.4%', base: '454,076', tax: '109,514', eff: '24.1%', bold: true },
+                            ].map((r, i) => (
+                              <tr key={i} className={`border-b border-blue-100 ${r.bold ? 'bg-blue-50/50 font-semibold' : ''}`}>
+                                <td className="px-2 py-1 border border-blue-100 font-mono">{r.rate}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.base}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.tax}</td>
+                                <td className={`px-2 py-1 text-right border border-blue-100 ${r.bold ? 'text-blue-800 font-bold' : 'text-blue-700'}`}>{r.eff}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* 26년 */}
+                      <div className="px-4 pt-3 pb-3">
+                        <div className="text-[10px] text-emerald-700 font-semibold mb-1.5">2026년</div>
+                        <table className="text-[11px] border-collapse">
+                          <thead>
+                            <tr className="bg-emerald-50 text-emerald-700">
+                              <th className="px-2 py-1 text-left font-medium border border-emerald-200">세율</th>
+                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">과세표준</th>
+                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">법인세</th>
+                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">유효세율</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { rate: '22.0%', base: '20,000',  tax: '4,378',   eff: '21.9%' },
+                              { rate: '24.2%', base: '300,000', tax: '72,138',  eff: '24.0%' },
+                              { rate: '27.5%', base: '881,998', tax: '232,187', eff: '26.3%', bold: true },
+                            ].map((r, i) => (
+                              <tr key={i} className={`border-b border-emerald-100 ${r.bold ? 'bg-emerald-50/50 font-semibold' : ''}`}>
+                                <td className="px-2 py-1 border border-emerald-100 font-mono">{r.rate}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.base}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.tax}</td>
+                                <td className={`px-2 py-1 text-right border border-emerald-100 ${r.bold ? 'text-emerald-800 font-bold' : 'text-emerald-700'}`}>{r.eff}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 연구개발비 세액공제 주석 */}
+                  <div className="px-4 py-2 bg-amber-50/50 border-t border-zinc-200 text-[10px] text-zinc-500">
+                    <span className="font-semibold text-zinc-700">연구개발비 세액공제 :</span>
+                    {' '}① 직전 과세년도 초과발생액 × 25% → 현재 적용중인 방법
+                    {' '}&nbsp;/&nbsp;
+                    ② 해당연도 (R&amp;D)발생액 × MIN(매출액 비용차지 비율/2, 2%)
+                  </div>
+                </div>
+
+                {/* 하단: 누적 법인세율 + 세율 참조 테이블 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* 누적 법인세율 */}
+                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="bg-zinc-100 px-4 py-2 border-b border-zinc-200 flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-zinc-700">누적 법인세율</span>
+                      <span className="text-[10px] text-zinc-400">단위: 백만원</span>
+                    </div>
+                    <table className="w-full text-[11px] border-collapse">
+                      <thead>
+                        <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
+                          <th className="px-3 py-1.5 text-left font-medium border-r border-zinc-200">구분</th>
+                          <th className="px-3 py-1.5 text-right font-medium border-r border-zinc-100 text-blue-600">2025년</th>
+                          <th className="px-3 py-1.5 text-right font-medium border-r border-zinc-200 text-[10px]">세율</th>
+                          <th className="px-3 py-1.5 text-right font-medium border-r border-zinc-100 text-[10px]">[차이]</th>
+                          <th className="px-3 py-1.5 text-right font-medium border-r border-zinc-100 text-emerald-600">2026년</th>
+                          <th className="px-3 py-1.5 text-right font-medium text-[10px]">세율</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">법인세차감전순이익</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-blue-700 border-r border-zinc-100">105,283</td>
+                          <td className="px-3 py-1.5 border-r border-zinc-200"></td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-emerald-600 text-[10px] border-r border-zinc-100">+112,431</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700 border-r border-zinc-100">217,714</td>
+                          <td className="px-3 py-1.5"></td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-blue-50/30 font-semibold">
+                          <td className="px-3 py-1.5 text-zinc-700 border-r border-zinc-200">법인세</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-blue-700 border-r border-zinc-100">25,444</td>
+                          <td className="px-3 py-1.5 text-right text-blue-600 text-[10px] border-r border-zinc-200">24.2%</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-emerald-600 text-[10px] border-r border-zinc-100">+32,065</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700 border-r border-zinc-100">57,509</td>
+                          <td className="px-3 py-1.5 text-right text-emerald-600 text-[10px]">26.4%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50 text-zinc-400">
+                          <td className="px-3 py-1.5 border-r border-zinc-200 text-[10px] pl-5">법인세 (미환류 제외)</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums border-r border-zinc-100">25,392</td>
+                          <td className="px-3 py-1.5 text-right text-[10px] border-r border-zinc-200">24.1%</td>
+                          <td className="px-3 py-1.5 border-r border-zinc-100"></td>
+                          <td className="px-3 py-1.5 text-right tabular-nums border-r border-zinc-100">57,314</td>
+                          <td className="px-3 py-1.5 text-right text-[10px]">26.3%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">미환류세 등</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-rose-600 border-r border-zinc-100">(5,746)</td>
+                          <td className="px-3 py-1.5 text-right text-rose-500 text-[10px] border-r border-zinc-200">-5.5%</td>
+                          <td className="px-3 py-1.5 border-r border-zinc-100"></td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-zinc-600 border-r border-zinc-100">773</td>
+                          <td className="px-3 py-1.5 text-right text-zinc-400 text-[10px]">0.0%</td>
+                        </tr>
+                        <tr className="hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">세무조정</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-zinc-700 border-r border-zinc-100">5,799</td>
+                          <td className="px-3 py-1.5 text-right text-zinc-500 text-[10px] border-r border-zinc-200">5.5%</td>
+                          <td className="px-3 py-1.5 border-r border-zinc-100"></td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-rose-500 border-r border-zinc-100">(577)</td>
+                          <td className="px-3 py-1.5 text-right text-rose-400 text-[10px]">-0.3%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* 과세표준별 법인세율 참조 */}
+                  <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                    <div className="bg-zinc-100 px-4 py-2 border-b border-zinc-200">
+                      <span className="text-[11px] font-semibold text-zinc-700">과세표준별 법인세율 (구간별 세율 참조)</span>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-zinc-200">
+                      {/* 2025년 세율 */}
+                      <div className="px-3 py-3">
+                        <div className="text-[10px] text-blue-700 font-semibold mb-2">2025년 법인세율</div>
+                        <table className="w-full text-[11px] border-collapse">
+                          <thead>
+                            <tr className="bg-blue-50 text-blue-700">
+                              <th className="px-2 py-1 text-left font-medium border border-blue-200">세율</th>
+                              <th className="px-2 py-1 text-right font-medium border border-blue-200">과세표준 (연환산)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { rate: '10.0%', base: '200' },
+                              { rate: '20.0%', base: '20,000' },
+                              { rate: '22.0%', base: '300,000' },
+                              { rate: '25.0%', base: '3천억 초과' },
+                            ].map((r, i) => (
+                              <tr key={i} className="border-b border-blue-100">
+                                <td className="px-2 py-1 border border-blue-100 font-mono">{r.rate}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.base}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* 2026년 세율 */}
+                      <div className="px-3 py-3">
+                        <div className="text-[10px] text-emerald-700 font-semibold mb-2">2026년 법인세율</div>
+                        <table className="w-full text-[11px] border-collapse">
+                          <thead>
+                            <tr className="bg-emerald-50 text-emerald-700">
+                              <th className="px-2 py-1 text-left font-medium border border-emerald-200">세율</th>
+                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">과세표준 (연환산)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { rate: '9.0%',  base: '200' },
+                              { rate: '19.0%', base: '20,000' },
+                              { rate: '21.0%', base: '300,000' },
+                              { rate: '24.0%', base: '3천억 초과' },
+                            ].map((r, i) => (
+                              <tr key={i} className="border-b border-emerald-100">
+                                <td className="px-2 py-1 border border-emerald-100 font-mono">{r.rate}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.base}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ─── 금융상품손익 이노빅스 평가 비교표 ─── */}
             {selectedNonOpAccount === '금융상품손익' && (
               <div className="mt-5">
