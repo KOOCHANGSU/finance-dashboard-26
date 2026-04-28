@@ -10195,36 +10195,53 @@ export default function FnFQ1_2026Dashboard() {
                     <table className="w-full text-[12px]">
                       <thead>
                         <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
-                          <th className="text-left px-3 py-2 font-semibold border-r border-zinc-200 w-40">항목</th>
+                          <th className="text-left px-3 py-2 font-semibold border-r border-zinc-200 w-36">항목</th>
+                          <th className="text-right px-3 py-2 font-semibold border-r border-zinc-200 bg-zinc-200/60 text-zinc-500">24.4Q</th>
                           <th className="text-right px-3 py-2 font-semibold border-r border-zinc-200 bg-blue-50/60 text-blue-700">25.1Q</th>
+                          <th className="text-right px-3 py-2 font-semibold border-r border-zinc-200 bg-amber-50/60 text-amber-700">25.4Q</th>
                           <th className="text-right px-3 py-2 font-semibold bg-emerald-50/60 text-emerald-700">26.1Q</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="border-b border-zinc-100 bg-zinc-50/60">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200 font-medium">F&amp;F 지분율</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500 font-semibold border-r border-zinc-200">6.32%</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-blue-700 font-semibold border-r border-zinc-200">6.32%</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-amber-700 font-semibold border-r border-zinc-200">6.32%</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-blue-700 font-semibold">6.32%</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">기준일 (장부)</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2024-09-30</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2025-01-16</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2025-12-15</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500">2025-12-31</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">장부가액</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,846,200,794</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,724,078,728</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">381,547,774</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">286,532,478</td>
                         </tr>
                         <tr className="border-b border-zinc-100 bg-zinc-50/40 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">보유주식수</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">2,523,521 주</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,173,521 주</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">432,521 주</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">432,521 주</td>
                         </tr>
                         <tr className="border-b border-zinc-100 bg-zinc-50/40 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">이노빅스 주가</td>
                           <td className="text-right px-3 py-1.5 tabular-nums border-r border-zinc-200">
+                            <span className="text-zinc-600 font-medium">10.87 $</span>
+                          </td>
+                          <td className="text-right px-3 py-1.5 tabular-nums border-r border-zinc-200">
                             <span className="text-rose-600 font-medium">7.34 $</span>
+                            <span className="text-[10px] text-zinc-400 ml-1">주가↓</span>
+                          </td>
+                          <td className="text-right px-3 py-1.5 tabular-nums border-r border-zinc-200">
+                            <span className="text-rose-600 font-medium">7.31 $</span>
                             <span className="text-[10px] text-zinc-400 ml-1">주가↓</span>
                           </td>
                           <td className="text-right px-3 py-1.5 tabular-nums">
@@ -10234,22 +10251,30 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">매매기준율</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,470.00 원</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,466.50 원</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,434.90 원</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">1,513.40 원</td>
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">평가액 (전체)</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">40,323,089,707</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">12,631,909,131</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">4,536,764,239</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">3,390,710,318</td>
                         </tr>
                         <tr className="border-b border-zinc-200 hover:bg-zinc-50">
                           <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">F&amp;F 지분 평가액</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">2,546,721,455</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">797,804,787</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">286,532,478</td>
                           <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">214,150,125</td>
                         </tr>
                         <tr className="bg-zinc-800 text-white font-bold">
                           <td className="px-3 py-2">당기 인식 손익</td>
+                          <td className="text-right px-3 py-2 tabular-nums text-emerald-300 border-r border-zinc-600">+701백만</td>
                           <td className="text-right px-3 py-2 tabular-nums text-rose-300 border-r border-zinc-600">△926백만</td>
+                          <td className="text-right px-3 py-2 tabular-nums text-rose-300 border-r border-zinc-600">△95백만</td>
                           <td className="text-right px-3 py-2 tabular-nums text-rose-300">△72백만</td>
                         </tr>
                       </tbody>
