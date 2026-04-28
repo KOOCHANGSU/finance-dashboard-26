@@ -7914,9 +7914,9 @@ export default function FnFQ1_2026Dashboard() {
                 </tr>
                 <tr className="bg-zinc-50 border-b border-zinc-200">
                   <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">{selectedAccount === '매출총이익' ? '이익률' : '비중'}</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">{selectedAccount === '매출액' ? '비중' : '매출대비'}</th>
                   <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">{selectedAccount === '매출총이익' ? '이익률' : '비중'}</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">{selectedAccount === '매출액' ? '비중' : '매출대비'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -7931,16 +7931,16 @@ export default function FnFQ1_2026Dashboard() {
                   }
                   const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                   const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
-                  const isGPRate = selectedAccount === '매출총이익';
-                  const entitySalesPrev = isGPRate ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, prevPeriod) : null;
-                  const entitySalesCurr = isGPRate ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, currPeriod) : null;
+                  const isSalesAccount = selectedAccount === '매출액';
+                  const entitySalesPrev = !isSalesAccount ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, prevPeriod) : null;
+                  const entitySalesCurr = !isSalesAccount ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, currPeriod) : null;
 
                   return data.flatMap((row, idx) => {
                     const diff = row.currVal - row.prevVal;
-                    const prevRatio = isGPRate
+                    const prevRatio = !isSalesAccount
                       ? (entitySalesPrev?.[row.entity] ? ((row.prevVal / entitySalesPrev[row.entity]) * 100).toFixed(1) : '—')
                       : (totalPrev !== 0 ? ((row.prevVal / totalPrev) * 100).toFixed(1) : '0.0');
-                    const currRatioStr = isGPRate
+                    const currRatioStr = !isSalesAccount
                       ? (entitySalesCurr?.[row.entity] ? ((row.currVal / entitySalesCurr[row.entity]) * 100).toFixed(1) : '—')
                       : String(row.ratio);
                     const hasBrands = !!(ENTITY_BRAND_DATA[selectedAccount]?.[row.entity]);
@@ -8011,18 +8011,18 @@ export default function FnFQ1_2026Dashboard() {
                   const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                   const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
                   const totalDiff = totalCurr - totalPrev;
-                  const isGPRateTotal = selectedAccount === '매출총이익';
-                  const salesPrevData = isGPRateTotal ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, prevPeriod) : null;
-                  const salesCurrData = isGPRateTotal ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, currPeriod) : null;
+                  const isSalesAccountTotal = selectedAccount === '매출액';
+                  const salesPrevData = !isSalesAccountTotal ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, prevPeriod) : null;
+                  const salesCurrData = !isSalesAccountTotal ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, currPeriod) : null;
                   const salesPrevTotal = salesPrevData ? Object.values(salesPrevData).reduce((s, v) => s + v, 0) : 0;
                   const salesCurrTotal = salesCurrData ? Object.values(salesCurrData).reduce((s, v) => s + v, 0) : 0;
                   return (
                 <tr className="bg-zinc-50 font-medium">
                   <td className="px-2 py-1.5 text-zinc-900 whitespace-nowrap border-r border-zinc-200">합계</td>
                   <td className="text-right px-1 py-1.5 text-zinc-700 tabular-nums">{formatNumber(totalPrev)}</td>
-                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">{isGPRateTotal ? (salesPrevTotal ? ((totalPrev / salesPrevTotal) * 100).toFixed(1) + '%' : '—') : '100%'}</td>
+                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">{isSalesAccountTotal ? '100%' : (salesPrevTotal ? ((totalPrev / salesPrevTotal) * 100).toFixed(1) + '%' : '—')}</td>
                   <td className="text-right px-1 py-1.5 text-zinc-900 tabular-nums">{formatNumber(totalCurr)}</td>
-                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">{isGPRateTotal ? (salesCurrTotal ? ((totalCurr / salesCurrTotal) * 100).toFixed(1) + '%' : '—') : '100%'}</td>
+                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">{isSalesAccountTotal ? '100%' : (salesCurrTotal ? ((totalCurr / salesCurrTotal) * 100).toFixed(1) + '%' : '—')}</td>
                   <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-200 ${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {totalDiff >= 0 ? '+' : ''}{formatNumber(totalDiff)}
                   </td>
