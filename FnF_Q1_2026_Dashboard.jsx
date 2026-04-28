@@ -6941,6 +6941,7 @@ export default function FnFQ1_2026Dashboard() {
     // 매출액 법인 표시명 매핑 (기타 → 기타(임대/외식 등))
     const getEntityDisplayName = (entity) => {
       if (selectedAccount === '매출액' && entity === '기타') return '기타(임대/외식 등)';
+      if (selectedAccount === '영업이익' && entity === 'OC(국내)') return 'OC(별도)';
       return entity;
     };
 
