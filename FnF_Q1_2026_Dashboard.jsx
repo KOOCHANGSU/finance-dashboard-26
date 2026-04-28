@@ -986,7 +986,50 @@ export default function FnFQ1_2026Dashboard() {
     엔터테인먼트: { plan2025Sales: 0, plan2025OpInc: 0, positives: '', monitoring: '' },
     ST미국: { plan2025Sales: 0, plan2025OpInc: 0, positives: '', monitoring: '' },
   });
-  const [consolidatedCsvOverride, setConsolidatedCsvOverride] = useState({ income: {}, balance: {} });
+  const [consolidatedCsvOverride, setConsolidatedCsvOverride] = useState({
+    income: {
+      // ─── 2026_1Q 확정 수치 (2026_IS.csv col13 기반, 단위: 백만원) ───────────
+      '2026_1Q': {
+        매출액: 560898, 매출원가: 193139, 매출총이익: 367760,
+        판매비와관리비: 214278, 급여: 20291, 퇴직급여: 1011, 인건비: 21302,
+        복리후생비: 4271, 광고선전비: 28773, 운반비: 7769,
+        지급수수료: 114455, 감가상각비: 19330, 무형자산상각비: 3572, 기타판관비: 14806,
+        영업이익: 153482,
+        이자수익: 2057, 이자비용: 3057, 이자손익: -1000,
+        배당수익: 519,
+        외환차익: 8748, 외화환산이익: 9542, 외환차손: 3831, 외화환산손실: 1628,
+        외환손익: 12831,
+        영업외수익: 125955, 영업외비용: 12425,
+        법인세비용차감전순이익: 267012, 법인세비용: 71026, 당기순이익: 195986,
+      },
+      '2026_1Q_Year': {
+        매출액: 560898, 매출원가: 193139, 매출총이익: 367760,
+        판매비와관리비: 214278, 급여: 20291, 퇴직급여: 1011, 인건비: 21302,
+        복리후생비: 4271, 광고선전비: 28773, 운반비: 7769,
+        지급수수료: 114455, 감가상각비: 19330, 무형자산상각비: 3572, 기타판관비: 14806,
+        영업이익: 153482,
+        이자수익: 2057, 이자비용: 3057, 이자손익: -1000,
+        배당수익: 519,
+        외환차익: 8748, 외화환산이익: 9542, 외환차손: 3831, 외화환산손실: 1628,
+        외환손익: 12831,
+        영업외수익: 125955, 영업외비용: 12425,
+        법인세비용차감전순이익: 267012, 법인세비용: 71026, 당기순이익: 195986,
+      },
+    },
+    balance: {
+      // ─── 2026_1Q 확정 수치 (2026_BS.csv col13 기반, 단위: 백만원) ───────────
+      '2026_1Q': {
+        현금성자산: 570000, 금융자산: 13122, 매출채권: 153255, 대여금: 0,
+        재고자산: 380724, 투자자산: 741072, 유무형자산: 656477,
+        사용권자산: 175858, 기타자산: 137084, 자산총계: 2827592,
+        매입채무: 73285, 미지급금: 140002, 보증금: 11008,
+        차입금: 203391, 리스부채: 185950, 금융부채: 0, 기타부채: 237762,
+        부채총계: 851398,
+        자본금: 3831, 자본잉여금: 307329, 기타자본: -49966,
+        이익잉여금: 1715001, 비지배지분: 0, 자본총계: 1976194,
+      },
+    },
+  });
   const [plTrendData, setPlTrendData] = useState({ quarterly: [], yearly: [] });
 
   useEffect(() => {
@@ -3637,19 +3680,18 @@ export default function FnFQ1_2026Dashboard() {
     },
   }, '2025', yearCloneRules);
   // ─── 매출액 2026_1Q 확정 수치 Override ──────────────────────────────────────
-  // normalizeYearDataset이 2025_1Q를 2026_1Q로 클론하므로, 확정 수치로 덮어씀
+  // 2026_분기IS_법인별.csv col1~7 (법인별 원시값) + 기타 = 연결합계 - 단순합계 (연결조정)
   if (entityData['매출액']) {
-    entityData['매출액']['2026_1Q'] = { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3235 };
-    entityData['매출액']['2026_1Q_Year'] = { 'OC(국내)': 220684, '중국': 303083, '홍콩': 25832, 'ST미국': 7469, '엔터테인먼트': 595, '기타': 3235 };
+    entityData['매출액']['2026_1Q']      = { 'OC(국내)': 379909, '중국': 303083, '홍콩': 25832, '베트남': 190, '엔터테인먼트': 597, 'ST미국': 7513, '기타': -156226 };
+    entityData['매출액']['2026_1Q_Year'] = { 'OC(국내)': 379909, '중국': 303083, '홍콩': 25832, '베트남': 190, '엔터테인먼트': 597, 'ST미국': 7513, '기타': -156226 };
   }
-  // 연결운전자본(24~25).csv 26.1Q 확정 수치 반영
   if (entityData['매출원가']) {
-    entityData['매출원가']['2026_1Q'] = { 'OC(국내)': 77282, '중국': 106271, '홍콩': 6497, 'ST미국': 2261, '기타': 827 };
-    entityData['매출원가']['2026_1Q_Year'] = { 'OC(국내)': 77282, '중국': 106271, '홍콩': 6497, 'ST미국': 2261, '기타': 827 };
+    entityData['매출원가']['2026_1Q']      = { 'OC(국내)': 138686, '중국': 239238, '홍콩': 10848, '베트남': 162, '엔터테인먼트': 827, 'ST미국': 2261, '기타': -198884 };
+    entityData['매출원가']['2026_1Q_Year'] = { 'OC(국내)': 138686, '중국': 239238, '홍콩': 10848, '베트남': 162, '엔터테인먼트': 827, 'ST미국': 2261, '기타': -198884 };
   }
   if (entityData['매출총이익']) {
-    entityData['매출총이익']['2026_1Q'] = { 'OC(국내)': 146635, '중국': 196812, '홍콩': 19335, 'ST미국': 5208, '기타': -232 };
-    entityData['매출총이익']['2026_1Q_Year'] = { 'OC(국내)': 146635, '중국': 196812, '홍콩': 19335, 'ST미국': 5208, '기타': -232 };
+    entityData['매출총이익']['2026_1Q']      = { 'OC(국내)': 241222, '중국': 63845, '홍콩': 14984, '베트남': 28, '엔터테인먼트': -230, 'ST미국': 5252, '기타': 42657 };
+    entityData['매출총이익']['2026_1Q_Year'] = { 'OC(국내)': 241222, '중국': 63845, '홍콩': 14984, '베트남': 28, '엔터테인먼트': -230, 'ST미국': 5252, '기타': 42657 };
   }
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -3847,7 +3889,7 @@ export default function FnFQ1_2026Dashboard() {
   if (entityBSData['2026_1Q']) {
     Object.assign(entityBSData['2026_1Q'], {
       현금성자산:  { 'OC(국내)': 536963, 중국:  21942, 홍콩:  6260, ST미국:  4407, 기타:   428 },
-      금융자산:    { 'OC(국내)':   9201, 중국:      0, 홍콩:     0, ST미국:     0, 기타:     0 },
+      금융자산:    { 'OC(국내)':   9201, 중국:  13122, 홍콩:     0, ST미국:     0, 기타:     0 },
       매출채권:    { 'OC(국내)': 123484, 중국:  91475, 홍콩:  4193, ST미국:  1159, 기타: -67056 },
       재고자산:    { 'OC(국내)': 221710, 중국: 250497, 홍콩: 31242, ST미국: 10181, 기타:-132907 },
       투자자산:    { 'OC(국내)': 727994, 중국:      0, 홍콩:     0, ST미국:     0, 기타:  13078 },
@@ -3857,11 +3899,11 @@ export default function FnFQ1_2026Dashboard() {
       비유동자산:  { 'OC(국내)':1432028, 중국:  69440, 홍콩: 28037, ST미국: 73504, 기타:  55801 },
       유동부채:    { 'OC(국내)': 356027, 중국: 324434, 홍콩: 57763, ST미국:  4558, 기타: -64703 },
       비유동부채:  { 'OC(국내)': 107097, 중국:  14834, 홍콩: 10473, ST미국: 32832, 기타:   8082 },
-      이익잉여금:  { 'OC(국내)':1617654, 중국:  95282, 홍콩:  4983, ST미국:-21429, 기타:  16940 },
+      이익잉여금:  { 'OC(국내)':1617654, 중국:  95282, 홍콩:  4983, ST미국:-21429, 기타:  18511 },
       자산총계:    { 'OC(국내)':2345491, 중국: 466687, 홍콩: 73005, ST미국: 91698, 기타:-149290 },
       부채총계:    { 'OC(국내)': 463125, 중국: 339268, 홍콩: 68236, ST미국: 37390, 기타: -56622 },
       자본총계:    { 'OC(국내)':1882366, 중국: 127419, 홍콩:  4768, ST미국: 54307, 기타: -92667 },
-      미지급금:    { 'OC(국내)': 135516, 중국:   2949, 홍콩:   137, ST미국:   714, 기타:    685 },
+      미지급금:    { 'OC(국내)': 135516, 중국:   2949, 홍콩:     0, ST미국:     0, 기타:   1536 },
     });
   }
   // ─────────────────────────────────────────────────────────────────────────
@@ -5182,11 +5224,34 @@ export default function FnFQ1_2026Dashboard() {
         const q1Margin = q1Rev > 0 ? (q1Op / q1Rev * 100).toFixed(1) : null;
         const prevQ1Rev = lastY['1Q매출'] || 0;
         const q1Yoy  = prevQ1Rev > 0 ? ((q1Rev - prevQ1Rev) / prevQ1Rev * 100).toFixed(1) : null;
+
+        // 법인별 매출 수치 (백만원 → 억원)
+        const toAuk = v => v != null ? Math.round(v / 100) : null;
+        const chinaC = toAuk(entityData?.['매출액']?.['2026_1Q']?.['중국']);
+        const chinaP = toAuk(entityData?.['매출액']?.['2025_1Q']?.['중국']);
+        const chinaYoy = chinaC != null && chinaP != null && chinaP > 0
+          ? ((chinaC - chinaP) / chinaP * 100).toFixed(1) : null;
+        const chinaChg = chinaC != null && chinaP != null ? chinaC - chinaP : null;
+
+        const ocC = toAuk(entityData?.['매출액']?.['2026_1Q']?.['OC(국내)']);
+        const ocP = toAuk(entityData?.['매출액']?.['2025_1Q']?.['OC(국내)']);
+        const ocYoy = ocC != null && ocP != null && ocP > 0
+          ? ((ocC - ocP) / ocP * 100).toFixed(1) : null;
+
+        // 중국 코멘트
+        const chinaStr = chinaC != null
+          ? `중국 ${formatNumber(chinaC)}억${chinaYoy != null ? `(YoY +${chinaYoy}%${chinaChg != null ? `, +${formatNumber(chinaChg)}억` : ''})` : ''}`
+          : '중국 매출 증가';
+        // OC 코멘트
+        const ocStr = ocC != null
+          ? `OC(국내) ${formatNumber(ocC)}억${ocYoy != null ? `(YoY +${ocYoy}%)` : ''}`
+          : 'OC(국내) 성장';
+
         yearlyInsights.push(
           `${currentY.name} 1Q 현황 - 매출 ${formatNumber(q1Rev)}억` +
           (q1Yoy ? ` (YoY ${parseFloat(q1Yoy) >= 0 ? '+' : ''}${q1Yoy}%)` : '') +
           (q1Margin ? `, 이익률 ${q1Margin}%` : '') +
-          `. 이익률 개선 요인: ① 수출 — 환율 우호(USD·CNY 강세)·중국 수출물량 회복 ② 내수 — 채널 효율화(직매장 확대, 수수료 비중 최적화). 연간 예상치는 3Q·4Q 성수기 실적에 좌우`
+          `. 이익률 개선 요인: ① 수출 — 중국 매출증가(신발 출고 증가→재고 효율화 진행), ${chinaStr} ② 내수 — 채널 효율화(직매장 확대, 수수료 비중 최적화), ${ocStr}. 연간 예상치는 3Q·4Q 성수기 실적에 좌우`
         );
       }
     }
@@ -5223,7 +5288,7 @@ export default function FnFQ1_2026Dashboard() {
     if (latestDt) {
       // ① 유통수수료 성격 설명
       costInsights.push(
-        `유통수수료(계정: 지급수수료) - ${latestDt.name} 매출 대비 ${latestDt.수수료율}%. 단일 최대 판관비. 백화점·면세·온라인 채널 수수료로 매출 연동 변동비 성격 ※ 계정명 '지급수수료'가 유통수수료 전체인지 별도 확인 필요`
+        `유통수수료(계정: 지급수수료) - ${latestDt.name} 매출 대비 ${latestDt.수수료율}%. 단일 최대 판관비. 백화점·면세점·대리점·온라인 채널 수수료로 매출 연동 변동비 성격`
       );
       if (earliestDt && earliestDt !== latestDt) {
         const feeDiff = +(latestDt.수수료율 - earliestDt.수수료율).toFixed(1);
@@ -5242,8 +5307,11 @@ export default function FnFQ1_2026Dashboard() {
         // 매출 기준 실제 금액 추정 (율 × 매출액, incomeStatementData 참조)
         const latestRevM  = (incomeStatementData[costTrendPeriodKeys[costTrendPeriodKeys.length - 1]] || {}).매출액 || 0;
         const earliestRevM = (incomeStatementData[costTrendPeriodKeys.find((k,i) => costTrendData[i]?.name === earliestDt.name)] || {}).매출액 || 0;
-        const latestDepAmt  = latestRevM  > 0 ? Math.round(latestRevM  * latestDt.감가상각비율  / 100) : null;
-        const earliestDepAmt = earliestRevM > 0 ? Math.round(earliestRevM * earliestDt.감가상각비율 / 100) : null;
+        // 백만원 단위 → 억원으로 환산(÷100)
+        const latestDepAmtM  = latestRevM  > 0 ? Math.round(latestRevM  * latestDt.감가상각비율  / 100) : null;
+        const earliestDepAmtM = earliestRevM > 0 ? Math.round(earliestRevM * earliestDt.감가상각비율 / 100) : null;
+        const latestDepAmt   = latestDepAmtM  != null ? Math.round(latestDepAmtM  / 100) : null;
+        const earliestDepAmt = earliestDepAmtM != null ? Math.round(earliestDepAmtM / 100) : null;
         const depAmtDiff = (latestDepAmt != null && earliestDepAmt != null) ? latestDepAmt - earliestDepAmt : null;
         costInsights.push(
           `감가·판관 고정비 성격 - 감가상각비율 ${earliestDt.name} ${earliestDt.감가상각비율}% → ${latestDt.name} ${latestDt.감가상각비율}% (${depDiff >= 0 ? '+' : ''}${depDiff}%p).` +
@@ -5419,10 +5487,10 @@ export default function FnFQ1_2026Dashboard() {
           </div>
 
           <div className="space-y-6">
-            {/* PL(성과분석) */}
+            {/* AI 인사이트 - PL검토 */}
             <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-zinc-100 bg-blue-50/60">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-800">PL(성과분석)</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-blue-800">AI 인사이트 — PL검토</h4>
               </div>
               <div className="p-5 space-y-6">
                 {/* ① 연도별 실적추이 + ② 비용구조 — 좌우 2열 */}
@@ -5780,216 +5848,321 @@ export default function FnFQ1_2026Dashboard() {
             return (
               <div className="space-y-6">
 
-                {/* ① 자회사별 손익·재무 추이 */}
+                {/* ① 자회사별 핵심 인사이트 */}
                 <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
                   <div className="px-4 py-3 border-b border-zinc-100 bg-violet-50/60">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-violet-800">자회사 현황 — ① 손익 · 재무상태 추이 (24.1Q~26.1Q)</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-violet-800">자회사 현황 — ① 법인별 핵심 인사이트 (26.1Q 기준, YoY 비교)</h4>
                   </div>
-                  <div className="p-4 space-y-6">
-                    {subData.map(({ entity, series, latest }) => {
+                  <div className="p-4 space-y-4">
+                    {subData.map(({ entity, series }) => {
                       const color = subColors[entity] || '#6366f1';
-                      const analysis = genAnalysis(entity, series);
+                      // 26.1Q (latest) & 25.1Q (YoY)
+                      const cur  = series[series.length - 1]; // 26.1Q
+                      const yoy  = series.find(s => s.name === '25.1Q') || series[4];
+                      const prev = series.find(s => s.name === '25.4Q') || series[7]; // QoQ
+
+                      if (!cur || cur.매출액 == null) return null;
+
+                      // 손익 계산
+                      const salesYoy   = yoy?.매출액   != null && yoy.매출액   !== 0 ? ((cur.매출액   - yoy.매출액)   / Math.abs(yoy.매출액)   * 100).toFixed(1) : null;
+                      const opYoy      = yoy?.영업이익  != null ? cur.영업이익  - yoy.영업이익  : null;
+                      const niYoy      = yoy?.당기순이익 != null ? cur.당기순이익 - yoy.당기순이익 : null;
+                      const opMarginCur = cur.매출액 > 0 && cur.영업이익 != null ? (cur.영업이익 / cur.매출액 * 100).toFixed(1) : null;
+                      const opMarginYoy = yoy?.매출액 > 0 && yoy?.영업이익 != null ? (yoy.영업이익 / yoy.매출액 * 100).toFixed(1) : null;
+                      const marginDiff  = opMarginCur != null && opMarginYoy != null ? (parseFloat(opMarginCur) - parseFloat(opMarginYoy)).toFixed(1) : null;
+
+                      // BS 재무비율
+                      const drCur  = cur.부채총계  != null && cur.자본총계  > 0 ? Math.round(cur.부채총계  / cur.자본총계  * 100) : null;
+                      const drYoy  = yoy?.부채총계 != null && yoy?.자본총계 > 0 ? Math.round(yoy.부채총계 / yoy.자본총계 * 100) : null;
+                      const eqChg  = yoy?.자본총계 != null && yoy.자본총계 !== 0 ? ((cur.자본총계 - yoy.자본총계) / Math.abs(yoy.자본총계) * 100).toFixed(1) : null;
+
+                      // 운전자본 — entityBSData[period][account][entity] 구조 사용 (백만원→억원)
+                      const wcToAuk = v => (v != null && !isNaN(v)) ? Math.round(v / 100) : null;
+                      // 26.1Q (현재)
+                      const ar26  = wcToAuk(entityBSData?.['2026_1Q']?.['매출채권']?.[entity]);
+                      const inv26 = wcToAuk(entityBSData?.['2026_1Q']?.['재고자산']?.[entity]);
+                      const ap26  = wcToAuk(entityBSData?.['2026_1Q']?.['매입채무']?.[entity]);
+                      // 25.1Q (YoY)
+                      const ar25y  = wcToAuk(entityBSData?.['2025_1Q']?.['매출채권']?.[entity]);
+                      const inv25y = wcToAuk(entityBSData?.['2025_1Q']?.['재고자산']?.[entity]);
+                      const ap25y  = wcToAuk(entityBSData?.['2025_1Q']?.['매입채무']?.[entity]);
+                      // 25.4Q (QoQ)
+                      const ar25q  = wcToAuk(entityBSData?.['2025_4Q']?.['매출채권']?.[entity]);
+                      const inv25q = wcToAuk(entityBSData?.['2025_4Q']?.['재고자산']?.[entity]);
+                      const ap25q  = wcToAuk(entityBSData?.['2025_4Q']?.['매입채무']?.[entity]);
+
+                      const nwc26  = (ar26  != null && inv26  != null && ap26  != null) ? ar26  + inv26  - ap26  : null;
+                      const nwc25y = (ar25y != null && inv25y != null && ap25y != null) ? ar25y + inv25y - ap25y : null;
+                      const nwc25q = (ar25q != null && inv25q != null && ap25q != null) ? ar25q + inv25q - ap25q : null;
+                      const nwcYoY = nwc26 != null && nwc25y != null ? nwc26 - nwc25y : null;
+                      const nwcQoQ = nwc26 != null && nwc25q != null ? nwc26 - nwc25q : null;
+                      // 하위 호환 — 기존 변수명 유지
+                      const nwcChg = nwcYoY;
+
+                      // DSO/DIO/DPO — AR·Inv·AP(백만원) / 분기매출·COGS(백만원) × 90 (NWC탭 동일 방식)
+                      const qSales26M = entityData?.['매출액']?.['2026_1Q']?.[entity] ?? null;
+                      const qCogs26M  = entityData?.['매출원가']?.['2026_1Q']?.[entity] ?? null;
+                      const qSales25yM = entityData?.['매출액']?.['2025_1Q']?.[entity] ?? null;
+                      const qCogs25yM  = entityData?.['매출원가']?.['2025_1Q']?.[entity] ?? null;
+                      const qSales25qM = entityData?.['매출액']?.['2025_4Q']?.[entity] ?? null;
+                      const qCogs25qM  = entityData?.['매출원가']?.['2025_4Q']?.[entity] ?? null;
+
+                      const ar26M  = entityBSData?.['2026_1Q']?.['매출채권']?.[entity] ?? null;
+                      const inv26M = entityBSData?.['2026_1Q']?.['재고자산']?.[entity] ?? null;
+                      const ap26M  = entityBSData?.['2026_1Q']?.['매입채무']?.[entity] ?? null;
+                      const ar25yM  = entityBSData?.['2025_1Q']?.['매출채권']?.[entity] ?? null;
+                      const inv25yM = entityBSData?.['2025_1Q']?.['재고자산']?.[entity] ?? null;
+                      const ap25yM  = entityBSData?.['2025_1Q']?.['매입채무']?.[entity] ?? null;
+                      const ar25qM  = entityBSData?.['2025_4Q']?.['매출채권']?.[entity] ?? null;
+                      const inv25qM = entityBSData?.['2025_4Q']?.['재고자산']?.[entity] ?? null;
+                      const ap25qM  = entityBSData?.['2025_4Q']?.['매입채무']?.[entity] ?? null;
+
+                      // 26.1Q 지표
+                      const dso = ar26M  != null && qSales26M > 0 ? Math.round(ar26M  / qSales26M * 90) : null;
+                      const dio = inv26M != null && qCogs26M  > 0 ? Math.round(inv26M / qCogs26M  * 90) : null;
+                      const dpo = ap26M  != null && qCogs26M  > 0 ? Math.round(ap26M  / qCogs26M  * 90) : null;
+                      const ccc = dso != null && dio != null && dpo != null ? dso + dio - dpo : null;
+                      // 25.1Q YoY 지표
+                      const dsoY = ar25yM  != null && qSales25yM > 0 ? Math.round(ar25yM  / qSales25yM * 90) : null;
+                      const dioY = inv25yM != null && qCogs25yM  > 0 ? Math.round(inv25yM / qCogs25yM  * 90) : null;
+                      const dpoY = ap25yM  != null && qCogs25yM  > 0 ? Math.round(ap25yM  / qCogs25yM  * 90) : null;
+                      const cccY = dsoY != null && dioY != null && dpoY != null ? dsoY + dioY - dpoY : null;
+                      // 25.4Q QoQ 지표
+                      const dsoQ = ar25qM  != null && qSales25qM > 0 ? Math.round(ar25qM  / qSales25qM * 90) : null;
+                      const dioQ = inv25qM != null && qCogs25qM  > 0 ? Math.round(inv25qM / qCogs25qM  * 90) : null;
+                      const dpoQ = ap25qM  != null && qCogs25qM  > 0 ? Math.round(ap25qM  / qCogs25qM  * 90) : null;
+                      const cccQ = dsoQ != null && dioQ != null && dpoQ != null ? dsoQ + dioQ - dpoQ : null;
+
+                      // 인사이트 생성
+                      const insights = [];
+                      // 손익
+                      if (salesYoy != null) {
+                        const sDir = parseFloat(salesYoy) >= 0 ? '↑' : '↓';
+                        insights.push({ type: parseFloat(salesYoy) >= 5 ? 'pos' : parseFloat(salesYoy) <= -5 ? 'neg' : 'neu',
+                          text: `매출성장 - ${yoy?.name ?? '25.1Q'} ${formatNumber(yoy?.매출액)}억 → ${cur.name} ${formatNumber(cur.매출액)}억 (YoY ${parseFloat(salesYoy) >= 0 ? '+' : ''}${salesYoy}% ${sDir})` });
+                      }
+                      if (opMarginCur != null) {
+                        const mDir = marginDiff != null ? (parseFloat(marginDiff) >= 0 ? `+${marginDiff}%p 개선` : `${marginDiff}%p 하락`) : '';
+                        insights.push({ type: cur.영업이익 >= 0 ? 'pos' : 'neg',
+                          text: `영업손익 - ${cur.name} 영업이익 ${formatNumber(cur.영업이익)}억 (이익률 ${opMarginCur}%${marginDiff != null ? ', YoY ' + mDir : ''})` });
+                      }
+                      if (niYoy != null && cur.당기순이익 != null) {
+                        const niTxt = cur.당기순이익 < 0 ? `당기순손실 ${formatNumber(cur.당기순이익)}억` : `당기순이익 ${formatNumber(cur.당기순이익)}억`;
+                        insights.push({ type: cur.당기순이익 >= 0 ? 'pos' : 'neg',
+                          text: `순이익 - ${niTxt} (YoY ${niYoy >= 0 ? '+' : ''}${formatNumber(niYoy)}억${cur.당기순이익 !== cur.영업이익 ? ' — 영업외 항목 포함' : ''})` });
+                      }
+                      // BS
+                      if (drCur != null) {
+                        insights.push({ type: drCur > 300 ? 'neg' : drCur < 100 ? 'pos' : 'neu',
+                          text: `재무구조 - 부채비율 ${drCur}%${drYoy != null ? ` (YoY ${drCur - drYoy >= 0 ? '+' : ''}${drCur - drYoy}%p)` : ''}, 자본총계 ${formatNumber(cur.자본총계)}억${eqChg != null ? ` (YoY ${parseFloat(eqChg) >= 0 ? '+' : ''}${eqChg}%)` : ''}` });
+                      }
+                      // 운전자본
+                      if (nwc26 != null) {
+                        const nwcYoYStr = nwcYoY != null ? ` YoY ${nwcYoY >= 0 ? '+' : ''}${formatNumber(nwcYoY)}억` : '';
+                        const nwcQoQStr = nwcQoQ != null ? ` QoQ ${nwcQoQ >= 0 ? '+' : ''}${formatNumber(nwcQoQ)}억` : '';
+                        insights.push({ type: nwcYoY != null && nwcYoY > 0 ? 'neg' : nwcQoQ != null && nwcQoQ > 0 ? 'neu' : 'pos',
+                          text: `운전자본 - NWC ${formatNumber(nwc26)}억 (AR ${ar26 != null ? formatNumber(ar26) : '—'} / 재고 ${inv26 != null ? formatNumber(inv26) : '—'} / AP ${ap26 != null ? formatNumber(ap26) : '—'})${nwcYoYStr}${nwcQoQStr}` });
+                        if (ccc != null) {
+                          const cccYoYStr = cccY != null ? ` YoY ${ccc - cccY >= 0 ? '+' : ''}${ccc - cccY}일` : '';
+                          const cccQoQStr = cccQ != null ? ` QoQ ${ccc - cccQ >= 0 ? '+' : ''}${ccc - cccQ}일` : '';
+                          insights.push({ type: ccc > 180 ? 'neg' : ccc < 90 ? 'pos' : 'neu',
+                            text: `회전일수 - DSO ${dso}일 / DIO ${dio}일 / DPO ${dpo}일 → CCC ${ccc}일${cccYoYStr}${cccQoQStr}${ccc > 180 ? ' ⚠ 현금전환 장기' : ccc < 90 ? ' ✓ 효율 양호' : ''}` });
+                        }
+                      }
+
+                      // 섹션별로 분류
+                      const plInsights  = insights.filter(ins => ['매출성장','영업손익','순이익'].some(k => ins.text.startsWith(k)));
+                      const bsInsights  = insights.filter(ins => ['재무구조'].some(k => ins.text.startsWith(k)));
+                      const wcInsights  = insights.filter(ins => ['운전자본','회전일수'].some(k => ins.text.startsWith(k)));
+                      // 관리필요사항: neg 항목에서 도출
+                      const mgmtItems = [];
+                      insights.forEach(ins => {
+                        if (ins.type === 'neg') {
+                          const dashIdx = ins.text.indexOf(' - ');
+                          const kw   = dashIdx > -1 ? ins.text.slice(0, dashIdx) : '';
+                          const desc = dashIdx > -1 ? ins.text.slice(dashIdx + 3) : ins.text;
+                          if (kw === '매출성장')    mgmtItems.push(`매출 회복 전략 수립 — ${desc}`);
+                          else if (kw === '영업손익') mgmtItems.push(`수익성 개선 과제 — ${desc}`);
+                          else if (kw === '순이익')   mgmtItems.push(`영업외 비용 검토 — ${desc}`);
+                          else if (kw === '재무구조') mgmtItems.push(`부채 구조 관리 — ${desc}`);
+                          else if (kw === '운전자본') mgmtItems.push(`운전자본 효율화 — ${desc}`);
+                          else if (kw === '회전일수') mgmtItems.push(`현금전환 단축 필요 — ${desc}`);
+                          else mgmtItems.push(desc);
+                        }
+                      });
+                      // CCC 추가 관리사항
+                      if (ccc != null && ccc > 150) mgmtItems.push(`CCC ${ccc}일 — 현금전환 장기, 채권·재고 회수 가속 및 매입채무 조건 재협상 필요`);
+                      if (dso != null && dso > 45)   mgmtItems.push(`DSO ${dso}일 — 업계 기준(30~45일) 초과, 채권 고령화 Aging 분석 및 회수 KPI 설정 권고`);
+                      if (dio != null && dio > 150)  mgmtItems.push(`DIO ${dio}일 — 재고 과잉, SKU별 회전율 점검·시즌 소진 프로모션 검토`);
+                      if (dpo != null && dpo < 30)   mgmtItems.push(`DPO ${dpo}일 — 결제 조건 불리, 주요 공급업체 지급 연장 재협상(목표 45일) 권고`);
+
+                      const SectionLabel = ({ label, color: lc }) => (
+                        <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${lc}`}>{label}</p>
+                      );
+                      const InsightRow = ({ ins }) => {
+                        const dashIdx = ins.text.indexOf(' - ');
+                        const kw   = dashIdx > -1 ? ins.text.slice(0, dashIdx) : '';
+                        const desc = dashIdx > -1 ? ins.text.slice(dashIdx + 3) : ins.text;
+                        const cls  = ins.type === 'pos' ? 'text-emerald-700' : ins.type === 'neg' ? 'text-rose-700' : 'text-zinc-600';
+                        const icon = ins.type === 'pos' ? '▲' : ins.type === 'neg' ? '▼' : '■';
+                        const iconCls = ins.type === 'pos' ? 'text-emerald-400' : ins.type === 'neg' ? 'text-rose-400' : 'text-zinc-300';
+                        return (
+                          <div className="flex gap-1.5 text-[11px] leading-relaxed">
+                            <span className={`shrink-0 ${iconCls} mt-0.5 text-[9px]`}>{icon}</span>
+                            <span className={cls}>
+                              {kw && <span className="font-semibold">{kw}</span>}
+                              {kw && ' — '}
+                              {desc}
+                            </span>
+                          </div>
+                        );
+                      };
 
                       return (
-                        <div key={entity} className="border-2 border-zinc-800 rounded-xl overflow-hidden bg-white shadow-sm">
+                        <div key={entity} className="rounded-xl border border-zinc-200 overflow-hidden bg-white shadow-sm">
                           {/* 법인 헤더 */}
-                          <div className="flex items-center px-4 py-2.5 border-b border-zinc-100" style={{ background: `${color}12` }}>
-                            <span className="text-[13px] font-bold" style={{ color }}>{entity}</span>
+                          <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-100" style={{ background: `${color}12` }}>
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                              <span className="text-[13px] font-bold" style={{ color }}>{entity}</span>
+                            </div>
+                            <span className="text-[10px] text-zinc-400">26.1Q 기준 · YoY 비교</span>
                           </div>
-                          {/* ══ 메인: 좌(차트 2개 세로) + 우(분석 3구분) — 반반(50/50) ══ */}
-                          <div className="grid grid-cols-2 divide-x divide-zinc-100">
 
-                            {/* 좌: 손익 추이 (상) + 자본구조 추이 (하) */}
-                            <div className="divide-y divide-zinc-100">
+                          {insights.length === 0 ? (
+                            <p className="text-xs text-zinc-400 p-4">데이터 로딩 중</p>
+                          ) : (
+                            <div className="grid grid-cols-2 divide-x divide-zinc-100">
 
-                              {/* 손익 추이 — 전 법인 동일 색상 */}
-                              <div className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <p className="text-xs font-semibold text-zinc-700">손익 추이 (억원)</p>
-                                  <div className="flex items-center gap-2.5 text-xs text-zinc-500">
-                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-indigo-400 opacity-50"></span>매출</span>
-                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-teal-500"></span>영업이익</span>
-                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t border-dashed border-slate-400"></span>순이익</span>
+                              {/* 좌: 손익 + 재무비율·운전자본 통합 */}
+                              <div className="p-3 space-y-3">
+
+                                {/* ① 손익 */}
+                                {plInsights.length > 0 && (
+                                  <div>
+                                    <SectionLabel label="① 손익 (P&L)" color="text-violet-700" />
+                                    <div className="space-y-1">
+                                      {plInsights.map((ins, i) => <InsightRow key={i} ins={ins} />)}
+                                    </div>
                                   </div>
-                                </div>
-                                {(() => {
-                                  // 법인 규모별 Y축 포맷 (억 단위)
-                                  const allVals = series.flatMap(s => [s.매출액, s.영업이익, s.당기순이익]).filter(v => v != null);
-                                  const maxAbs = Math.max(...allVals.map(Math.abs), 1);
-                                  const yFmt = v => maxAbs >= 1000 ? `${(v/1000).toFixed(1)}천` : `${formatNumber(v)}`;
-                                  return (
-                                <div className="h-40 w-full">
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={series} margin={{ top: 8, right: 12, left: -4, bottom: 0 }}>
-                                      <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
-                                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
-                                      <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={yFmt} width={40} />
-                                      <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} content={({ active, payload, label }) => {
-                                        if (!active || !payload?.length) return null;
-                                        return (
-                                          <div className="bg-white border border-zinc-200 rounded-lg shadow-md px-3 py-2 text-xs min-w-[130px]">
-                                            <div className="font-semibold text-zinc-700 mb-1.5 border-b border-zinc-100 pb-1">{label}</div>
-                                            {payload.map((p, pi) => {
-                                              const v = p.value;
-                                              return (
-                                                <div key={pi} className="flex justify-between gap-3 mb-0.5">
-                                                  <span className="text-zinc-500">{p.name}</span>
-                                                  <span className={`font-semibold tabular-nums ${v != null && v < 0 ? 'text-rose-600' : 'text-zinc-800'}`}>{v != null ? `${formatNumber(v)}억` : '—'}</span>
-                                                </div>
-                                              );
-                                            })}
-                                          </div>
-                                        );
-                                      }} />
-                                      {/* 고정 색상: 매출=인디고, 영업이익=틸, 순이익=슬레이트 */}
-                                      <Bar dataKey="매출액" name="매출" fill="#6366f1" fillOpacity={0.25} maxBarSize={22} radius={[2,2,0,0]} />
-                                      <Line type="monotone" dataKey="영업이익" name="영업이익" stroke="#0d9488" strokeWidth={2.5} connectNulls
-                                        dot={(props) => {
-                                          const { cx, cy, value } = props;
-                                          if (value == null || cx == null || cy == null) return <g key={`dot-op-${cx}-${cy}`} />;
-                                          return <circle key={`dot-op-${cx}-${cy}`} cx={cx} cy={cy} r={3.5} fill={value >= 0 ? '#0d9488' : '#f43f5e'} stroke="white" strokeWidth={1.5} />;
-                                        }}
-                                        activeDot={{ r: 5, strokeWidth: 2 }}
-                                      />
-                                      <Line type="monotone" dataKey="당기순이익" name="순이익" stroke="#64748b" strokeWidth={1.5} strokeDasharray="4 3" dot={{ r: 2.5, fill: '#64748b', stroke: 'white', strokeWidth: 1 }} connectNulls />
-                                      <ReferenceLine y={0} stroke="#e11d48" strokeDasharray="3 3" strokeWidth={1} strokeOpacity={0.4} />
-                                    </ComposedChart>
-                                  </ResponsiveContainer>
-                                </div>
-                                  );
-                                })()}
+                                )}
+
+                                {/* ② 재무비율(BS) + 운전자본(NWC) 통합 */}
+                                {(bsInsights.length > 0 || nwc26 != null) && (
+                                  <div>
+                                    <SectionLabel label="② 재무비율 · 운전자본 (BS / NWC)" color="text-blue-700" />
+
+                                    {/* BS 재무비율 텍스트 */}
+                                    {bsInsights.length > 0 && (
+                                      <div className="space-y-1 mb-2">
+                                        {bsInsights.map((ins, i) => <InsightRow key={i} ins={ins} />)}
+                                      </div>
+                                    )}
+
+                                    {/* NWC 구성 배지 — 26.1Q 현재값 + YoY/QoQ 비교 */}
+                                    {nwc26 != null && (() => {
+                                      // [label, 현재억, 지표일, YoY억변동, QoQ억변동, isAP]
+                                      const nwcBadges = [
+                                        { label: 'AR(매출채권)', val: ar26, sub: dso != null ? `DSO ${dso}일` : null,
+                                          yoy: ar26 != null && ar25y != null ? ar26 - ar25y : null,
+                                          qoq: ar26 != null && ar25q != null ? ar26 - ar25q : null,
+                                          subYoy: dso != null && dsoY != null ? dso - dsoY : null,
+                                          subQoq: dso != null && dsoQ != null ? dso - dsoQ : null,
+                                          isAP: false },
+                                        { label: '재고자산', val: inv26, sub: dio != null ? `DIO ${dio}일` : null,
+                                          yoy: inv26 != null && inv25y != null ? inv26 - inv25y : null,
+                                          qoq: inv26 != null && inv25q != null ? inv26 - inv25q : null,
+                                          subYoy: dio != null && dioY != null ? dio - dioY : null,
+                                          subQoq: dio != null && dioQ != null ? dio - dioQ : null,
+                                          isAP: false },
+                                        { label: 'AP(매입채무)', val: ap26, sub: dpo != null ? `DPO ${dpo}일` : null,
+                                          yoy: ap26 != null && ap25y != null ? ap26 - ap25y : null,
+                                          qoq: ap26 != null && ap25q != null ? ap26 - ap25q : null,
+                                          subYoy: dpo != null && dpoY != null ? dpo - dpoY : null,
+                                          subQoq: dpo != null && dpoQ != null ? dpo - dpoQ : null,
+                                          isAP: true },
+                                        { label: 'NWC(순운전자본)', val: nwc26, sub: ccc != null ? `CCC ${ccc}일` : null,
+                                          yoy: nwcYoY, qoq: nwcQoQ,
+                                          subYoy: ccc != null && cccY != null ? ccc - cccY : null,
+                                          subQoq: ccc != null && cccQ != null ? ccc - cccQ : null,
+                                          isAP: false, highlight: true },
+                                      ];
+                                      const chgStr = (v, unit='억') => v == null ? null : (v >= 0 ? `+${formatNumber(v)}${unit}` : `${formatNumber(v)}${unit}`);
+                                      const dayStr = (v) => v == null ? null : (v >= 0 ? `+${v}일` : `${v}일`);
+                                      return (
+                                        <div className="grid grid-cols-2 gap-1 mt-1.5">
+                                          {nwcBadges.map(({ label, val, sub, yoy, qoq, subYoy, subQoq, isAP, highlight }, bi) => {
+                                            // AR·재고·NWC 증가 = 자금부담(bad), AP 증가 = 유리(good)
+                                            const yoyBad = isAP ? (yoy != null && yoy < 0) : (yoy != null && yoy > 0);
+                                            const qoqBad = isAP ? (qoq != null && qoq < 0) : (qoq != null && qoq > 0);
+                                            return (
+                                              <div key={bi} className={`rounded-lg border px-2 py-1.5 ${highlight ? 'bg-blue-50 border-blue-200' : 'bg-zinc-50 border-zinc-200'}`}>
+                                                <p className={`text-[9px] font-semibold mb-0.5 ${highlight ? 'text-blue-600' : 'text-zinc-500'}`}>{label}</p>
+                                                <p className={`text-[12px] font-bold tabular-nums ${highlight ? 'text-blue-800' : 'text-zinc-800'}`}>{val != null ? `${formatNumber(val)}억` : '—'}</p>
+                                                {/* 지표 + 변동 */}
+                                                {sub && <p className="text-[9px] text-zinc-500 mt-0.5">{sub}</p>}
+                                                {/* YoY */}
+                                                {(yoy != null || subYoy != null) && (
+                                                  <div className="flex items-center gap-1 mt-0.5">
+                                                    <span className="text-[8px] text-zinc-400 shrink-0">YoY</span>
+                                                    {yoy != null && <span className={`text-[9px] font-medium ${yoyBad ? 'text-rose-500' : 'text-emerald-600'}`}>{chgStr(yoy)}</span>}
+                                                    {subYoy != null && <span className={`text-[9px] ${yoyBad ? 'text-rose-400' : 'text-emerald-500'}`}>({dayStr(subYoy)})</span>}
+                                                  </div>
+                                                )}
+                                                {/* QoQ */}
+                                                {(qoq != null || subQoq != null) && (
+                                                  <div className="flex items-center gap-1 mt-0.5">
+                                                    <span className="text-[8px] text-zinc-400 shrink-0">QoQ</span>
+                                                    {qoq != null && <span className={`text-[9px] font-medium ${qoqBad ? 'text-rose-500' : 'text-emerald-600'}`}>{chgStr(qoq)}</span>}
+                                                    {subQoq != null && <span className={`text-[9px] ${qoqBad ? 'text-rose-400' : 'text-emerald-500'}`}>({dayStr(subQoq)})</span>}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      );
+                                    })()}
+
+                                    {/* NWC 텍스트 인사이트 */}
+                                    {wcInsights.length > 0 && (
+                                      <div className="space-y-1 mt-2">
+                                        {wcInsights.map((ins, i) => <InsightRow key={i} ins={ins} />)}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
 
-                              {/* 자본구조 추이 — 전 법인 동일 색상 */}
-                              <div className="p-4">
-                                <div className="flex items-center justify-between mb-2">
-                                  <p className="text-xs font-semibold text-zinc-700">자본구조 추이 (억원)</p>
-                                  <div className="flex items-center gap-2.5 text-xs text-zinc-500">
-                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-emerald-500 opacity-60"></span>자본</span>
-                                    <span className="flex items-center gap-1"><span className="inline-block w-3 h-2.5 rounded-sm bg-rose-400 opacity-60"></span>부채</span>
-                                    <span className="flex items-center gap-1"><span className="inline-block w-5 border-t-2 border-violet-500"></span>자산</span>
+                              {/* 우: 관리필요사항 */}
+                              <div className="p-3">
+                                <SectionLabel label="④ 관리필요사항" color="text-rose-700" />
+                                {mgmtItems.length === 0 ? (
+                                  <p className="text-[11px] text-emerald-600 bg-emerald-50 rounded px-2 py-1.5 border border-emerald-100">
+                                    ✓ 특이 리스크 없음 — 지속 모니터링
+                                  </p>
+                                ) : (
+                                  <div className="space-y-1.5">
+                                    {mgmtItems.map((item, i) => {
+                                      const dashIdx = item.indexOf(' — ');
+                                      const kw   = dashIdx > -1 ? item.slice(0, dashIdx) : '';
+                                      const desc = dashIdx > -1 ? item.slice(dashIdx + 3) : item;
+                                      return (
+                                        <div key={i} className="rounded-lg bg-rose-50 border border-rose-100 px-2.5 py-1.5 text-[11px] leading-relaxed text-rose-800">
+                                          {kw && <span className="font-semibold block text-rose-700">{kw}</span>}
+                                          <span>{desc}</span>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                </div>
-                                {(() => {
-                                  const bsVals = series.flatMap(s => [s.자산총계, s.자본총계, s.부채총계]).filter(v => v != null);
-                                  const bsMax = Math.max(...bsVals.map(Math.abs), 1);
-                                  const bsFmt = v => bsMax >= 1000 ? `${(v/1000).toFixed(1)}천` : `${formatNumber(v)}`;
-                                  return (
-                                <div className="h-40 w-full">
-                                  <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={series} margin={{ top: 8, right: 12, left: -4, bottom: 0 }}>
-                                      <CartesianGrid strokeDasharray="2 3" stroke="#f0f0f0" vertical={false} />
-                                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval={1} />
-                                      <YAxis tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={bsFmt} width={40} />
-                                      <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} content={({ active, payload, label }) => {
-                                        if (!active || !payload?.length) return null;
-                                        const assetItem = payload.find(p => p.dataKey === '자산총계');
-                                        const debtItem  = payload.find(p => p.dataKey === '부채총계');
-                                        const eqItem    = payload.find(p => p.dataKey === '자본총계');
-                                        const debtRatio = (eqItem?.value > 0 && debtItem?.value != null) ? Math.round(debtItem.value / eqItem.value * 100) : null;
-                                        return (
-                                          <div className="bg-white border border-zinc-200 rounded-lg shadow-md px-3 py-2 text-xs min-w-[140px]">
-                                            <div className="font-semibold text-zinc-700 mb-1.5 border-b border-zinc-100 pb-1">{label}</div>
-                                            {[
-                                              { label: '자산총계', val: assetItem?.value, color: '#6366f1' },
-                                              { label: '부채총계', val: debtItem?.value,  color: '#f43f5e' },
-                                              { label: '자본총계', val: eqItem?.value,    color: '#0d9488' },
-                                            ].map((r, ri) => (
-                                              <div key={ri} className="flex justify-between gap-3 mb-0.5">
-                                                <span style={{ color: r.color }} className="font-medium">{r.label}</span>
-                                                <span className="font-semibold tabular-nums text-zinc-800">{r.val != null ? `${formatNumber(r.val)}억` : '—'}</span>
-                                              </div>
-                                            ))}
-                                            {debtRatio != null && (
-                                              <div className="mt-1 pt-1 border-t border-zinc-100 text-zinc-500 flex justify-between">
-                                                <span>부채비율</span>
-                                                <span className={`font-semibold ${debtRatio > 200 ? 'text-rose-600' : 'text-zinc-700'}`}>{debtRatio}%</span>
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      }} />
-                                      {/* 고정 색상: 자본=에메랄드, 부채=로즈, 자산=바이올렛 (stackId 제거 → 음수 자본 시 색상 혼합 방지) */}
-                                      <Bar dataKey="자본총계" name="자본" fill="#10b981" fillOpacity={0.55} maxBarSize={14} radius={[2,2,0,0]} />
-                                      <Bar dataKey="부채총계" name="부채" fill="#f43f5e" fillOpacity={0.5} maxBarSize={14} radius={[2,2,0,0]} />
-                                      <Line type="monotone" dataKey="자산총계" name="자산" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 3, fill: '#7c3aed', stroke: 'white', strokeWidth: 1.5 }} connectNulls />
-                                    </ComposedChart>
-                                  </ResponsiveContainer>
-                                </div>
-                                  );
-                                })()}
+                                )}
                               </div>
 
-                            </div>{/* /left charts */}
-
-                            {/* 우: 분석 — 긍정적 / 부정적 / 종합분석 */}
-                            <div className="p-4 flex flex-col gap-3">
-
-                              {/* 긍정적 */}
-                              {analysis.pos.length > 0 && (
-                                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-3 flex-1">
-                                  <p className="text-xs font-bold text-emerald-700 mb-2 flex items-center gap-1.5">
-                                    <span>▲</span><span>긍정적</span>
-                                  </p>
-                                  <ul className="space-y-2">
-                                    {analysis.pos.map((t, i) => (
-                                      <li key={i} className="flex gap-1.5 text-xs text-emerald-800 leading-relaxed">
-                                        <span className="shrink-0 font-bold text-emerald-500 mt-0.5">✓</span>
-                                        <span>{t}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {/* 부정적 */}
-                              {analysis.neg.length > 0 && (
-                                <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-3 flex-1">
-                                  <p className="text-xs font-bold text-rose-700 mb-2 flex items-center gap-1.5">
-                                    <span>▼</span><span>부정적</span>
-                                  </p>
-                                  <ul className="space-y-2">
-                                    {analysis.neg.map((t, i) => (
-                                      <li key={i} className="flex gap-1.5 text-xs text-rose-800 leading-relaxed">
-                                        <span className="shrink-0 font-bold text-rose-400 mt-0.5">!</span>
-                                        <span>{t}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {/* 종합분석 */}
-                              {analysis.neu.length > 0 && (
-                                <div className="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-3 flex-1">
-                                  <p className="text-xs font-bold text-zinc-600 mb-2 flex items-center gap-1.5">
-                                    <span>◆</span><span>종합분석</span>
-                                  </p>
-                                  <ul className="space-y-2">
-                                    {analysis.neu.map((t, i) => (
-                                      <li key={i} className="flex gap-1.5 text-xs text-zinc-600 leading-relaxed">
-                                        <span className="shrink-0 text-zinc-400 mt-0.5">·</span>
-                                        <span>{t}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-
-                              {/* 긍정/부정 모두 없을 때 */}
-                              {analysis.pos.length === 0 && analysis.neg.length === 0 && analysis.neu.length === 0 && (
-                                <div className="rounded-lg bg-zinc-50 border border-zinc-100 px-3 py-4 text-xs text-zinc-400 text-center">
-                                  데이터 로딩 중
-                                </div>
-                              )}
-
-                            </div>{/* /right analysis */}
-
-                          </div>{/* /main grid */}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
-
                   </div>
                 </div>
 
@@ -7738,9 +7911,9 @@ export default function FnFQ1_2026Dashboard() {
                 </tr>
                 <tr className="bg-zinc-50 border-b border-zinc-200">
                   <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">비중</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">{selectedAccount === '매출총이익' ? '이익률' : '비중'}</th>
                   <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[55px]">금액</th>
-                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">비중</th>
+                  <th className="text-center px-1 py-1 font-medium text-zinc-500 min-w-[38px] border-r border-zinc-200">{selectedAccount === '매출총이익' ? '이익률' : '비중'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -7755,10 +7928,18 @@ export default function FnFQ1_2026Dashboard() {
                   }
                   const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                   const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
-                  
+                  const isGPRate = selectedAccount === '매출총이익';
+                  const entitySalesPrev = isGPRate ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, prevPeriod) : null;
+                  const entitySalesCurr = isGPRate ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, currPeriod) : null;
+
                   return data.flatMap((row, idx) => {
                     const diff = row.currVal - row.prevVal;
-                    const prevRatio = totalPrev !== 0 ? ((row.prevVal / totalPrev) * 100).toFixed(1) : '0.0';
+                    const prevRatio = isGPRate
+                      ? (entitySalesPrev?.[row.entity] ? ((row.prevVal / entitySalesPrev[row.entity]) * 100).toFixed(1) : '—')
+                      : (totalPrev !== 0 ? ((row.prevVal / totalPrev) * 100).toFixed(1) : '0.0');
+                    const currRatioStr = isGPRate
+                      ? (entitySalesCurr?.[row.entity] ? ((row.currVal / entitySalesCurr[row.entity]) * 100).toFixed(1) : '—')
+                      : String(row.ratio);
                     const hasBrands = !!(ENTITY_BRAND_DATA[selectedAccount]?.[row.entity]);
                     const isExpanded = expandedBrandRows.has(row.entity);
                     const brands = ENTITY_BRAND_DATA[selectedAccount]?.[row.entity] || [];
@@ -7779,9 +7960,9 @@ export default function FnFQ1_2026Dashboard() {
                         )}
                       </td>
                       <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums">{formatNumber(row.prevVal)}</td>
-                      <td className="text-right px-1 py-1.5 text-zinc-400 tabular-nums border-r border-zinc-100">{prevRatio}%</td>
+                      <td className="text-right px-1 py-1.5 text-zinc-400 tabular-nums border-r border-zinc-100">{prevRatio !== '—' ? `${prevRatio}%` : '—'}</td>
                       <td className="text-right px-1 py-1.5 text-zinc-900 font-medium tabular-nums">{formatNumber(row.currVal)}</td>
-                      <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums border-r border-zinc-100">{row.ratio}%</td>
+                      <td className="text-right px-1 py-1.5 text-zinc-500 tabular-nums border-r border-zinc-100">{currRatioStr !== '—' ? `${currRatioStr}%` : '—'}</td>
                       <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-100 ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {diff >= 0 ? '+' : ''}{formatNumber(diff)}
                       </td>
@@ -7827,13 +8008,18 @@ export default function FnFQ1_2026Dashboard() {
                   const totalPrev = data.reduce((sum, r) => sum + r.prevVal, 0);
                   const totalCurr = data.reduce((sum, r) => sum + r.currVal, 0);
                   const totalDiff = totalCurr - totalPrev;
+                  const isGPRateTotal = selectedAccount === '매출총이익';
+                  const salesPrevData = isGPRateTotal ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, prevPeriod) : null;
+                  const salesCurrData = isGPRateTotal ? getGroupedEntityBreakdownForComparison('매출액', prevPeriod, currPeriod) : null;
+                  const salesPrevTotal = salesPrevData ? Object.values(salesPrevData).reduce((s, v) => s + v, 0) : 0;
+                  const salesCurrTotal = salesCurrData ? Object.values(salesCurrData).reduce((s, v) => s + v, 0) : 0;
                   return (
                 <tr className="bg-zinc-50 font-medium">
                   <td className="px-2 py-1.5 text-zinc-900 whitespace-nowrap border-r border-zinc-200">합계</td>
                   <td className="text-right px-1 py-1.5 text-zinc-700 tabular-nums">{formatNumber(totalPrev)}</td>
-                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">100%</td>
+                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">{isGPRateTotal ? (salesPrevTotal ? ((totalPrev / salesPrevTotal) * 100).toFixed(1) + '%' : '—') : '100%'}</td>
                   <td className="text-right px-1 py-1.5 text-zinc-900 tabular-nums">{formatNumber(totalCurr)}</td>
-                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">100%</td>
+                  <td className="text-right px-1 py-1.5 text-zinc-600 tabular-nums border-r border-zinc-200">{isGPRateTotal ? (salesCurrTotal ? ((totalCurr / salesCurrTotal) * 100).toFixed(1) + '%' : '—') : '100%'}</td>
                   <td className={`text-right px-1 py-1.5 tabular-nums border-r border-zinc-200 ${totalDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                     {totalDiff >= 0 ? '+' : ''}{formatNumber(totalDiff)}
                   </td>
@@ -8768,11 +8954,17 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200">대여금</td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">39,765</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums border-r border-zinc-100">
+                            <div className="text-zinc-600">39,765</div>
+                            <div className="text-[10px] text-zinc-400 leading-tight">ST 19,065 / 엔터 20,700</div>
+                          </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-100">392</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">4.6%</td>
-                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100">56,368</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums border-r border-zinc-100">
+                            <div className="text-zinc-600">56,368</div>
+                            <div className="text-[10px] text-zinc-400 leading-tight">ST 30,268 / 엔터 26,100</div>
+                          </td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 border-r border-zinc-100">—</td>
                           <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700 border-r border-zinc-100">880</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500">4.6%</td>
@@ -8997,8 +9189,14 @@ export default function FnFQ1_2026Dashboard() {
                     <tbody>
                       <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                         <td className="px-4 py-2 text-zinc-700">① 이자수익</td>
-                        <td className="text-right px-4 py-2 tabular-nums text-blue-700">+1,014</td>
-                        <td className="text-right px-4 py-2 tabular-nums font-medium text-emerald-700">+2,057</td>
+                        <td className="text-right px-4 py-2 tabular-nums text-blue-700">
+                          <div>+1,014</div>
+                          <div className="text-[10px] text-zinc-400 leading-tight">OC 1,102 / 연조 △88</div>
+                        </td>
+                        <td className="text-right px-4 py-2 tabular-nums font-medium text-emerald-700">
+                          <div>+2,057</div>
+                          <div className="text-[10px] text-zinc-400 leading-tight">OC 2,737 / 연조 △680</div>
+                        </td>
                         <td className="text-right px-4 py-2 tabular-nums text-emerald-600">+1,043</td>
                       </tr>
                       <tr className="border-b border-zinc-200 hover:bg-zinc-50">
@@ -9049,7 +9247,7 @@ export default function FnFQ1_2026Dashboard() {
                         {fxVisible.TWD && <Line yAxisId="right" type="monotone" dataKey="TWD" stroke="#EC4899" dot={false} strokeWidth={1.5} connectNulls/>}
                       </ComposedChart>
                     </ResponsiveContainer>
-                    <p className="text-[12px] text-slate-500 mt-1">USD/EUR: 좌측축 · CNY/HKD/TWD: 우측축 (값 범위 차이 고려)</p></div></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">① 거래손익 상세 (억원 · 실현) — 통화×구분(채권/채무) · 청산금액 · 장부환율 vs 결제환율 · 25.1Q YoY</h2><div className="overflow-x-auto"><table className="w-full text-[13px]"><thead className="bg-slate-100 text-slate-700"><tr><th className="px-1.5 py-1 text-left border border-slate-200">통화</th><th className="px-1.5 py-1 text-left border border-slate-200">구분</th><th className="px-1.5 py-1 text-right border border-slate-200">청산금액<br/>(외화 M)</th><th className="px-1.5 py-1 text-right border border-slate-200">청산금액<br/>(억 KRW)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">장부환율<br/>(invoice)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">결제환율<br/>(결제)</th><th className="px-1.5 py-1 text-right border border-slate-200">Δ환율<br/>(%)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-yellow-50">26.1Q<br/>거래손익</th><th className="px-1.5 py-1 text-right border border-slate-200">25.1Q<br/>거래손익</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-emerald-50">YoY<br/>차이</th><th className="px-1.5 py-1 text-left border border-slate-200">비고</th></tr></thead><tbody><tr className="border-b border-slate-100"><td rowSpan="3" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#3B82F6'}}>USD</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">채권 회수<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">6.79</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">98.4</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">923.83</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,448.57</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+56.80%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+35.63</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#2563EB'}}>+6.78</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+28.85</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +35.59 / 미수 +0.04</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">채무 지급<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">84.53</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-1,234.9</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,452.66</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,460.89</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+0.57%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#DC2626'}}>-6.96</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#DC2626'}}>-13.21</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+6.25</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 -0.74 / 미지급 -6.22</td></tr><tr className="border-b border-slate-200 bg-purple-50/40"><td className="px-1.5 py-1 border border-slate-100 font-medium text-purple-700">대여금 회수<br/><span className="text-[11px] text-slate-500 font-normal">STO대여금 회수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">18.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">258.3</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#DC2626'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-purple-700">STO대여금 회수</td></tr><tr className="border-b border-slate-100"><td rowSpan="2" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#EF4444'}}>CNY</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">채권 회수<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,326.52</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">2,759.3</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">206.07</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">208.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+0.94%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+25.75</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#DC2626'}}>-37.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+63.51</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +25.75 / 미수 0.00</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">채무 지급<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#0F172A'}}>-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#0F172A'}}>-0.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#0F172A'}}>-0.01</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 0.00 / 미지급 -0.01</td></tr><tr className="bg-amber-50 cursor-pointer hover:bg-amber-100 border-b border-amber-200"><td className="px-1.5 py-1 font-bold border border-amber-300 text-amber-900 text-center text-sm">▶ 기타</td><td className="px-1.5 py-1 border border-amber-200 font-medium text-amber-800 text-[13px]">HKD·EUR·TWD 통합<br/><span className="text-[11px] text-slate-500 font-normal">클릭: 통화별 펼치기</span></td><td className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200">140.4</td><td colSpan="3" className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">청산금액 합산</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-yellow-50/60 font-semibold" style={{color:'#DC2626'}}>-0.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200" style={{color:'#2563EB'}}>+2.12</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-emerald-50/40 font-semibold" style={{color:'#DC2626'}}>-2.62</td><td className="px-1.5 py-1 border border-amber-200 text-[12px] text-slate-600">채권+채무+대여금 통합</td></tr><tr className="bg-blue-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-blue-800">합계 · 채권 회수</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">2,998.1</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매출+미수 GL 분해</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+60.92</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200" style={{color:'#DC2626'}}>-29.36</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+90.28</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">CNY/USD/HKD/TWD 청산</td></tr><tr className="bg-rose-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-rose-800">합계 · 채무 지급</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-rose-600">-1,234.9</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매입+미지급 GL 분해</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#DC2626'}}>-7.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200" style={{color:'#DC2626'}}>-12.71</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+5.70</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">USD 매입채무 지급 중심</td></tr><tr className="bg-purple-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-purple-800">합계 · 대여금 회수</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">-</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">STO대여금 회수 (USD 분개 + KRW 분개 통합 → USD 귀속)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">USD 18M (전 USD 귀속)</td></tr><tr className="bg-amber-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-amber-800">기타 (선수금·금융상품·KRW 잔여)</td><td colSpan="5" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">대여금 분리 후 잔여분 (CNY 선수금·USD 금융상품 등)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+6.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-slate-400">N/A</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+6.41</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">선수금 회계처리 등</td></tr><tr className="bg-yellow-100 font-bold"><td colSpan="7" className="px-1.5 py-1 border border-slate-300">순 거래손익 (실현)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+57.57</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300">-31.78</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+89.35</td><td className="px-1.5 py-1 border border-slate-300 text-[12px]">YoY +89.3억 개선</td></tr></tbody></table></div><div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-[13px]"><div className="p-2 bg-blue-50 rounded border border-blue-200"><div className="font-bold text-blue-700 mb-1">채권 회수 (CNY 2,759억 중심)</div><ul className="text-[12px] pl-3 list-disc"><li>CNY: 1,326M FX 청산 → 결제환율 208.01 vs 장부 206.07 → +25.8억</li><li>USD: 6.8M FX 청산 → +35.6억 (KRW 약세 기여)</li><li>HKD: 40.6M / TWD: 140M 청산</li></ul></div><div className="p-2 bg-rose-50 rounded border border-rose-200"><div className="font-bold text-rose-700 mb-1">채무 지급 (USD 매입채무 84M)</div><ul className="text-[12px] pl-3 list-disc"><li>USD: 84.5M 매입채무 지급 → 결제환율 1,460.89 vs 장부 1,452.66 → -6.96억</li><li>26.1Q USD 환율 상승 국면 결제 → 환손실 발생</li></ul><div className="font-bold text-purple-700 mt-2 mb-1">대여금 회수 (USD STO 18M 회수)</div><ul className="text-[12px] pl-3 list-disc"><li>STO대여금 회수(2000033) USD 18M · 장부 KRW 25,828,200,000(1,434.90) · 결제환율 1,513.40 → <span className="font-bold">외환차익 +6.31억</span></li></ul></div><div className="p-2 bg-emerald-50 rounded border border-emerald-200"><div className="font-bold text-emerald-700 mb-1">YoY +89.3억 개선 원인</div><ul className="text-[12px] pl-3 list-disc"><li>25.1Q CNY 결제 환율 하락 → -27.2억 손실</li><li>26.1Q CNY 결제 환율 상승 → +27.6억 이익 (반전)</li><li>USD: 25.1Q -8.5억 → 26.1Q +24.0억 (+32.5억 개선)</li></ul></div></div><p className="text-[12px] text-slate-500 mt-2"><span className="font-semibold">계산 규약:</span> 청산금액 = 변제채권/채무 raw PK17(매출)·PK27(매입) FX·KRW 합산 · 장부환율 = 결제환율 - (거래손익/청산FX) 역산 · 거래손익 = 외환차익/차손 분기필터 GL 카테고리 합산 (이익=+, 손실=-)</p></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">② 평가손익 상세 (억원 · 미실현) — 영업자산(매출+미수) · <span className="text-purple-700">금융자산(예금+대여)</span> · 영업부채(매입+미지급) · 25.1Q YoY</h2><div className="overflow-x-auto"><table className="w-full text-[13px]"><thead className="bg-slate-100 text-slate-700"><tr><th className="px-1.5 py-1 text-left border border-slate-200">통화</th><th className="px-1.5 py-1 text-left border border-slate-200">구분</th><th className="px-1.5 py-1 text-right border border-slate-200">잔액<br/>(외화 M)</th><th className="px-1.5 py-1 text-right border border-slate-200">잔액<br/>(억 KRW)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">장부환율<br/>(25.4Q)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">평가환율<br/>(26.1Q)</th><th className="px-1.5 py-1 text-right border border-slate-200">Δ환율<br/>(%)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-yellow-50">26.1Q<br/>평가손익</th><th className="px-1.5 py-1 text-right border border-slate-200">25.1Q<br/>평가손익</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-emerald-50">YoY<br/>차이</th><th className="px-1.5 py-1 text-left border border-slate-200">비고</th></tr></thead><tbody><tr className="border-b border-slate-100"><td rowSpan="3" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#3B82F6'}}>USD</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">영업자산<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">4.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">71.6</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+2.98</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#DC2626'}}>-1.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+4.39</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +2.88 / 미수 +0.10</td></tr><tr className="border-b border-slate-100 bg-purple-50/30"><td className="px-1.5 py-1 border border-slate-100 font-medium text-purple-700">금융자산<br/><span className="text-[11px] text-slate-500 font-normal">예금+대여</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">78.17</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,137.8</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40 text-[12px] text-slate-600">예 1,446.37<br/>대 1,482.18</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+54.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-slate-400">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+54.70</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">예금 +39.00 / 대여 +15.70</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">영업부채<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">26.57</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-389.4</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#DC2626'}}>-12.85</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#2563EB'}}>+13.82</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#DC2626'}}>-26.67</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 -8.28 / 미지급 -4.57</td></tr><tr className="border-b border-slate-100"><td rowSpan="3" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#EF4444'}}>CNY</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">영업자산<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">105.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">225.9</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">204.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">218.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+6.81%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+5.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#2563EB'}}>+1.22</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+4.19</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +4.64 / 미수 +0.77</td></tr><tr className="border-b border-slate-100 bg-purple-50/30"><td className="px-1.5 py-1 border border-slate-100 font-medium text-purple-700">금융자산<br/><span className="text-[11px] text-slate-500 font-normal">예금+대여</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">524.22</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,128.2</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40 text-[12px] text-slate-600">예 215.23</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">218.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+6.81%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+18.21</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-slate-400">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+18.21</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">예금 +18.21 / 대여 0.00</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">영업부채<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">0.02</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-0.0</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">204.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">218.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+6.81%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 0.00 / 미지급 0.00</td></tr><tr className="bg-amber-50 cursor-pointer hover:bg-amber-100 border-b border-amber-200"><td className="px-1.5 py-1 font-bold border border-amber-300 text-amber-900 text-center text-sm">▶ 기타</td><td className="px-1.5 py-1 border border-amber-200 font-medium text-amber-800 text-[13px]">HKD·EUR·TWD 통합<br/><span className="text-[11px] text-slate-500 font-normal">클릭: 통화별 펼치기</span></td><td className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200">415.6</td><td colSpan="3" className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">잔액 합산 (자산-부채)</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+18.02</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200" style={{color:'#DC2626'}}>-45.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+63.52</td><td className="px-1.5 py-1 border border-amber-200 text-[12px] text-slate-600">영업+금융+부채 통합</td></tr><tr className="bg-blue-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-blue-800">합계 · 영업자산</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">701.6</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매출채권+미수금 (외화채권 파일)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+26.43</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">-45.66</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+72.09</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">매출 +25.54 / 미수 +0.88</td></tr><tr className="bg-purple-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-purple-800">합계 · 금융자산</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">2,277.7</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">외화예금+외화대여금 (별도 파일)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+72.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-slate-400">N/A</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+72.91</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">예금 +57.21 / 대여 +15.70</td></tr><tr className="bg-rose-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-rose-800">합계 · 영업부채</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-rose-600">-389.6</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매입채무+미지급 (외화채무 파일)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#DC2626'}}>-12.87</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">+13.79</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#DC2626'}}>-26.66</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">매입 -8.28 / 미지급 -4.58</td></tr><tr className="bg-yellow-100 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-300">순 평가손익</td><td className="px-1.5 py-1 text-right border border-slate-300">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300">+2589.7</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-300 text-xs">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+86.47</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300">-1.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+88.23</td><td className="px-1.5 py-1 border border-slate-300 text-[12px]">26.1Q 총순익 +144.0억 · 평가 비중 60%</td></tr></tbody></table></div><div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-[13px]"><div className="p-2 bg-blue-50 rounded border border-blue-200"><div className="font-bold text-blue-700 mb-1">영업자산 +26.43억 구성</div><ul className="text-[12px] pl-3 list-disc"><li>매출채권 +25.54억 (HKD 16.56·CNY 4.64·USD 2.88·TWD 1.37·EUR 0.09)</li><li>미수금 +0.88억 (CNY 0.77·USD 0.10·EUR 0.01)</li></ul></div><div className="p-2 bg-purple-50 rounded border border-purple-200"><div className="font-bold text-purple-700 mb-1">금융자산 +72.91억 구성</div><ul className="text-[12px] pl-3 list-disc"><li>보통예금 +57.21억 (<span className="font-bold">USD 39.00 + CNY 18.21</span>)</li><li>대여금 +15.70억 (<span className="font-bold">USD STO대여금 18M</span>)</li><li className="text-purple-600">잔액: USD 78.2M+20M / CNY 524M / EUR 0.9M</li></ul></div><div className="p-2 bg-rose-50 rounded border border-rose-200"><div className="font-bold text-rose-700 mb-1">영업부채 -12.87억 구성</div><ul className="text-[12px] pl-3 list-disc"><li>매입채무 -8.28억 (USD 전액)</li><li>미지급 -4.58억 (USD -4.57·EUR -0.01)</li><li className="text-emerald-700 font-semibold">순 평가손익 = +86.47억</li></ul></div></div></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">③ 25.1Q vs 26.1Q 차이 분석 (YoY)</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><table className="w-full text-[13px]"><thead className="bg-slate-100 text-slate-700"><tr><th className="px-2 py-1 text-left">항목</th><th className="px-2 py-1 text-right">25.1Q</th><th className="px-2 py-1 text-right">26.1Q</th><th className="px-2 py-1 text-right">증감</th></tr></thead><tbody><tr className="border-b border-slate-100"><td className="px-2 py-1">채권 잔액 (기말)</td><td className="px-2 py-1 text-right tabular-nums">0.0</td><td className="px-2 py-1 text-right tabular-nums">701.6</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#2563EB'}}>+701.5</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1">채무 잔액 (기말)</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">-0.0</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">-389.6</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#DC2626'}}>-389.6</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1">USD 환율 QoQ</td><td className="px-2 py-1 text-right tabular-nums">-0.24%</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">+5.47%</td><td className="px-2 py-1 text-right tabular-nums text-xs text-slate-500">KRW 약세 전환</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1">CNY 환율 QoQ</td><td className="px-2 py-1 text-right tabular-nums">+0.20%</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">+6.81%</td><td className="px-2 py-1 text-right tabular-nums text-xs text-slate-500">일제 약세</td></tr><tr className="border-b border-slate-200 bg-slate-50"><td className="px-2 py-1 font-semibold">평가손익</td><td className="px-2 py-1 text-right tabular-nums">-1.76</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+86.47</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+88.23</td></tr><tr className="border-b border-slate-200 bg-slate-50"><td className="px-2 py-1 font-semibold">거래손익</td><td className="px-2 py-1 text-right tabular-nums">-31.78</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+57.57</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+89.35</td></tr><tr className="bg-yellow-50 font-bold"><td className="px-2 py-1">순외환손익</td><td className="px-2 py-1 text-right tabular-nums">-33.54</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#2563EB'}}>+144.04</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#2563EB'}}>+177.58</td></tr></tbody></table><div className="space-y-2 text-[12px] text-slate-700"><div className="p-3 bg-rose-50 rounded border border-rose-200"><div className="font-bold text-rose-700 mb-1">📉 25.1Q (순손익 -33.5억) 원인</div><ul className="list-disc pl-4 space-y-0.5 text-[13px]"><li>USD QoQ -0.2%·CNY +0.2% 환율 <span className="font-semibold">거의 무변동</span> → 평가손익 -1.76억 소폭</li><li>CNY 결제 시점 환율 하락(-28.4억) → 거래손실 실현</li><li>USD 채무 결제에서도 환손실 -12.7억</li></ul></div><div className="p-3 bg-emerald-50 rounded border border-emerald-200"><div className="font-bold text-emerald-700 mb-1">📈 26.1Q (순손익 +144.0억) 원인</div><ul className="list-disc pl-4 space-y-0.5 text-[13px]"><li><span className="font-semibold">KRW 일제 약세 전환</span>: USD +5.5%·CNY +6.8%·HKD +4.7% → 평가이익 +86.5억</li><li>CNY 2,759억 수금 과정 결제환율 &gt; 장부환율(25.4Q 204.76) → 거래이익 +27.6억</li><li>USD 채권 회수이익 +30.9억 (채무손실 -6.9억 상쇄)</li></ul></div><div className="p-3 bg-sky-50 rounded border border-sky-200"><div className="font-bold text-sky-700 mb-1">💡 핵심 전환</div><p className="text-[13px]">25.1Q 대비 <span className="font-bold">+177.6억 개선</span> = 환율 방향 전환(-0.2%→+5.5%) × 잔액 규모 유지 + CNY 결제 방향 반전.<br/>26.2Q는 기말환율(USD 1,513원) 대비 환율 움직임에 따라 방향 결정 → 현 순포지션 312억에서 환율 1% 변동 시 약 <span className="font-semibold">±3.1억</span> 변동.</p></div></div></div></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">④ 환율 기말 · 평균 전분기 비교 (KRW 기준 · 매매기준율 · 24.1Q~26.1Q)</h2><p className="text-[13px] text-slate-600 mb-2"><span className="font-semibold">기말환율</span>: 분기 마지막 영업일 매매기준율 (예: 26.1Q = 2026-03-31) ·<span className="font-semibold ml-2">평균환율</span>: 해당 분기 <span className="font-bold text-blue-700">3개월 일별 환율 단순평균</span>(예: 26.1Q = 2026-01-01 ~ 03-31 일별 매매기준율 평균, 누계 아님)</p><div className="overflow-x-auto"><table className="w-full text-[13px]"><thead className="bg-slate-100"><tr><th rowSpan="2" className="px-2 py-1 text-left border border-slate-200">통화</th><th colSpan="9" className="px-2 py-1 text-center border border-slate-200 bg-sky-50">기말환율 (원)</th></tr><tr><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.1Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.2Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.3Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.4Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.1Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.2Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.3Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.4Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">26.1Q</th></tr></thead><tbody><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#3B82F6'}}>USD 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,346.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,389.20</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,319.60</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,470.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,466.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,356.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,402.20</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">1,513.40</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#EF4444'}}>CNY 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">185.75</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">190.43</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">188.74</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">201.27</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">201.68</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">189.16</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">196.82</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">204.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">218.70</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#10B981'}}>HKD 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">172.10</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">177.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">169.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">189.30</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">188.53</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">172.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">180.15</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">184.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">193.15</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#8B5CF6'}}>EUR 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,452.93</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,487.07</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,474.06</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,528.73</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,587.85</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,591.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,644.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,685.72</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">1,733.37</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#EC4899'}}>TWD 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">42.13</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">42.71</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">41.77</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">44.81</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">44.17</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">46.60</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">46.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">45.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">47.21</td></tr><tr><td colSpan="10" className="h-1 bg-slate-100"></td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">USD 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,328.45</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,370.91</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,359.38</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,396.84</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,452.66</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,404.04</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,385.28</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,450.98</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">1,465.16</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">CNY 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">184.56</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">188.93</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">189.23</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">193.98</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">199.33</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">193.99</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">193.54</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">204.65</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">211.61</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">HKD 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">169.88</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">175.36</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">174.27</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">179.67</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">186.73</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">179.93</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">177.12</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">186.56</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">187.54</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">EUR 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,443.10</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,475.88</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,491.65</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,489.10</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,529.33</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,589.40</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,619.25</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,688.27</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">1,713.75</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">TWD 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">42.27</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">42.40</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">42.05</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">43.19</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">44.18</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">45.40</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">46.29</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">46.70</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">46.31</td></tr></tbody></table></div><div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-[13px]"><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">USD QoQ +5.5%</span>: 1,434.9 → 1,513.4 · 평균 1,451.0 → 1,465.2</div><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">CNY QoQ +6.8%</span>: 204.76 → 218.70 · 평균 204.65 → 211.61</div><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">HKD QoQ +4.7%</span>: 184.41 → 193.15 · 평균 186.56 → 187.54</div><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">TWD QoQ +2.8%</span>: 45.91 → 47.21 · 평균 46.70 → 46.31</div></div></section><footer className="text-[12px] text-slate-500 text-center pt-2">FY26 1Q FNF 외환손익</footer></div>
+                    <p className="text-[12px] text-slate-500 mt-1">USD/EUR: 좌측축 · CNY/HKD/TWD: 우측축 (값 범위 차이 고려)</p></div></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">① 거래손익 상세 (억원 · 실현) — 통화×구분(채권/채무) · 청산금액 · 장부환율 vs 결제환율 · 25.1Q YoY</h2><div className="overflow-x-auto"><table className="w-full text-[13px]"><thead className="bg-slate-100 text-slate-700"><tr><th className="px-1.5 py-1 text-left border border-slate-200">통화</th><th className="px-1.5 py-1 text-left border border-slate-200">구분</th><th className="px-1.5 py-1 text-right border border-slate-200">청산금액<br/>(외화 M)</th><th className="px-1.5 py-1 text-right border border-slate-200">청산금액<br/>(억 KRW)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">장부환율<br/>(invoice)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">결제환율<br/>(결제)</th><th className="px-1.5 py-1 text-right border border-slate-200">Δ환율<br/>(%)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-yellow-50">26.1Q<br/>거래손익</th><th className="px-1.5 py-1 text-right border border-slate-200">25.1Q<br/>거래손익</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-emerald-50">YoY<br/>차이</th><th className="px-1.5 py-1 text-left border border-slate-200">비고</th></tr></thead><tbody><tr className="border-b border-slate-100"><td rowSpan="4" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#3B82F6'}}>USD</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">채권 회수<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">6.79</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">98.4</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,440.47</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,448.57</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+0.56%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+0.55</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#2563EB'}}>+6.78</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#DC2626'}}>-6.23</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +0.51 / 미수 +0.04</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">채무 지급<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">84.53</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-1,234.9</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,452.66</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,460.89</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+0.57%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#DC2626'}}>-6.96</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#DC2626'}}>-13.21</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+6.25</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 -0.74 / 미지급 -6.22</td></tr><tr className="border-b border-slate-200 bg-purple-50/40"><td className="px-1.5 py-1 border border-slate-100 font-medium text-purple-700">대여금 회수<br/><span className="text-[11px] text-slate-500 font-normal">STO대여금 회수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">18.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">258.3</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#DC2626'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-purple-700">STO대여금 회수</td></tr><tr className="border-b border-slate-200 bg-amber-50/40"><td className="px-1.5 py-1 border border-slate-100 font-medium text-amber-700">예금지급분<br/><span className="text-[11px] text-slate-500 font-normal">계좌간 대체</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">241.99</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">3,502.8</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,447.51</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,460.02</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+0.86%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+33.86</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-slate-400">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 text-slate-400">-</td><td className="px-1.5 py-1 border border-slate-100 text-[11px] text-amber-700 leading-tight">예금지급분 / 계좌간 대체<br/><span className="text-slate-500">※ 26.4월~ 데이터 반영로직 변경: 예금 결제시 각 해당 거래에 따라 외화금액과 환율적용한 손익 반영될 수 있도록 수정완료</span></td></tr><tr className="border-b border-slate-100"><td rowSpan="3" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#EF4444'}}>CNY</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">채권 회수<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,326.52</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">2,759.3</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">207.42</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">208.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+0.28%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+7.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#DC2626'}}>-37.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+45.56</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +7.80 / 미수 0.00</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">채무 지급<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#0F172A'}}>-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#0F172A'}}>-0.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#0F172A'}}>-0.01</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 0.00 / 미지급 -0.01</td></tr><tr className="border-b border-slate-200 bg-amber-50/40"><td className="px-1.5 py-1 border border-slate-100 font-medium text-amber-700">예금지급분<br/><span className="text-[11px] text-slate-500 font-normal">계좌간 대체</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">572.77</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,192.6</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">208.22</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">211.05</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+1.36%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+17.95</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-slate-400">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 text-slate-400">-</td><td className="px-1.5 py-1 border border-slate-100 text-[11px] text-amber-700 leading-tight">예금지급분 / 계좌간 대체<br/><span className="text-slate-500">※ 26.4월~ 데이터 반영로직 변경: 예금 결제시 각 해당 거래에 따라 외화금액과 환율적용한 손익 반영될 수 있도록 수정완료</span></td></tr><tr className="bg-amber-50 cursor-pointer hover:bg-amber-100 border-b border-amber-200"><td className="px-1.5 py-1 font-bold border border-amber-300 text-amber-900 text-center text-sm">▶ 기타</td><td className="px-1.5 py-1 border border-amber-200 font-medium text-amber-800 text-[13px]">HKD·EUR·TWD 통합<br/><span className="text-[11px] text-slate-500 font-normal">클릭: 통화별 펼치기</span></td><td className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200">140.4</td><td colSpan="3" className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">청산금액 합산</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-yellow-50/60 font-semibold" style={{color:'#DC2626'}}>-0.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200" style={{color:'#2563EB'}}>+2.12</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-emerald-50/40 font-semibold" style={{color:'#DC2626'}}>-2.62</td><td className="px-1.5 py-1 border border-amber-200 text-[12px] text-slate-600">채권+채무+대여금 통합</td></tr><tr className="bg-blue-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-blue-800">합계 · 채권 회수</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">2,998.1</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매출+미수 GL 분해</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+7.89</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200" style={{color:'#DC2626'}}>-29.36</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+37.25</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">CNY/USD/HKD/TWD 청산</td></tr><tr className="bg-rose-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-rose-800">합계 · 채무 지급</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-rose-600">-1,234.9</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매입+미지급 GL 분해</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#DC2626'}}>-7.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200" style={{color:'#DC2626'}}>-12.71</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+5.70</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">USD 매입채무 지급 중심</td></tr><tr className="bg-purple-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-purple-800">합계 · 대여금 회수</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">-</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">STO대여금 회수 (USD 분개 + KRW 분개 통합 → USD 귀속)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+2.84</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">USD 18M (전 USD 귀속)</td></tr><tr className="bg-amber-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-amber-800">합계 · 예금지급분</td><td colSpan="5" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">외화예금 결제 후 잔여외화 평가 (BLART=TR)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+51.81</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-slate-400">N/A</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+51.81</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">USD 33.86 / CNY 17.95 / KRW 0.00</td></tr><tr className="bg-amber-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-amber-800">기타</td><td colSpan="5" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">기타통화·잔여 분개</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+2.04</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-slate-400">N/A</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+2.04</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">기타통화 - 대만달러, 말레이시아 달러 등</td></tr><tr className="bg-yellow-100 font-bold"><td colSpan="7" className="px-1.5 py-1 border border-slate-300">순 거래손익 (실현)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+57.57</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300">-31.78</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+89.35</td><td className="px-1.5 py-1 border border-slate-300 text-[12px]">YoY +89.3억 개선</td></tr></tbody></table></div><div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-[13px]"><div className="p-2 bg-blue-50 rounded border border-blue-200"><div className="font-bold text-blue-700 mb-1">채권 회수 (CNY 2,759억 중심)</div><ul className="text-[12px] pl-3 list-disc"><li>CNY: 1,326M FX 청산 → 결제환율 208.01 vs 장부 207.42 → +7.8억</li><li>USD: 6.8M FX 청산 → 결제환율 1,448.57 vs 장부 1,440.47 → +0.55억 <span className="text-amber-700">(예금 지급분 별도 +33.86억)</span></li><li>HKD: 40.6M / TWD: 140M 청산</li></ul></div><div className="p-2 bg-rose-50 rounded border border-rose-200"><div className="font-bold text-rose-700 mb-1">채무 지급 (USD 매입채무 84M)</div><ul className="text-[12px] pl-3 list-disc"><li>USD: 84.5M 매입채무 지급 → 결제환율 1,460.89 vs 장부 1,452.66 → -6.96억</li><li>26.1Q USD 환율 상승 국면 결제 → 환손실 발생</li></ul><div className="font-bold text-purple-700 mt-2 mb-1">대여금 회수 (USD STO 18M 회수)</div><ul className="text-[12px] pl-3 list-disc"><li>STO대여금 회수(2000033) USD 18M · 장부 KRW 25,828,200,000(1,434.90) · 결제환율 1,513.40 → <span className="font-bold">외환차익 +6.31억</span></li></ul></div><div className="p-2 bg-emerald-50 rounded border border-emerald-200"><div className="font-bold text-emerald-700 mb-1">YoY +89.3억 개선 원인</div><ul className="text-[12px] pl-3 list-disc"><li>25.1Q CNY 결제 환율 하락 → -27.2억 손실</li><li>26.1Q CNY 결제 환율 상승 → +27.6억 이익 (반전)</li><li>USD 채권 회수 +0.55억 + 예금 지급분(BLART=TR) +33.86억 (채무손실 -6.96억 상쇄)</li></ul></div></div><p className="text-[12px] text-slate-500 mt-2"><span className="font-semibold">계산 규약:</span> 청산금액 = 변제채권/채무 raw PK17(매출)·PK27(매입) FX·KRW 합산 · 장부환율 = 결제환율 - (거래손익/청산FX) 역산 · 거래손익 = 외환차익/차손 분기필터 GL 카테고리 합산 (이익=+, 손실=-)</p></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">② 평가손익 상세 (억원 · 미실현) — 영업자산(매출+미수) · <span className="text-purple-700">금융자산(예금+대여)</span> · 영업부채(매입+미지급) · 25.1Q YoY</h2><div className="overflow-x-auto"><table className="w-full text-[13px]"><thead className="bg-slate-100 text-slate-700"><tr><th className="px-1.5 py-1 text-left border border-slate-200">통화</th><th className="px-1.5 py-1 text-left border border-slate-200">구분</th><th className="px-1.5 py-1 text-right border border-slate-200">잔액<br/>(외화 M)</th><th className="px-1.5 py-1 text-right border border-slate-200">잔액<br/>(억 KRW)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">장부환율<br/>(25.4Q)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">평가환율<br/>(26.1Q)</th><th className="px-1.5 py-1 text-right border border-slate-200">Δ환율<br/>(%)</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-yellow-50">26.1Q<br/>평가손익</th><th className="px-1.5 py-1 text-right border border-slate-200">25.1Q<br/>평가손익</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-emerald-50">YoY<br/>차이</th><th className="px-1.5 py-1 text-left border border-slate-200">비고</th></tr></thead><tbody><tr className="border-b border-slate-100"><td rowSpan="3" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#3B82F6'}}>USD</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">영업자산<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">4.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">71.6</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+2.98</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#DC2626'}}>-1.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+4.39</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +2.88 / 미수 +0.10</td></tr><tr className="border-b border-slate-100 bg-purple-50/30"><td className="px-1.5 py-1 border border-slate-100 font-medium text-purple-700">금융자산<br/><span className="text-[11px] text-slate-500 font-normal">예금+대여</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">78.17</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,137.8</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40 text-[12px] text-slate-600">예 1,446.37<br/>대 1,482.18</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+54.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-slate-400">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+54.70</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">예금 +39.00 / 대여 +15.70</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">영업부채<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">26.57</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-389.4</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">1,513.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+5.47%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#DC2626'}}>-12.85</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#2563EB'}}>+13.82</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#DC2626'}}>-26.67</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 -8.28 / 미지급 -4.57</td></tr><tr className="border-b border-slate-100"><td rowSpan="3" className="px-1.5 py-1 font-bold border border-slate-200 align-middle text-center text-sm" style={{color:'#EF4444'}}>CNY</td><td className="px-1.5 py-1 border border-slate-100 font-medium text-blue-700">영업자산<br/><span className="text-[11px] text-slate-500 font-normal">매출+미수</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">105.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">225.9</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">204.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">218.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+6.81%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+5.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#2563EB'}}>+1.22</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+4.19</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매출 +4.64 / 미수 +0.77</td></tr><tr className="border-b border-slate-100 bg-purple-50/30"><td className="px-1.5 py-1 border border-slate-100 font-medium text-purple-700">금융자산<br/><span className="text-[11px] text-slate-500 font-normal">예금+대여</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">524.22</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">1,128.2</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40 text-[12px] text-slate-600">예 215.23</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">218.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+6.81%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+18.21</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-slate-400">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+18.21</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">예금 +18.21 / 대여 0.00</td></tr><tr className="border-b border-slate-200"><td className="px-1.5 py-1 border border-slate-100 font-medium text-rose-700">영업부채<br/><span className="text-[11px] text-slate-500 font-normal">매입+미지급</span></td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100">0.02</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-rose-600">-0.0</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">204.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-sky-50/40">218.70</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 text-xs" style={{color:'#2563EB'}}>+6.81%</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50/60 font-semibold" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-emerald-50/40 font-semibold" style={{color:'#0F172A'}}>0.00</td><td className="px-1.5 py-1 border border-slate-100 text-[12px] text-slate-500">매입 0.00 / 미지급 0.00</td></tr><tr className="bg-amber-50 cursor-pointer hover:bg-amber-100 border-b border-amber-200"><td className="px-1.5 py-1 font-bold border border-amber-300 text-amber-900 text-center text-sm">▶ 기타</td><td className="px-1.5 py-1 border border-amber-200 font-medium text-amber-800 text-[13px]">HKD·EUR·TWD 통합<br/><span className="text-[11px] text-slate-500 font-normal">클릭: 통화별 펼치기</span></td><td className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200">415.6</td><td colSpan="3" className="px-1.5 py-1 text-right border border-amber-200 text-[12px] text-slate-500">잔액 합산 (자산-부채)</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-yellow-50/60 font-semibold" style={{color:'#2563EB'}}>+18.02</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200" style={{color:'#DC2626'}}>-45.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-amber-200 bg-emerald-50/40 font-semibold" style={{color:'#2563EB'}}>+63.52</td><td className="px-1.5 py-1 border border-amber-200 text-[12px] text-slate-600">영업+금융+부채 통합</td></tr><tr className="bg-blue-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-blue-800">합계 · 영업자산</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">701.6</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매출채권+미수금 (외화채권 파일)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+26.43</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">-45.66</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+72.09</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">매출 +25.54 / 미수 +0.88</td></tr><tr className="bg-purple-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-purple-800">합계 · 금융자산</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">2,277.7</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">외화예금+외화대여금 (별도 파일)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#2563EB'}}>+72.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-slate-400">N/A</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#2563EB'}}>+72.91</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">예금 +57.21 / 대여 +15.70</td></tr><tr className="bg-rose-50 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-200 text-rose-800">합계 · 영업부채</td><td className="px-1.5 py-1 text-right border border-slate-200">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 text-rose-600">-389.6</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-200 text-xs text-slate-500">매입채무+미지급 (외화채무 파일)</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-yellow-50" style={{color:'#DC2626'}}>-12.87</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200">+13.79</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-200 bg-emerald-50" style={{color:'#DC2626'}}>-26.66</td><td className="px-1.5 py-1 border border-slate-200 text-[12px] text-slate-500">매입 -8.28 / 미지급 -4.58</td></tr><tr className="bg-yellow-100 font-bold"><td colSpan="2" className="px-1.5 py-1 border border-slate-300">순 평가손익</td><td className="px-1.5 py-1 text-right border border-slate-300">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300">+2589.7</td><td colSpan="3" className="px-1.5 py-1 text-right border border-slate-300 text-xs">-</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+86.47</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300">-1.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-300 text-base" style={{color:'#2563EB'}}>+88.23</td><td className="px-1.5 py-1 border border-slate-300 text-[12px]">26.1Q 총순익 +144.0억 · 평가 비중 60%</td></tr></tbody></table></div><div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-[13px]"><div className="p-2 bg-blue-50 rounded border border-blue-200"><div className="font-bold text-blue-700 mb-1">영업자산 +26.43억 구성</div><ul className="text-[12px] pl-3 list-disc"><li>매출채권 +25.54억 (HKD 16.56·CNY 4.64·USD 2.88·TWD 1.37·EUR 0.09)</li><li>미수금 +0.88억 (CNY 0.77·USD 0.10·EUR 0.01)</li></ul></div><div className="p-2 bg-purple-50 rounded border border-purple-200"><div className="font-bold text-purple-700 mb-1">금융자산 +72.91억 구성</div><ul className="text-[12px] pl-3 list-disc"><li>보통예금 +57.21억 (<span className="font-bold">USD 39.00 + CNY 18.21</span>)</li><li>대여금 +15.70억 (<span className="font-bold">USD STO대여금 18M</span>)</li><li className="text-purple-600">잔액: USD 78.2M+20M / CNY 524M / EUR 0.9M</li></ul></div><div className="p-2 bg-rose-50 rounded border border-rose-200"><div className="font-bold text-rose-700 mb-1">영업부채 -12.87억 구성</div><ul className="text-[12px] pl-3 list-disc"><li>매입채무 -8.28억 (USD 전액)</li><li>미지급 -4.58억 (USD -4.57·EUR -0.01)</li><li className="text-emerald-700 font-semibold">순 평가손익 = +86.47억</li></ul></div></div></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">③ 25.1Q vs 26.1Q 차이 분석 (YoY)</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><table className="w-full text-[13px]"><thead className="bg-slate-100 text-slate-700"><tr><th className="px-2 py-1 text-left">항목</th><th className="px-2 py-1 text-right">25.1Q</th><th className="px-2 py-1 text-right">26.1Q</th><th className="px-2 py-1 text-right">증감</th></tr></thead><tbody><tr className="border-b border-slate-100"><td className="px-2 py-1">채권 잔액 (기말)</td><td className="px-2 py-1 text-right tabular-nums">0.0</td><td className="px-2 py-1 text-right tabular-nums">701.6</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#2563EB'}}>+701.5</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1">채무 잔액 (기말)</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">-0.0</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">-389.6</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#DC2626'}}>-389.6</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1">USD 환율 QoQ</td><td className="px-2 py-1 text-right tabular-nums">-0.24%</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">+5.47%</td><td className="px-2 py-1 text-right tabular-nums text-xs text-slate-500">KRW 약세 전환</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1">CNY 환율 QoQ</td><td className="px-2 py-1 text-right tabular-nums">+0.20%</td><td className="px-2 py-1 text-right tabular-nums text-rose-600">+6.81%</td><td className="px-2 py-1 text-right tabular-nums text-xs text-slate-500">일제 약세</td></tr><tr className="border-b border-slate-200 bg-slate-50"><td className="px-2 py-1 font-semibold">평가손익</td><td className="px-2 py-1 text-right tabular-nums">-1.76</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+86.47</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+88.23</td></tr><tr className="border-b border-slate-200 bg-slate-50"><td className="px-2 py-1 font-semibold">거래손익</td><td className="px-2 py-1 text-right tabular-nums">-31.78</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+57.57</td><td className="px-2 py-1 text-right tabular-nums font-semibold" style={{color:'#2563EB'}}>+89.35</td></tr><tr className="bg-yellow-50 font-bold"><td className="px-2 py-1">순외환손익</td><td className="px-2 py-1 text-right tabular-nums">-33.54</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#2563EB'}}>+144.04</td><td className="px-2 py-1 text-right tabular-nums" style={{color:'#2563EB'}}>+177.58</td></tr></tbody></table><div className="space-y-2 text-[12px] text-slate-700"><div className="p-3 bg-rose-50 rounded border border-rose-200"><div className="font-bold text-rose-700 mb-1">📉 25.1Q (순손익 -33.5억) 원인</div><ul className="list-disc pl-4 space-y-0.5 text-[13px]"><li>USD QoQ -0.2%·CNY +0.2% 환율 <span className="font-semibold">거의 무변동</span> → 평가손익 -1.76억 소폭</li><li>CNY 결제 시점 환율 하락(-28.4억) → 거래손실 실현</li><li>USD 채무 결제에서도 환손실 -12.7억</li></ul></div><div className="p-3 bg-emerald-50 rounded border border-emerald-200"><div className="font-bold text-emerald-700 mb-1">📈 26.1Q (순손익 +144.0억) 원인</div><ul className="list-disc pl-4 space-y-0.5 text-[13px]"><li><span className="font-semibold">KRW 일제 약세 전환</span>: USD +5.5%·CNY +6.8%·HKD +4.7% → 평가이익 +86.5억</li><li>CNY 2,759억 수금 과정 결제환율 &gt; 장부환율(25.4Q 204.76) → 거래이익 +27.6억</li><li>USD 채권 회수 +0.55억 + 예금 지급분(BLART=TR) +33.86억 (채무손실 -6.96억 상쇄)</li></ul></div><div className="p-3 bg-sky-50 rounded border border-sky-200"><div className="font-bold text-sky-700 mb-1">💡 핵심 전환</div><p className="text-[13px]">25.1Q 대비 <span className="font-bold">+177.6억 개선</span> = 환율 방향 전환(-0.2%→+5.5%) × 잔액 규모 유지 + CNY 결제 방향 반전.<br/>26.2Q는 기말환율(USD 1,513원) 대비 환율 움직임에 따라 방향 결정 → 현 순포지션 312억에서 환율 1% 변동 시 약 <span className="font-semibold">±3.1억</span> 변동.</p></div></div></div></section><section className="bg-white rounded-lg shadow border border-slate-200 p-4"><h2 className="text-sm font-bold text-slate-800 mb-2">④ 환율 기말 · 평균 전분기 비교 (KRW 기준 · 매매기준율 · 24.1Q~26.1Q)</h2><p className="text-[13px] text-slate-600 mb-2"><span className="font-semibold">기말환율</span>: 분기 마지막 영업일 매매기준율 (예: 26.1Q = 2026-03-31) ·<span className="font-semibold ml-2">평균환율</span>: 해당 분기 <span className="font-bold text-blue-700">3개월 일별 환율 단순평균</span>(예: 26.1Q = 2026-01-01 ~ 03-31 일별 매매기준율 평균, 누계 아님)</p><div className="overflow-x-auto"><table className="w-full text-[13px]"><thead className="bg-slate-100"><tr><th rowSpan="2" className="px-2 py-1 text-left border border-slate-200">통화</th><th colSpan="9" className="px-2 py-1 text-center border border-slate-200 bg-sky-50">기말환율 (원)</th></tr><tr><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.1Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.2Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.3Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">24.4Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.1Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.2Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.3Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">25.4Q</th><th className="px-1.5 py-1 text-right border border-slate-200 bg-sky-50">26.1Q</th></tr></thead><tbody><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#3B82F6'}}>USD 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,346.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,389.20</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,319.60</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,470.00</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,466.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,356.40</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,402.20</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,434.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">1,513.40</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#EF4444'}}>CNY 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">185.75</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">190.43</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">188.74</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">201.27</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">201.68</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">189.16</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">196.82</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">204.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">218.70</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#10B981'}}>HKD 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">172.10</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">177.90</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">169.76</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">189.30</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">188.53</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">172.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">180.15</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">184.41</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">193.15</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#8B5CF6'}}>EUR 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,452.93</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,487.07</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,474.06</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,528.73</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,587.85</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,591.80</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,644.50</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">1,685.72</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">1,733.37</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200" style={{color:'#EC4899'}}>TWD 기말</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">42.13</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">42.71</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">41.77</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">44.81</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">44.17</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">46.60</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">46.01</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 ">45.91</td><td className="px-1.5 py-1 text-right tabular-nums border border-slate-100 bg-yellow-50 font-bold">47.21</td></tr><tr><td colSpan="10" className="h-1 bg-slate-100"></td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">USD 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,328.45</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,370.91</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,359.38</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,396.84</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,452.66</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,404.04</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,385.28</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,450.98</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">1,465.16</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">CNY 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">184.56</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">188.93</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">189.23</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">193.98</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">199.33</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">193.99</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">193.54</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">204.65</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">211.61</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">HKD 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">169.88</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">175.36</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">174.27</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">179.67</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">186.73</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">179.93</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">177.12</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">186.56</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">187.54</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">EUR 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,443.10</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,475.88</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,491.65</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,489.10</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,529.33</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,589.40</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,619.25</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">1,688.27</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">1,713.75</td></tr><tr className="border-b border-slate-100"><td className="px-2 py-1 font-medium border border-slate-200 text-slate-600">TWD 평균</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">42.27</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">42.40</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">42.05</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">43.19</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">44.18</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">45.40</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">46.29</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 ">46.70</td><td className="px-1.5 py-1 text-right tabular-nums text-slate-500 border border-slate-100 bg-yellow-50">46.31</td></tr></tbody></table></div><div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-[13px]"><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">USD QoQ +5.5%</span>: 1,434.9 → 1,513.4 · 평균 1,451.0 → 1,465.2</div><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">CNY QoQ +6.8%</span>: 204.76 → 218.70 · 평균 204.65 → 211.61</div><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">HKD QoQ +4.7%</span>: 184.41 → 193.15 · 평균 186.56 → 187.54</div><div className="p-2 bg-rose-50 rounded border border-rose-200"><span className="font-bold text-rose-700">TWD QoQ +2.8%</span>: 45.91 → 47.21 · 평균 46.70 → 46.31</div></div></section><footer className="text-[12px] text-slate-500 text-center pt-2">FY26 1Q FNF 외환손익</footer></div>
               </div>
             )}
 
@@ -9069,10 +9267,11 @@ export default function FnFQ1_2026Dashboard() {
                     </div>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-[11px]" style={{minWidth: '580px'}}>
+                    <table className="w-full text-[11px]" style={{minWidth: '640px'}}>
                       <colgroup>
                         <col style={{width:'32px'}} />
-                        <col style={{width:'56px'}} />
+                        <col style={{width:'52px'}} />
+                        <col style={{width:'62px'}} />
                         <col style={{width:'130px'}} />
                         <col style={{width:'90px'}} />
                         <col style={{width:'90px'}} />
@@ -9083,6 +9282,7 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
                           <th className="text-center px-1 py-2 font-semibold border-r border-zinc-200">No.</th>
                           <th className="text-left px-2 py-2 font-semibold border-r border-zinc-200">구분</th>
+                          <th className="text-center px-1 py-2 font-semibold border-r border-zinc-200">일자</th>
                           <th className="text-right px-2 py-2 font-semibold border-r border-zinc-200">외화</th>
                           <th className="text-right px-2 py-2 font-semibold border-r border-zinc-200">KRW (백만)</th>
                           <th className="text-right px-2 py-2 font-semibold border-r border-zinc-200">매매기준율</th>
@@ -9095,6 +9295,7 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="border-b border-zinc-100 bg-zinc-50/40">
                           <td rowSpan={2} className="text-center px-1 py-2 text-zinc-500 border-r border-zinc-200 align-middle font-bold">①</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">계약일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.01.03</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">120,000,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">23,671</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.26</td>
@@ -9103,6 +9304,7 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-200 bg-zinc-50/40">
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">만기일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.01.31</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">16,354,344</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">23,441</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">1,433.30</td>
@@ -9112,6 +9314,7 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="border-b border-zinc-100">
                           <td rowSpan={2} className="text-center px-1 py-2 text-zinc-500 border-r border-zinc-200 align-middle font-bold">②</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">계약일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.01.03</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">21,500,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">4,241</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.26</td>
@@ -9120,6 +9323,7 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-200">
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">만기일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.01.31</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">21,500,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">4,288</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">199.45</td>
@@ -9129,6 +9333,7 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="border-b border-zinc-100 bg-zinc-50/40">
                           <td rowSpan={2} className="text-center px-1 py-2 text-zinc-500 border-r border-zinc-200 align-middle font-bold">③</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">계약일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.01.23</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">58,000,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">11,460</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.58</td>
@@ -9137,6 +9342,7 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-200 bg-zinc-50/40">
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">만기일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.02.28</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">7,970,317</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">11,474</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">1,439.60</td>
@@ -9146,6 +9352,7 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="border-b border-zinc-100">
                           <td rowSpan={2} className="text-center px-1 py-2 text-zinc-500 border-r border-zinc-200 align-middle font-bold">④</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">계약일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.01.23</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">71,000,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">14,028</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.58</td>
@@ -9154,6 +9361,7 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-200">
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">만기일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.02.28</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">71,000,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">14,016</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.41</td>
@@ -9163,6 +9371,7 @@ export default function FnFQ1_2026Dashboard() {
                         <tr className="border-b border-zinc-100 bg-zinc-50/40">
                           <td rowSpan={2} className="text-center px-1 py-2 text-zinc-500 border-r border-zinc-200 align-middle font-bold">⑤</td>
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">계약일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.02.28</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">78,000,000</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">15,731</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">201.68</td>
@@ -9171,6 +9380,7 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         <tr className="border-b border-zinc-300 bg-zinc-50/40">
                           <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200">만기일</td>
+                          <td className="text-center px-1 py-1.5 text-zinc-400 border-r border-zinc-200 tabular-nums">25.03.31</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">10,701,350</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">15,694</td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">1,466.50</td>
@@ -9178,11 +9388,186 @@ export default function FnFQ1_2026Dashboard() {
                         </tr>
                         {/* 거래손익 합계 */}
                         <tr className="bg-zinc-700 text-white font-semibold">
-                          <td colSpan={6} className="px-3 py-2 text-left text-xs">거래손익 합계 (①~⑤)</td>
+                          <td colSpan={7} className="px-3 py-2 text-left text-xs">거래손익 합계 (①~⑤)</td>
                           <td className="text-right px-2 py-2 tabular-nums text-rose-300">△219</td>
                         </tr>
                       </tbody>
                     </table>
+                  </div>
+                </div>
+
+                {/* 파생상품 평가손익 - 은행별 미결제계약 상세 */}
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="bg-zinc-800 px-3 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">[파생상품 평가손익]</span>
+                      <span className="text-xs text-zinc-300">CNY 선물환 미결제계약 · 은행별 MTM</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-blue-300 bg-blue-900/50 px-2 py-0.5 rounded">25.1Q 기준일 2025-03-31</span>
+                      <span className="text-xs text-zinc-400">단위: 백만원</span>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[11px]" style={{minWidth:'700px'}}>
+                      <thead>
+                        <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
+                          <th className="text-center px-2 py-2 font-semibold border-r border-zinc-200 w-16">은행</th>
+                          <th className="text-left px-2 py-2 font-semibold border-r border-zinc-200">계약번호</th>
+                          <th className="text-right px-2 py-2 font-semibold border-r border-zinc-200">CNY 명목<br/>(M)</th>
+                          <th className="text-right px-2 py-2 font-semibold border-r border-zinc-200">계약환율</th>
+                          <th className="text-right px-2 py-2 font-semibold border-r border-zinc-200">평가환율</th>
+                          <th className="text-center px-2 py-2 font-semibold border-r border-zinc-200">만기일</th>
+                          <th className="text-right px-2 py-2 font-semibold">MTM<br/>(백만원)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* ── KB국민은행 ── */}
+                        <tr className="border-b border-zinc-100 bg-yellow-50/30">
+                          <td rowSpan={6} className="text-center px-1 py-1.5 font-bold border-r border-zinc-200 align-middle text-[10px] leading-tight text-yellow-800">KB<br/>국민은행</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">FWD25030007129</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">123.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">200.35</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">201.75</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-04-30</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△173</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-yellow-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">FWD25030007136</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">46.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">200.43</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.02</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-08-29</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△73</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-yellow-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">FWD25030007143</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">65.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">200.46</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.08</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-09-30</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△104</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-yellow-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">FWD25030007168</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">54.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">200.48</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.16</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-10-31</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△90</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-yellow-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">FWD25030007175</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">100.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">200.52</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.23</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-11-28</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△169</td>
+                        </tr>
+                        <tr className="border-b border-zinc-300 bg-yellow-100/60 font-semibold">
+                          <td className="px-2 py-1.5 text-yellow-800 border-r border-zinc-200 text-[10px]">KB 소계 (CNY 388M)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">388.0</td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-700">△608</td>
+                        </tr>
+                        {/* ── 신한은행 ── */}
+                        <tr className="border-b border-zinc-100 bg-blue-50/30">
+                          <td rowSpan={5} className="text-center px-1 py-1.5 font-bold border-r border-zinc-200 align-middle text-[10px] leading-tight text-blue-800">신한은행</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">841***083550</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">206.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">199.80</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.30</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-11-28</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△514</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-blue-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">841***113884</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">40.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">198.10</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.22</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-10-31</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△165</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-blue-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">841***113902</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">35.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">198.10</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.33</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-12-31</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△148</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-blue-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">841***131996</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">107.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.60</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.15</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-09-30</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△487</td>
+                        </tr>
+                        <tr className="border-b border-zinc-300 bg-blue-100/60 font-semibold">
+                          <td className="px-2 py-1.5 text-blue-800 border-r border-zinc-200 text-[10px]">신한 소계 (CNY 388M)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">388.0</td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-700">△1,314</td>
+                        </tr>
+                        {/* ── 씨티은행 ── */}
+                        <tr className="border-b border-zinc-100 bg-rose-50/30">
+                          <td rowSpan={5} className="text-center px-1 py-1.5 font-bold border-r border-zinc-200 align-middle text-[10px] leading-tight text-rose-800">씨티은행</td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">19525013004093</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">229.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">199.71</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">201.76</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-04-30</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△470</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-rose-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">19525017005234</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">25.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">198.10</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">201.95</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-07-31</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△96</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-rose-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">19525021003227</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">95.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.55</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.00</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-08-29</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△423</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 bg-rose-50/30">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 font-mono text-[10px]">19525021003342</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-200">44.0</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">197.50</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">202.12</td>
+                          <td className="text-center px-2 py-1.5 text-zinc-500 border-r border-zinc-200">2025-10-31</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-600">△203</td>
+                        </tr>
+                        <tr className="border-b border-zinc-300 bg-rose-100/60 font-semibold">
+                          <td className="px-2 py-1.5 text-rose-800 border-r border-zinc-200 text-[10px]">씨티 소계 (CNY 393M)</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">393.0</td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="border-r border-zinc-200"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-rose-700">△1,192</td>
+                        </tr>
+                        {/* ── 3개 은행 합계 ── */}
+                        <tr className="bg-zinc-700 text-white font-bold">
+                          <td colSpan={2} className="px-3 py-2 text-left text-xs">평가손익 합계 (KB+신한+씨티)</td>
+                          <td className="text-right px-2 py-2 tabular-nums text-zinc-200 border-r border-zinc-600">1,169.0</td>
+                          <td colSpan={3} className="border-r border-zinc-600"></td>
+                          <td className="text-right px-2 py-2 tabular-nums text-rose-300">△3,114</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-200 text-[10px] text-zinc-500 leading-relaxed">
+                    * KB: 계약일 2025-03-10 선물환 5건 (평가환율 은행 제공) &nbsp;|&nbsp; 신한: 계약일 2025-01~02월 선물환 4건 (평가환율 미제공) &nbsp;|&nbsp; 씨티: 계약일 2025-01월 선물환 4건 (평가환율 미제공) &nbsp;|&nbsp; 기준일: 2025-03-31
                   </div>
                 </div>
 
@@ -9204,7 +9589,7 @@ export default function FnFQ1_2026Dashboard() {
                       </tr>
                       <tr className="border-b border-zinc-200 hover:bg-zinc-50">
                         <td className="px-4 py-2 text-zinc-700 border-r border-zinc-200">평가손익</td>
-                        <td className="text-right px-4 py-2 tabular-nums font-medium text-rose-600 border-r border-zinc-200">△3,115</td>
+                        <td className="text-right px-4 py-2 tabular-nums font-medium text-rose-600 border-r border-zinc-200">△3,114</td>
                         <td className="text-right px-4 py-2 tabular-nums text-zinc-400 text-[11px]">해당손익 없음</td>
                       </tr>
                       <tr className="bg-zinc-800 text-white font-bold">
@@ -9217,6 +9602,91 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
 
                 <p className="text-xs text-zinc-400">* 25.1Q 기준 | 매매기준율: 25.01.31 / 25.02.28 / 25.03.31 적용 | 평가손익: 기말 미결제 계약 공정가치 평가 | 26.1Q: 선물환 계약 없음</p>
+              </div>
+            )}
+
+            {/* ─── 금융상품손익 이노빅스 평가 비교표 ─── */}
+            {selectedNonOpAccount === '금융상품손익' && (
+              <div className="mt-5">
+                <div className="bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+                  <div className="bg-zinc-800 px-3 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">[이노빅스(상장주식) 평가손익]</span>
+                      <span className="text-xs text-zinc-300">르네PEF 투자자산 매각 후 매각대가 평가 · OC(국내)</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-zinc-300">F&amp;F 지분율 6.32%</span>
+                      <span className="text-xs text-zinc-400">단위: 원</span>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[12px]">
+                      <thead>
+                        <tr className="bg-zinc-100 border-b border-zinc-200 text-zinc-600">
+                          <th className="text-left px-3 py-2 font-semibold border-r border-zinc-200 w-40">항목</th>
+                          <th className="text-right px-3 py-2 font-semibold border-r border-zinc-200 bg-blue-50/60 text-blue-700">25.1Q</th>
+                          <th className="text-right px-3 py-2 font-semibold bg-emerald-50/60 text-emerald-700">26.1Q</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-zinc-100 bg-zinc-50/60">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200 font-medium">F&amp;F 지분율</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-blue-700 font-semibold border-r border-zinc-200">6.32%</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-blue-700 font-semibold">6.32%</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">기준일 (장부)</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500 border-r border-zinc-200">2025-01-16</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-500">2025-12-31</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">장부가액</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,724,078,728</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">286,532,478</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-zinc-50/40 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">보유주식수</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,173,521 주</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">432,521 주</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 bg-zinc-50/40 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">이노빅스 주가</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums border-r border-zinc-200">
+                            <span className="text-rose-600 font-medium">7.34 $</span>
+                            <span className="text-[10px] text-zinc-400 ml-1">주가↓</span>
+                          </td>
+                          <td className="text-right px-3 py-1.5 tabular-nums">
+                            <span className="text-rose-600 font-medium">5.18 $</span>
+                            <span className="text-[10px] text-zinc-400 ml-1">주가↓</span>
+                          </td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">매매기준율</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">1,466.50 원</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">1,513.40 원</td>
+                        </tr>
+                        <tr className="border-b border-zinc-100 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">평가액 (전체)</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">12,631,909,131</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">3,390,710,318</td>
+                        </tr>
+                        <tr className="border-b border-zinc-200 hover:bg-zinc-50">
+                          <td className="px-3 py-1.5 text-zinc-600 border-r border-zinc-200">F&amp;F 지분 평가액</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">797,804,787</td>
+                          <td className="text-right px-3 py-1.5 tabular-nums text-zinc-700">214,150,125</td>
+                        </tr>
+                        <tr className="bg-zinc-800 text-white font-bold">
+                          <td className="px-3 py-2">당기 인식 손익</td>
+                          <td className="text-right px-3 py-2 tabular-nums text-rose-300 border-r border-zinc-600">△926백만</td>
+                          <td className="text-right px-3 py-2 tabular-nums text-rose-300">△72백만</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-200 text-[10px] text-zinc-500 leading-relaxed">
+                    * 르네PEF가 보유하던 이노빅스(Innovix) 상장주식을 매각대가로 수령 후 기말 공정가치 평가 &nbsp;|&nbsp; 주가 하락 및 환율 변동에 따른 평가손실 인식 &nbsp;|&nbsp; 26.1Q 보유주식수 감소는 일부 처분 반영
+                  </div>
+                </div>
               </div>
             )}
 
@@ -11528,48 +11998,113 @@ export default function FnFQ1_2026Dashboard() {
                       </table>
                     </div>
 
-                    {/* 추세 분석 시사점 */}
-                    {nwcTrendInsights.length > 0 && (
-                      <div className="rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
-                        <p className="text-[11px] font-semibold text-emerald-800 mb-1.5">추세 분석 시사점</p>
-                        <ul className="space-y-1">
-                          {nwcTrendInsights.map((t, i) => (
-                            <li key={i} className="flex gap-1.5 text-[11px] text-emerald-900 leading-relaxed">
-                              <span className="shrink-0 font-bold text-emerald-500">{i + 1}.</span>
-                              <span>{t}</span>
-                            </li>
-                          ))}
+                    {/* ══ 영업운전자본(NWC) 분석 ══ */}
+                    <div className="space-y-3">
+
+                      {/* 섹션 타이틀 */}
+                      <p className="text-[11px] font-bold text-zinc-800 border-b border-zinc-200 pb-1">영업운전자본(NWC) 분석 <span className="text-zinc-400 font-normal">(26.1Q 기준)</span></p>
+
+                      {/* 1. Executive Summary */}
+                      <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5">
+                        <p className="text-[11px] font-bold text-emerald-800 mb-1.5">1. Executive Summary (핵심 요약)</p>
+                        <ul className="space-y-0.5 mb-2">
+                          <li className="text-[11px] text-emerald-900 leading-relaxed">· NWC 4,580억 <span className="font-semibold">(+44% YoY, +2% QoQ)</span></li>
+                          <li className="text-[11px] text-emerald-900 leading-relaxed">· CCC 168일 <span className="font-semibold">(+34일 YoY)</span> → 현금 회수 사이클 장기화</li>
+                          <li className="text-[11px] text-emerald-900 leading-relaxed">· 핵심 이슈: 중국 중심 재고·채권 증가 + 매입채무 감소</li>
                         </ul>
+                        <p className="text-[11px] text-emerald-800 font-semibold bg-emerald-100 rounded px-2 py-1">
+                          👉 "운영 효율 일부 개선에도 불구, 현금 유출 구조 심화"
+                        </p>
                       </div>
-                    )}
 
-                    {/* 리스크 & 이상징후 */}
-                    <div>
-                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">리스크 &amp; 이상징후 <span className="font-normal text-zinc-400 text-[10px]">(전년동기 YoY 대비)</span></p>
-                      <ul className="space-y-1.5">
-                        {nwcRisks.map((r, i) => (
-                          <li key={i} className={`text-[11px] rounded-lg px-3 py-2 leading-relaxed font-medium ${
-                            r.level === 'red'    ? 'bg-rose-50 text-rose-700 border border-rose-100' :
-                            r.level === 'orange' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                            r.level === 'info'   ? 'bg-blue-50 text-blue-700 border border-blue-100 font-normal' :
-                            'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                          }`}>{r.text}</li>
-                        ))}
-                      </ul>
-                    </div>
+                      {/* 2. QoQ 변화 */}
+                      <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2.5">
+                        <p className="text-[11px] font-bold text-blue-800 mb-1.5">2. QoQ 변화 (25.4Q → 26.1Q) <span className="font-normal text-blue-600">[단기 이슈]</span></p>
+                        <div className="space-y-1.5 mb-2">
+                          <div className="text-[11px] leading-relaxed">
+                            <span className="font-semibold text-blue-700">재고 (DIO):</span>
+                            <span className="text-blue-900"> 200일 → 177일</span>
+                            <span className="ml-1 text-emerald-600 font-medium">✔ 재고 효율 개선</span>
+                          </div>
+                          <div className="text-[11px] leading-relaxed">
+                            <span className="font-semibold text-blue-700">매출채권 (DSO):</span>
+                            <span className="text-blue-900"> 24일 → 24일</span>
+                            <span className="ml-1 text-emerald-600 font-medium">✔ 안정적 유지</span>
+                          </div>
+                          <div className="text-[11px] leading-relaxed">
+                            <span className="font-semibold text-blue-700">매입채무 (DPO):</span>
+                            <span className="text-blue-900"> 52일 → 34일</span>
+                            <span className="ml-1 text-rose-600 font-medium">🚨 지급 가속 (현금 유출 증가)</span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-blue-800 font-semibold bg-blue-100 rounded px-2 py-1">
+                          👉 "재고는 줄였으나, 결제 조기화로 현금 방어 실패"
+                        </p>
+                      </div>
 
-                    {/* 개선 방향 */}
-                    <div>
-                      <p className="text-[11px] font-semibold text-zinc-700 mb-1.5">개선 방향</p>
-                      <ul className="space-y-1.5">
-                        {nwcSolutions.map((s, i) => (
-                          <li key={i} className="flex gap-2 text-[11px] text-zinc-700 leading-relaxed bg-zinc-50 rounded-lg px-3 py-2 border border-zinc-100">
-                            <span className="text-emerald-500 font-bold shrink-0">{i + 1}.</span>
-                            <span>{s}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                      {/* 3. YoY 변화 */}
+                      <div className="rounded-lg bg-violet-50 border border-violet-200 px-3 py-2.5">
+                        <p className="text-[11px] font-bold text-violet-800 mb-1.5">3. YoY 변화 (25.1Q → 26.1Q) <span className="font-normal text-violet-600">[구조적 변화]</span></p>
+                        <div className="space-y-0.5 mb-2">
+                          <p className="text-[11px] text-violet-900">· NWC <span className="font-semibold">+1,408억 (+44%)</span></p>
+                          <p className="text-[11px] text-violet-900">· CCC <span className="font-semibold">+34일</span> (134 → 168일)</p>
+                          <p className="text-[11px] font-semibold text-violet-700 mt-1">구성 요인</p>
+                          <p className="text-[11px] text-violet-900">· 매출채권: +655억 (중국 +706억)</p>
+                          <p className="text-[11px] text-violet-900">· 재고: +666억 (중국 +1,269억)</p>
+                          <p className="text-[11px] text-violet-900">· 매입채무: -87억</p>
+                        </div>
+                        <p className="text-[11px] text-violet-800 font-semibold bg-violet-100 rounded px-2 py-1">
+                          👉 "중국 중심으로 운전자본이 구조적으로 확대되는 추세"
+                        </p>
+                      </div>
+
+                      {/* 4. 핵심 리스크 진단 */}
+                      <div>
+                        <p className="text-[11px] font-bold text-zinc-800 mb-1.5">4. 핵심 리스크 진단</p>
+                        <div className="space-y-1.5">
+                          <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2">
+                            <p className="text-[11px] font-bold text-rose-700 mb-0.5">🔴 1) 재고 리스크 (가장 중요)</p>
+                            <p className="text-[11px] text-rose-800">· DIO 177일 (업계 대비 과다)</p>
+                            <p className="text-[11px] text-rose-800">· 시즌 재고 누적 가능성</p>
+                            <p className="text-[11px] text-rose-700 font-semibold mt-1">👉 손상 / 할인 판매 압력 확대 가능성</p>
+                          </div>
+                          <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                            <p className="text-[11px] font-bold text-amber-700 mb-0.5">🟠 2) 매출채권 질 저하 가능성</p>
+                            <p className="text-[11px] text-amber-800">· DSO YoY +9일</p>
+                            <p className="text-[11px] text-amber-800">· 중국 채권 증가</p>
+                            <p className="text-[11px] text-amber-700 font-semibold mt-1">👉 채권 고령화 및 회수 지연 가능성</p>
+                          </div>
+                          <div className="rounded-lg bg-rose-50 border border-rose-200 px-3 py-2">
+                            <p className="text-[11px] font-bold text-rose-700 mb-0.5">🔴 3) 현금 방어력 약화</p>
+                            <p className="text-[11px] text-rose-800">· DPO 34일 (QoQ -18일)</p>
+                            <p className="text-[11px] text-rose-700 font-semibold mt-1">👉 협상력 약화 또는 결제 조건 불리화</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 5. Action Plan */}
+                      <div>
+                        <p className="text-[11px] font-bold text-zinc-800 mb-1.5">5. Action Plan (즉시 실행 과제)</p>
+                        <div className="space-y-1.5">
+                          <div className="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
+                            <p className="text-[11px] font-bold text-zinc-700 mb-0.5">① 매출채권</p>
+                            <p className="text-[11px] text-zinc-600">· 30·60·90일 Aging 분석</p>
+                            <p className="text-[11px] text-zinc-600">· 중국 주요 거래처 회수 KPI 설정</p>
+                          </div>
+                          <div className="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
+                            <p className="text-[11px] font-bold text-zinc-700 mb-0.5">② 재고</p>
+                            <p className="text-[11px] text-zinc-600">· SKU별 회전율 점검</p>
+                            <p className="text-[11px] text-zinc-600">· 시즌 재고 조기 소진 (프로모션/반품 정책)</p>
+                          </div>
+                          <div className="rounded-lg bg-zinc-50 border border-zinc-200 px-3 py-2">
+                            <p className="text-[11px] font-bold text-zinc-700 mb-0.5">③ 매입채무</p>
+                            <p className="text-[11px] text-zinc-600">· 주요 공급업체 결제조건 재협상</p>
+                            <p className="text-[11px] text-emerald-700 font-semibold">👉 목표: DPO 30 → 45일</p>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>{/* /NWC 분석 */}
 
                     </div>{/* /우 컬럼 */}
                   </div>{/* /2열 grid */}
