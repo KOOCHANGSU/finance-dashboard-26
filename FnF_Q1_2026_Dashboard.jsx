@@ -11133,6 +11133,31 @@ export default function FnFQ1_2026Dashboard() {
                       </tr>
                     </tbody>
                   </table>
+                  {/* 해외사업환산 설명 */}
+                  <div className="px-4 py-3 bg-sky-50/60 border-t border-sky-100 text-[10px] text-zinc-600 leading-relaxed space-y-1.5">
+                    <div className="flex items-start gap-1">
+                      <span className="font-bold text-sky-700 flex-shrink-0">※ 해외사업환산 :</span>
+                      <span>해외사업장 외화가치가 환율변동에 따라, 원화가치의 변동금액 + P&amp;L(평균환율)과 B/S(기말환율)의 차이조정</span>
+                    </div>
+                    <div className="pl-3 space-y-1 text-zinc-500">
+                      <div className="flex items-start gap-1">
+                        <span className="flex-shrink-0 font-semibold text-zinc-600">1.</span>
+                        <span>자산과 부채는 각 항목별 동일하게 환율변동만큼 변경되나, 자본은 외화기준이 아닌 원화(역사적환율)를 기초로 함.</span>
+                      </div>
+                      <div className="flex items-start gap-1">
+                        <span className="flex-shrink-0 font-semibold text-zinc-600">2.</span>
+                        <span>외화표시 자본의 환율변동에 따른 변동을 각 항목에 반영하지 않고, 기타포괄손익 해외사업장손익으로 반영</span>
+                      </div>
+                    </div>
+                    <div className="pl-3 flex items-start gap-1 text-zinc-500">
+                      <span className="flex-shrink-0 text-zinc-400">▷</span>
+                      <span>
+                        <span className="font-semibold text-zinc-600">(예시)</span>
+                        {' '}중국 기초 자본 CNY 5.5억 (25기말 @204.76) → 26.1Q +12.94(@218.70)원 변동효과
+                        {' '}<span className="font-semibold text-emerald-700">+71.2억</span> 해외사업장 환산이익으로 반영됨
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
               
