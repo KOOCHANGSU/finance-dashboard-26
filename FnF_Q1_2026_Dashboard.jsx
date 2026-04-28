@@ -6942,6 +6942,7 @@ export default function FnFQ1_2026Dashboard() {
     const getEntityDisplayName = (entity) => {
       if (selectedAccount === '매출액' && entity === '기타') return '기타(임대/외식 등)';
       if (selectedAccount === '영업이익' && entity === 'OC(국내)') return 'OC(별도)';
+      if (selectedAccount === '매출원가' && entity === 'OC(국내)') return 'OC(국내+제3자수출)';
       return entity;
     };
 
