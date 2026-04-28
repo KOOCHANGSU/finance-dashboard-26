@@ -10281,7 +10281,7 @@ export default function FnFQ1_2026Dashboard() {
                     </table>
                   </div>
                   <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-200 text-[10px] text-zinc-500 leading-relaxed">
-                    * 르네PEF가 보유하던 이노빅스(Innovix) 상장주식을 매각대가로 수령 후 기말 공정가치 평가 &nbsp;|&nbsp; 주가 하락 및 환율 변동에 따른 평가손실 인식 &nbsp;|&nbsp; 26.1Q 보유주식수 감소는 일부 처분 반영
+                    * 르네PEF 투자자산 매각대가로 수취한 이노빅스(Innovix) 상장주식을 기말 공정가치 평가 &nbsp;|&nbsp; 주가 하락 및 환율 변동에 따른 평가손실 인식 &nbsp;|&nbsp; 26.1Q 보유주식수 감소는 일부 처분 반영
                   </div>
                 </div>
               </div>
