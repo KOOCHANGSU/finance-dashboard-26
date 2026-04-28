@@ -12212,16 +12212,6 @@ export default function FnFQ1_2026Dashboard() {
                             ],
                           },
                           {
-                            label: 'NWC / 매출', val: nwcPctRev != null ? `${nwcPctRev}%` : '—',
-                            color: nwcPctRev != null ? (nwcPctRev < 20 ? 'text-emerald-600' : nwcPctRev > 40 ? 'text-rose-600' : 'text-zinc-700') : 'text-emerald-700',
-                            rows: (() => {
-                              if (nwcPctRev == null) return [{ tag: '집약도', v: '' }];
-                              if (nwcPctRev < 20)  return [{ tag: '▲ 긍정', v: '효율적 자금 운용' }];
-                              if (nwcPctRev <= 40) return [{ tag: '◆ 보통', v: '업계 평균 수준' }];
-                              return [{ tag: '▼ 부정', v: '현금 묶임 과다', warn: true }];
-                            })(),
-                          },
-                          {
                             label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
                             color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800',
                             rows: [
