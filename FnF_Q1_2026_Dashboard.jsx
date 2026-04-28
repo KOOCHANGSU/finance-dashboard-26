@@ -9193,6 +9193,162 @@ export default function FnFQ1_2026Dashboard() {
                           <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
                           <td className="text-right px-2 py-1.5 tabular-nums text-blue-800">1,569</td>
                         </tr>
+                        {/* ─── 중국 법인 단기차입금 ─── */}
+                        {/* Bank of China */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td rowSpan={8} className="px-1.5 py-1.5 text-zinc-700 font-medium border-r border-zinc-100 align-top text-[10px] leading-tight bg-amber-50/20">
+                            중국<br/>법인<br/><span className="text-zinc-400 font-normal">단기<br/>차입금</span>
+                          </td>
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            중국은행<br/><span className="text-zinc-400">Bank of China</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.0억</div>
+                            <div className="text-zinc-400">신규 0.5+0.5</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">25.01.24~<br/>25.04.01</td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.46억</div>
+                            <div className="text-zinc-400">1억+0.46억</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.01.28~<br/>26.03.27</td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* ICBC 공상은행 */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            공상은행<br/><span className="text-zinc-400">ICBC</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-100 text-[10px]">—</td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 text-[10px] border-r border-zinc-100">—</td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">CNY 1.0억</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.03.27<br/><span className="text-zinc-300">@2.08%</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* Everbright 광대은행 */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            광대은행<br/><span className="text-zinc-400">Everbright</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 3.0억</div>
+                            <div className="text-zinc-400">이월1.5+신규1.5</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">이월~25.02.25<br/>신규 25.04.01</td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">CNY 1.3억</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.03.27<br/><span className="text-zinc-300">@2.08%</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* CMB 초상은행 */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            초상은행<br/><span className="text-zinc-400">CMB</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 0.4억</div>
+                            <div className="text-zinc-400">전기이월</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">~25.01.27<br/><span className="text-zinc-300">이월상환</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.5억</div>
+                            <div className="text-zinc-400">0.5억+1억</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.01.28~<br/>26.02.26</td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* Shinhan China 신한(중국) */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            신한(중국)<br/><span className="text-zinc-400">Shinhan China</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.6억</div>
+                            <div className="text-zinc-400">이월0.8+신규0.8</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">25.01.27~<br/>25.07.24<br/><span className="text-zinc-300">@2.15%</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.04억</div>
+                            <div className="text-zinc-400">0.6+0.04+0.4</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.01.29~<br/>26.06.10<br/><span className="text-zinc-300">@2.20~2.30%</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* KDB China 산업은행(중국) */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            산업은행(중국)<br/><span className="text-zinc-400">KDB China</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.1억</div>
+                            <div className="text-zinc-400">전기이월</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">~25.03.28<br/><span className="text-zinc-300">이월상환</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.4억</div>
+                            <div className="text-zinc-400">1억+0.4억</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.08.26<br/><span className="text-zinc-300">@2.30%</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* KB China KB국민(중국) */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/40">
+                          <td className="px-2 py-1.5 text-zinc-600 border-r border-zinc-200 text-[10px] leading-tight">
+                            KB국민(중국)<br/><span className="text-zinc-400">KB China</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">
+                            <div>CNY 1.2억</div>
+                            <div className="text-zinc-400">전기이월</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">~25.02.26<br/><span className="text-zinc-300">이월상환</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400 border-r border-zinc-200">—</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-600 border-r border-zinc-100 text-[10px]">CNY 1.4억</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-400 text-[10px] border-r border-zinc-100 leading-tight">26.03.09<br/><span className="text-zinc-300">@2.25%</span></td>
+                          <td className="text-right px-2 py-1.5 text-zinc-400">—</td>
+                        </tr>
+                        {/* 중국 단기차입금 계 */}
+                        <tr className="border-b border-zinc-200 bg-amber-50/50 font-medium">
+                          <td className="px-2 py-1.5 text-zinc-700 border-r border-zinc-200 text-[10px]">
+                            계<br/><span className="text-zinc-400 font-normal">총 CNY 9.1억</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-800 border-r border-zinc-200">515</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-emerald-700">1,044</td>
+                        </tr>
+                        {/* 중국 리스부채 */}
+                        <tr className="border-b border-zinc-100 hover:bg-amber-50/30">
+                          <td colSpan={2} className="px-3 py-1.5 text-zinc-700 font-medium border-r border-zinc-200 text-[10px]">
+                            중국 리스부채<br/><span className="text-zinc-400 font-normal">@CNY 211.61(26) / 199.33(25)</span>
+                          </td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-zinc-700 border-r border-zinc-200">499</td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums font-medium text-emerald-700">336</td>
+                        </tr>
+                        {/* 중국 계 */}
+                        <tr className="border-b border-zinc-200 bg-amber-100/60 font-semibold">
+                          <td colSpan={2} className="px-3 py-1.5 text-amber-900 border-r border-zinc-200">중국 법인 계</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-amber-800 border-r border-zinc-100">
+                            <div className="text-[10px] text-zinc-500 font-normal">CNY 9.1억</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-amber-900 border-r border-zinc-200">1,013</td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-amber-800 border-r border-zinc-100">
+                            <div className="text-[10px] text-zinc-500 font-normal">CNY 9.1억</div>
+                          </td>
+                          <td className="text-right px-2 py-1.5 border-r border-zinc-100"></td>
+                          <td className="text-right px-2 py-1.5 tabular-nums text-amber-900">1,380</td>
+                        </tr>
                         {/* 기타(연결조정) */}
                         <tr className="border-b border-zinc-100 hover:bg-zinc-50">
                           <td rowSpan={2} className="px-3 py-1.5 text-zinc-600 border-r border-zinc-100 align-top text-[10px] leading-tight">기타<br/>(연결<br/>조정)</td>
