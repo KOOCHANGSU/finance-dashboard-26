@@ -8269,6 +8269,67 @@ export default function FnFQ1_2026Dashboard() {
               </div>
             );
           })()}
+
+          {/* ── 국내 매출원가율 증감내역 (매출원가 선택 시) ── */}
+          {selectedAccount === '매출원가' && (
+            <div className="mt-4 bg-white rounded-lg border border-zinc-200 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between bg-zinc-50 px-3 py-2 border-b border-zinc-200">
+                <h3 className="text-sm font-semibold text-zinc-800">국내 매출원가율 증감내역</h3>
+                <span className="text-[11px] text-zinc-400">(단위: 백만원)</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[11px] whitespace-nowrap">
+                  <thead>
+                    <tr className="bg-zinc-50 border-b border-zinc-200">
+                      <th rowSpan={2} className="px-2 py-1.5 text-left font-semibold text-zinc-700 border-r border-zinc-200 sticky left-0 bg-zinc-50 min-w-[80px]">구분</th>
+                      <th colSpan={5} className="px-2 py-1 text-center font-semibold text-zinc-600 border-r border-zinc-200">25.1Q</th>
+                      <th colSpan={5} className="px-2 py-1 text-center font-semibold text-emerald-700 border-r border-zinc-200">26.1Q</th>
+                      <th colSpan={5} className="px-2 py-1 text-center font-semibold text-blue-700">차이</th>
+                    </tr>
+                    <tr className="bg-zinc-50 border-b border-zinc-200 text-zinc-500">
+                      {['M','MK','DX','기타','계(국내)','M','MK','DX','기타','계(국내)','M','MK','DX','기타','계(국내)'].map((h, i) => (
+                        <th key={i} className={`px-2 py-1 text-center font-medium min-w-[52px] ${[4,9].includes(i) ? 'border-r border-zinc-200 bg-zinc-100/60' : ''}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { label: '매출(V-)',     vals: ['84,755','19,523','89,190','7,418','200,886','91,461','22,583','87,216','8,646','209,905','6,706','3,060','-1,974','1,228','9,019'],   isAmt: true },
+                      { label: '생산원가',     vals: ['21,809','8,410','29,323','3,222','62,764','22,223','9,676','31,534','2,790','66,223','413','1,266','2,212','-432','3,459'],           isAmt: true },
+                      { label: '원가율',       vals: ['25.7%','43.1%','32.9%','43.4%','31.2%','24.3%','42.8%','36.2%','32.3%','31.5%','-1.4%','-0.2%','3.3%','-11.2%','0.3%'],           isAmt: false },
+                      { label: '(TAG대비)',    vals: ['19.3%','25.9%','23.3%','24.6%','22.1%','19.0%','26.5%','24.8%','22.5%','22.6%','-0.3%','0.6%','1.5%','-2.1%','0.5%'],              isAmt: false, sub: true },
+                      { label: '재고평가',     vals: ['742','424','1,692','967','3,825','1,317','1,199','820','1,442','4,778','574','775','-872','475','953'],                               isAmt: true },
+                      { label: '원가율(추가)', vals: ['0.9%','2.2%','1.9%','13.0%','1.9%','1.4%','5.3%','0.9%','16.7%','2.3%','0.6%','3.1%','-1.0%','3.6%','0.4%'],                      isAmt: false },
+                      { label: '비중',         vals: ['42.2%','9.7%','44.4%','3.7%','100.0%','43.6%','10.8%','41.6%','4.1%','100.0%','1.4%','1.0%','-2.8%','0.4%','0.0%'],               isAmt: false },
+                      { label: '원가율×비중',  vals: ['11.2%','4.4%','15.4%','2.1%','33.1%','11.2%','5.2%','15.4%','2.0%','33.8%','0.0%','0.8%','0.0%','-0.1%','0.7%'],                  isAmt: false },
+                    ].map((row, ri) => (
+                      <tr key={ri} className={`border-b border-zinc-100 ${row.sub ? 'bg-zinc-50/60' : ''}`}>
+                        <td className={`px-2 py-1 border-r border-zinc-200 font-medium sticky left-0 bg-white ${row.sub ? 'pl-5 text-zinc-500 text-[10px]' : 'text-zinc-700'}`}>{row.label}</td>
+                        {row.vals.map((v, vi) => {
+                          const isDiff = vi >= 10;
+                          const num = parseFloat(v.replace(/[%,]/g, ''));
+                          const isNeg = !isNaN(num) && num < 0;
+                          const isPos = !isNaN(num) && num > 0;
+                          const diffColor = isDiff
+                            ? (isNeg ? 'text-rose-600 font-semibold' : isPos ? 'text-emerald-600 font-semibold' : 'text-zinc-500')
+                            : 'text-zinc-700';
+                          const isSummaryCol = [4, 9, 14].includes(vi);
+                          return (
+                            <td key={vi} className={`px-2 py-1 text-right tabular-nums ${diffColor} ${isSummaryCol ? 'font-bold border-r border-zinc-200 bg-zinc-50/60' : ''}`}>
+                              {v}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-3 py-1.5 bg-zinc-50 border-t border-zinc-100">
+                <p className="text-[10px] text-zinc-400 leading-relaxed">※ MK 26.1Q 1년차(25F/25S) 재고원가율 전년 동기대비 평균 +1.4%(24.5%/22.1%→25.6%/23.8%)증가 + 평가율 +1% 증가로 재고(TAG가) 373억 × 2.4%(1.4+1.0) /1.1 = 8.1억 증가</p>
+              </div>
+            </div>
+          )}
         </div>
         )}
         </>
