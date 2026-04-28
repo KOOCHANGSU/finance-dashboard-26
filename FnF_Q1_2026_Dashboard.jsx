@@ -11336,6 +11336,7 @@ export default function FnFQ1_2026Dashboard() {
                         <span className="font-semibold text-zinc-600">(예시)</span>
                         {' '}중국 기초 자본 CNY 5.5억 (25기말 @204.76) → 26.1Q +12.94(@218.70)원 변동효과
                         {' '}<span className="font-semibold text-emerald-700">+71.2억</span> 해외사업장 환산이익으로 반영됨
+                        {' '}<span className="font-semibold text-sky-600">&gt;&gt; 해외사업환산효과를 당기손익으로 인식하지 않는 이유</span>
                       </span>
                     </div>
                   </div>
