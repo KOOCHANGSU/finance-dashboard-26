@@ -9087,12 +9087,12 @@ export default function FnFQ1_2026Dashboard() {
                           <td colSpan={2} className="px-3 py-2 text-emerald-800 border-r border-zinc-200">연결 합계</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
-                          <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 tabular-nums text-emerald-700 border-r border-zinc-200 text-sm">1,014</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 border-r border-zinc-100 text-zinc-400">—</td>
                           <td className="text-right px-2 py-2 tabular-nums text-emerald-700 text-sm">2,057</td>
+                          <td className="text-right px-2 py-2 text-zinc-400">—</td>
                         </tr>
                       </tbody>
                     </table>
