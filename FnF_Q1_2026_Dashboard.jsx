@@ -12211,6 +12211,7 @@ export default function FnFQ1_2026Dashboard() {
                               { tag: `전년동기(${yoyQLabel})`, v: nwcYoY > 0 ? `${formatNumber(Math.round(nwcYoY/100))}억` : '—' },
                             ],
                           },
+                          null,
                           {
                             label: 'DSO (매출채권 회수일)', val: dsoNWC != null ? `${Math.round(dsoNWC)}일` : '—',
                             color: dsoNWC != null && dsoPrev != null && dsoNWC > dsoPrev ? 'text-rose-600' : 'text-zinc-800',
@@ -12248,6 +12249,7 @@ export default function FnFQ1_2026Dashboard() {
                             bench: '90~150일', benchLow: 90, benchHigh: 150, lowerBetter: true,
                           },
                         ].map((k, i) => {
+                          if (k === null) return <div key={i} className="rounded-lg border border-zinc-100 bg-zinc-50 px-2.5 py-2.5" />;
                           const numVal = k.bench ? parseFloat(k.val) : null;
                           const benchGood = numVal != null && k.bench && (k.lowerBetter ? numVal < k.benchLow : numVal > k.benchHigh);
                           const benchBad  = numVal != null && k.bench && (k.lowerBetter ? numVal > k.benchHigh : numVal < k.benchLow);
