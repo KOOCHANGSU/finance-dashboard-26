@@ -6938,9 +6938,9 @@ export default function FnFQ1_2026Dashboard() {
       ? currPeriod.replace('_', '.')   // e.g. 2026_1Q → 2026.1Q
       : currPeriod.split('_')[0] + '년'; // e.g. 2026_Year → 2026년
 
-    // 매출액 법인 표시명 매핑 (기타 → 기타(임대/외식 등))
+    // 법인 표시명 매핑
     const getEntityDisplayName = (entity) => {
-      if (selectedAccount === '매출액' && entity === '기타') return '기타(임대/외식 등)';
+      if (['매출액','매출원가','매출총이익'].includes(selectedAccount) && entity === '기타') return '기타(연결조정)';
       if (selectedAccount === '영업이익' && entity === 'OC(국내)') return 'OC(별도)';
       if (selectedAccount === '영업이익' && entity === '기타(연결조정)') return '수출,판매분 이익 조정';
       if (selectedAccount === '매출원가' && entity === 'OC(국내)') return 'OC(국내+제3자수출)';
