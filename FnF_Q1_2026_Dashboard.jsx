@@ -1174,7 +1174,7 @@ export default function FnFQ1_2026Dashboard() {
     let cancelled = false;
     async function loadPlTrend() {
       try {
-        const text = await fetchCsvTextWithFallback('/매출,영업이익 추이.csv');
+        const text = await fetchCsvTextWithFallback('/sales_op_trend.csv');
         const rows = parseCsvText(text);
         if (!rows || rows.length < 3) return;
         // rows[0] = 빈 헤더, rows[1] = [구분, 매출액, 영업이익, 영업이익률], rows[2+] = data
@@ -1293,9 +1293,9 @@ export default function FnFQ1_2026Dashboard() {
     async function loadEntityCsvLookup() {
       try {
         const [is24, is25, is26, bs24, bs25, bs26] = await Promise.all([
-          fetchCsvTextWithFallback('/2024 분기IS_법인별.csv'),
-          fetchCsvTextWithFallback('/2025_분기IS_법인별.csv'),
-          fetchCsvTextWithFallback('/2026_분기IS_법인별.csv'),
+          fetchCsvTextWithFallback('/2024_entity_is.csv'),
+          fetchCsvTextWithFallback('/2025_entity_is.csv'),
+          fetchCsvTextWithFallback('/2026_entity_is.csv'),
           fetchCsvTextWithFallback('/2024_BS.csv'),
           fetchCsvTextWithFallback('/2025_BS.csv'),
           fetchCsvTextWithFallback('/2026_BS.csv'),
