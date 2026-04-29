@@ -7983,6 +7983,48 @@ export default function FnFQ1_2026Dashboard() {
                         <Row label={`${prevLbl} GM`} value={pct1(gmP)} sub />
                         <Row label={`${currLbl} GM`} value={pct1(gmC)} sub />
                       </div>
+
+                      {/* 매출총이익 성장률 분해 */}
+                      {(() => {
+                        const gpP = salesP - cogsP;
+                        const gpC = salesC - cogsC;
+                        const gpGrowth = gpP ? (gpC - gpP) / gpP : 0;  // 실제 GP 증가율
+                        // 분해: g(GP) = s + ΔGM/GMp + s×(ΔGM/GMp)
+                        const marginEffect = gmP ? deltaGM / gmP : 0;   // ② 마진 개선 효과
+                        const crossEffect  = s * marginEffect;           // ③ 교차항
+                        const explained    = s + marginEffect + crossEffect;
+                        return (
+                          <div className="border-t border-zinc-100 mt-2 pt-2">
+                            <p className="text-[10px] font-semibold text-zinc-600 mb-1">매출총이익 성장률 분해</p>
+                            <table className="w-full" style={{fontSize:'10px'}}>
+                              <thead>
+                                <tr className="border-b border-zinc-100">
+                                  <th className="text-left py-0.5 font-medium text-zinc-400">기여 요인</th>
+                                  <th className="text-right py-0.5 font-medium text-zinc-400">기여도</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr className="border-b border-zinc-50">
+                                  <td className="py-0.5 text-zinc-600">① 외형 성장 효과 (= s)</td>
+                                  <td className={`py-0.5 text-right tabular-nums font-medium ${s>=0?'text-emerald-600':'text-rose-600'}`}>{pp(s)}</td>
+                                </tr>
+                                <tr className="border-b border-zinc-50">
+                                  <td className="py-0.5 text-zinc-600">② 마진 개선 효과 (ΔGM÷GM₀)</td>
+                                  <td className={`py-0.5 text-right tabular-nums font-medium ${marginEffect>=0?'text-emerald-600':'text-rose-600'}`}>{pp(marginEffect)}</td>
+                                </tr>
+                                <tr className="border-b border-zinc-100">
+                                  <td className="py-0.5 text-zinc-500">③ 교차항 (① × ②)</td>
+                                  <td className={`py-0.5 text-right tabular-nums ${crossEffect>=0?'text-emerald-500':'text-rose-500'}`}>{pp(crossEffect)}</td>
+                                </tr>
+                                <tr className="bg-zinc-50/60">
+                                  <td className="py-0.5 font-semibold text-zinc-700">GP 증가율 (① + ② + ③)</td>
+                                  <td className={`py-0.5 text-right tabular-nums font-bold ${gpGrowth>=0?'text-emerald-600':'text-rose-600'}`}>{pp(gpGrowth)}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
 
