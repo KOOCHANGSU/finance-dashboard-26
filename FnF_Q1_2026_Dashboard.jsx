@@ -1028,7 +1028,7 @@ export default function FnFQ1_2026Dashboard() {
         차입금: 203391, 리스부채: 185950, 금융부채: 0, 기타부채: 237762,
         부채총계: 851398,
         자본금: 3831, 자본잉여금: 307329, 기타자본: -45096,
-        이익잉여금: 1715001, 비지배지분: 0, 자본총계: 1981064,
+        이익잉여금: 1715001, 비지배지분: 0, 자본총계: 1981065,
       },
     },
   });
@@ -3216,11 +3216,11 @@ export default function FnFQ1_2026Dashboard() {
       부채총계: 772350,
       // 자본
       자본금: 3831,
-      자본잉여금: 307395,
-      기타자본: -51465,
-      이익잉여금: 1619815,
+      자본잉여금: 307329,
+      기타자본: -50994,
+      이익잉여금: 1618514,
       비지배지분: 0,
-      자본총계: 1879575,
+      자본총계: 1878679,
     },
   }, '2025', yearCloneRules);
   const balanceSheetData = useMemo(
@@ -8083,6 +8083,14 @@ export default function FnFQ1_2026Dashboard() {
                                 </tr>
                               </tbody>
                             </table>
+                            {/* 직관적 요약 */}
+                            <div className="mt-2 p-2 bg-emerald-50/60 rounded border border-emerald-100 text-[10px] text-zinc-600 leading-relaxed">
+                              <span className="font-semibold text-zinc-700">왜 GP가 매출보다 빠르게 성장했나?</span><br/>
+                              매출 <span className="font-semibold text-zinc-800">{pct1(s)}</span> 증가하는 동안 원가는 <span className="font-semibold text-zinc-800">{pct1(c)}</span>만 올라,
+                              원가가 상대적으로 <span className="font-semibold text-emerald-700">{((s-c)*100).toFixed(1)}%p 덜 증가</span>했습니다.
+                              이 차이가 GP 마진을 <span className="font-semibold">{pct1(gmP)} → {pct1(gmC)}</span>로 끌어올렸고,
+                              결과적으로 GP 증가율이 매출 성장률({pct1(s)})보다 <span className="font-semibold text-emerald-700">{pp1(gpGrowth - s)} 높은 {pct1(gpGrowth)}</span>로 기록됐습니다.
+                            </div>
                           </div>
                         );
                       })()}
@@ -8603,13 +8611,20 @@ export default function FnFQ1_2026Dashboard() {
                   <div className="flex items-start gap-2">
                     <span className="shrink-0 text-[9px] font-bold text-white bg-[#1e3a5f] rounded px-1.5 py-0.5 mt-0.5 tracking-wide">총평</span>
                     <p className="text-[11px] text-zinc-700 leading-relaxed">
-                      {currLbl} F&F는 <span className="font-semibold text-zinc-900">'매출 성장 + 비용 레버리지'가 동시에 작동</span>한 이상적인 분기.
-                      영업이익률 <span className="font-bold text-emerald-700">{pct1(omC)}</span>은 전년 대비 <span className="font-semibold text-emerald-700">{pp1(deltaOM)}</span> 개선이며,
-                      특히 수수료 효율화({pp1(commP/salesP-commC/salesC)})를 중심으로 판관비율이 {pct1(sgaRateP)}→{pct1(sgaRateC)}로 구조적으로 낮아졌다.
-                      증분기여율 <span className="font-bold">{((opC-opP)/(salesC-salesP)*100).toFixed(0)}%</span>가 보여주듯 현재 F&F는
-                      <span className="font-semibold text-zinc-900"> 매출이 늘면 이익이 2배 이상 빠르게 성장하는 레버리지 구조</span>에 진입해 있다.
-                      광고비 확대는 브랜드 ROI({adROI.toFixed(1)}배)가 확인된 전략적 집행으로 중장기 성장 동력 확보 관점에서 긍정적.
-                      <span className="font-semibold text-[#1e3a5f]"> 외형 성장 모멘텀 유지 시 OM {(Math.ceil(omC*100/2.5)*2.5).toFixed(1)}% 돌파도 가시권</span> — 수수료 구조 및 고정비 관리가 핵심 변수.
+                      <span className="font-bold text-zinc-900">매출 {(s*100).toFixed(1)}% 성장에 영업이익은 {((opC-opP)/opP*100).toFixed(1)}% 급증</span> —
+                      이 격차의 구조는 다음 한 줄로 요약된다:
+                      {' '}<span className="font-semibold">원가 개선 {pp1(deltaGM)}</span> <span className="text-zinc-400">+</span> <span className="font-semibold text-emerald-700">판관비율 하락 {pp1(-deltaSGA)}</span> <span className="text-zinc-400">=</span> <span className="font-bold text-emerald-700">영업이익률 {pp1(deltaOM)} 향상</span> <span className="text-zinc-400">→</span> <span className="font-bold">영업이익 절대금액 +{((opC-opP)/opP*100).toFixed(1)}%</span>.
+                      {' '}판관비율 하락의 배경은 <span className="font-semibold text-zinc-800">고정비 레버리지</span>다:
+                      인건비·임차료·감가상각 등은 매출이 늘어도 크게 오르지 않는 구조상,
+                      매출 {(s*100).toFixed(1)}% 증가 동안 판관비는 {(g*100).toFixed(1)}%만 늘어
+                      판관비율이 <span className="font-semibold">{pct1(sgaRateP)} → {pct1(sgaRateC)}</span>로 내려왔다.
+                      {' '}<span className="font-semibold text-zinc-900">증분기여율 {((opC-opP)/(salesC-salesP)*100).toFixed(0)}%</span>가 이 구조를 가장 직관적으로 보여준다:
+                      추가로 번 매출 <span className="font-semibold">100원 중 {((opC-opP)/(salesC-salesP)*100).toFixed(0)}원이 영업이익으로 직행</span>한다는 의미다.
+                      {' '}평균 영업이익률 <span className="font-semibold">{pct1(omC)}</span>과의 차이({((opC-opP)/(salesC-salesP)*100).toFixed(0)}% - {(omC*100).toFixed(1)}% ≈ {(((opC-opP)/(salesC-salesP)) - omC)*100 >= 0 ? '+' : ''}{((((opC-opP)/(salesC-salesP)) - omC)*100).toFixed(0)}%p)가 바로 <span className="font-semibold text-emerald-700">고정비 효과</span>다 —
+                      인건비·임차료·감가상각 등 <span className="font-semibold">고정비는 기존 매출로 이미 충당</span>돼 있기 때문에, 새로 버는 매출은 변동비(원가·수수료)만 빼면 <span className="font-semibold">나머지가 그대로 이익</span>이 된다.
+                      {' '}광고비 증가는 <span className="font-semibold text-amber-700">1원당 매출 {adROI.toFixed(1)}원 창출</span>이 확인된 브랜드 집행으로 외형 성장의 연료.
+                      {' '}<span className="font-semibold text-[#1e3a5f]">이 레버리지 구조가 유지된다면 OM {(Math.ceil(omC*100/2.5)*2.5).toFixed(1)}% 돌파도 가시권</span> —
+                      수수료 효율화({pp1(commP/salesP-commC/salesC)}) 기조 및 고정비 통제가 핵심 변수.
                     </p>
                   </div>
                 </div>
@@ -8825,9 +8840,14 @@ export default function FnFQ1_2026Dashboard() {
                 const opDiff=opC-opP;
                 return (
                   <div className="mt-3 pt-3 border-t border-zinc-100">
-                    <p className="text-[10px] font-semibold text-zinc-700 mb-2.5">
+                    <p className="text-[10px] font-semibold text-zinc-700 mb-1">
                       증분기여율 항목별 해석
                       <span className="font-normal text-zinc-400 ml-1.5">— 추가 매출 +{formatNumber(salesDiffV)}백만원 기준</span>
+                    </p>
+                    <p className="text-[10px] text-zinc-500 mb-2.5 leading-relaxed">
+                      매출 <span className="font-semibold text-zinc-700">{pct1(s)}</span> 성장에 영업이익이 <span className="font-semibold text-emerald-700">{((opC-opP)/opP*100).toFixed(1)}%</span> 급증한 이유 —
+                      추가 매출의 <span className="font-semibold text-zinc-700">{((opC-opP)/(salesC-salesP)*100).toFixed(0)}%</span>가 영업이익으로 직행하는 구조이기 때문입니다.
+                      <span className="text-zinc-400 ml-1">(고정비는 기존 매출로 이미 충당 → 추가 매출은 변동비만 차감하면 대부분 이익)</span>
                     </p>
                     <div className="grid grid-cols-2 gap-4">
                       {/* 판관비 항목별 */}
@@ -12145,11 +12165,11 @@ export default function FnFQ1_2026Dashboard() {
                       {/* 1. 당기순손익 */}
                       <tr className="border-b border-zinc-100 bg-emerald-50/30">
                         <td className="px-4 py-2 text-zinc-800 font-medium">1. 당기순손익</td>
-                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+1,961억</td>
+                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+1,977억</td>
                       </tr>
                       <tr className="border-b border-zinc-50">
                         <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 연결당기순이익</td>
-                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+1,960억</td>
+                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+1,976억</td>
                       </tr>
                       <tr className="border-b border-zinc-100">
                         <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">② 확정급여제도 재측정요소</td>
@@ -12169,17 +12189,17 @@ export default function FnFQ1_2026Dashboard() {
                       {/* 3. 기타포괄손익 */}
                       <tr className="border-b border-zinc-100 bg-emerald-50/30">
                         <td className="px-4 py-2 text-zinc-800 font-medium">3. 기타포괄손익</td>
-                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+26억</td>
+                        <td className="px-4 py-2 text-right text-emerald-600 font-semibold tabular-nums">+59억</td>
                       </tr>
                       <tr className="border-b border-zinc-200">
-                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 해외사업환산이익</td>
-                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+26억</td>
+                        <td className="px-4 py-1.5 pl-8 text-zinc-500 text-xs">① 해외사업장환산손실</td>
+                        <td className="px-4 py-1.5 text-right text-emerald-500 text-xs tabular-nums">+59억</td>
                       </tr>
 
                       {/* 합계 */}
                       <tr className="bg-zinc-100">
                         <td className="px-4 py-2.5 text-zinc-900 font-semibold">자본총계 변동(1+2+3)</td>
-                        <td className="px-4 py-2.5 text-right text-emerald-600 font-bold tabular-nums text-base">+975억</td>
+                        <td className="px-4 py-2.5 text-right text-emerald-600 font-bold tabular-nums text-base">+1,024억</td>
                       </tr>
                     </tbody>
                   </table>
@@ -12247,14 +12267,14 @@ export default function FnFQ1_2026Dashboard() {
                     <tr className="border-b border-zinc-100">
                       <td className="px-3 py-1.5 text-zinc-600">기타포괄손익</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">8,055</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">10,653</td>
-                      <td className="px-3 py-1.5 text-right text-emerald-600 tabular-nums">+2,598</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">13,953</td>
+                      <td className="px-3 py-1.5 text-right text-emerald-600 tabular-nums">+5,898</td>
                     </tr>
                     <tr className="border-b border-zinc-100">
                       <td className="px-3 py-1.5 text-zinc-600">이익잉여금</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">1,618,514</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">1,713,431</td>
-                      <td className="px-3 py-1.5 text-right text-emerald-600 tabular-nums">+94,917</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">1,715,001</td>
+                      <td className="px-3 py-1.5 text-right text-emerald-600 tabular-nums">+96,487</td>
                     </tr>
                     <tr className="border-b border-zinc-100">
                       <td className="px-3 py-1.5 text-zinc-600">자본조정</td>
@@ -12271,8 +12291,8 @@ export default function FnFQ1_2026Dashboard() {
                     <tr className="bg-zinc-100">
                       <td className="px-3 py-2 text-zinc-800 font-semibold">합계</td>
                       <td className="px-3 py-2 text-right font-semibold tabular-nums">1,878,679</td>
-                      <td className="px-3 py-2 text-right font-semibold tabular-nums">1,976,194</td>
-                      <td className="px-3 py-2 text-right text-emerald-600 font-semibold tabular-nums">+97,515</td>
+                      <td className="px-3 py-2 text-right font-semibold tabular-nums">1,981,065</td>
+                      <td className="px-3 py-2 text-right text-emerald-600 font-semibold tabular-nums">+102,386</td>
                     </tr>
                   </tbody>
                 </table>
