@@ -12898,8 +12898,8 @@ export default function FnFQ1_2026Dashboard() {
 
       // ── OC(국내) 수동 오버라이드 ──
       if (selectedEntityKey === 'OC(국내)') {
-        // 선물환손익: 연결조정 항목으로 OC(국내) 귀속분 없음
-        if (account === '선물환손익') return 0;
+        // 선물환손익: 연결조정 항목으로 OC(국내) 귀속분 없음 (26.1Q만 0 처리)
+        if (account === '선물환손익' && resolvedPeriod === '2026_1Q') return 0;
         // 투자부동산처분손익: 역삼사옥 매각 (토지 93,473 + 건물 10,721 = 104,194 ≈ 104,195)
         if (account === '투자부동산처분손익' && resolvedPeriod === '2026_1Q') return 104195;
       }
