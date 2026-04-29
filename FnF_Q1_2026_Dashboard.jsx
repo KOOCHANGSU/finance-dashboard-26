@@ -7495,7 +7495,7 @@ export default function FnFQ1_2026Dashboard() {
 
       // 매출액: 기타(연결조정) 없이 고정 순서 표시 (기타는 맨 마지막)
       const entityOrder = selectedAccount === '매출액'
-        ? ['OC(국내)', '중국', '홍콩', 'ST미국', '엔터테인먼트', '기타'].filter(k => keyUnion.includes(k))
+        ? ['OC(국내)', '중국', '홍콩', 'ST미국', '엔터테인먼트', '베트남', '기타'].filter(k => keyUnion.includes(k))
         : [...MAJOR_ENTITIES, ...dynamicEntities, MERGED_ENTITY_LABEL].filter(
             (v, i, arr) => arr.indexOf(v) === i
           );
@@ -8307,13 +8307,6 @@ export default function FnFQ1_2026Dashboard() {
             )}
             
             {/* 계정별 설명 멘트 */}
-            {selectedAccount === '매출액' && (
-              <div className="text-xs text-zinc-500 mt-3 px-1">
-                <span className="font-medium text-zinc-600">[매출액]</span> : 내부거래(OC의 중국, 홍콩 수출)제거한 순매출액 표시.
-                <div style={{ paddingLeft: '53px' }}>OC(국내)=국내+3자수출분</div>
-                <div style={{ paddingLeft: '53px' }}>임대매출 +12억 (26년 신규발생: 강남사옥 +7억, 역삼사옥 +5억)</div>
-              </div>
-            )}
             {selectedAccount === '매출원가' && (
               <div className="text-xs text-zinc-500 mt-3 px-1">
                 <span className="font-medium text-zinc-600">[매출원가]</span> : 내부거래 제거한 실제 연결법인의 매출원가.
