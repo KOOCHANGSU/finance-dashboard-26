@@ -6942,6 +6942,7 @@ export default function FnFQ1_2026Dashboard() {
     const getEntityDisplayName = (entity) => {
       if (selectedAccount === '매출액' && entity === '기타') return '기타(임대/외식 등)';
       if (selectedAccount === '영업이익' && entity === 'OC(국내)') return 'OC(별도)';
+      if (selectedAccount === '영업이익' && entity === '기타(연결조정)') return '수출,판매분 이익 조정';
       if (selectedAccount === '매출원가' && entity === 'OC(국내)') return 'OC(국내+제3자수출)';
       return entity;
     };
@@ -7892,7 +7893,7 @@ export default function FnFQ1_2026Dashboard() {
             {selectedAccount === '영업이익' && (
               <div className="text-xs text-zinc-500 mt-3 px-1">
                 <span className="font-medium text-zinc-600">[영업이익]</span> : 별도 법인 기준 표시.
-                <div style={{ paddingLeft: '62px' }}>기타(연결조정) - 내부거래제거 및 OC 중국/홍콩 수출판매분 이익조정 내역</div>
+                <div style={{ paddingLeft: '62px' }}>수출,판매분 이익 조정 - 내부거래제거 및 OC 중국/홍콩 수출판매분 이익조정 내역</div>
               </div>
             )}
           </div>
@@ -8154,11 +8155,11 @@ export default function FnFQ1_2026Dashboard() {
                     )}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span 
+                        <span
                           className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
                           style={{ backgroundColor: entityColors[row.entity] }}
                         ></span>
-                        <span className="font-medium text-zinc-800 text-sm">{row.entity}</span>
+                        <span className="font-medium text-zinc-800 text-sm">{getEntityDisplayName(row.entity)}</span>
                       </div>
                       <span className={`font-bold text-sm ${isPositive ? 'text-emerald-600' : 'text-rose-600'} ${incomeEditMode ? 'mr-4' : ''}`}>
                         {isPositive ? '+' : ''}{formatNumber(diffBil)}억원
