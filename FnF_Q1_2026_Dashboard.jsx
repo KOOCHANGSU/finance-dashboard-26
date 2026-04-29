@@ -10145,10 +10145,10 @@ export default function FnFQ1_2026Dashboard() {
                           </thead>
                           <tbody>
                             {[
-                              { rate: '25.0%', base: '3천억 초과' },
-                              { rate: '22.0%', base: '300,000' },
-                              { rate: '20.0%', base: '20,000' },
-                              { rate: '10.0%', base: '200' },
+                              { rate: '9.0%',  base: '200' },
+                              { rate: '19.0%', base: '20,000' },
+                              { rate: '21.0%', base: '300,000' },
+                              { rate: '24.0%', base: '3천억 초과' },
                             ].map((r, i) => (
                               <tr key={i} className="border-b border-blue-100">
                                 <td className="px-2 py-1 border border-blue-100 font-mono">{r.rate}</td>
@@ -10170,10 +10170,10 @@ export default function FnFQ1_2026Dashboard() {
                           </thead>
                           <tbody>
                             {[
-                              { rate: '24.0%', base: '3천억 초과' },
-                              { rate: '21.0%', base: '300,000' },
-                              { rate: '19.0%', base: '20,000' },
-                              { rate: '9.0%',  base: '200' },
+                              { rate: '10.0%', base: '200' },
+                              { rate: '20.0%', base: '20,000' },
+                              { rate: '22.0%', base: '300,000' },
+                              { rate: '25.0%', base: '3천억 초과' },
                             ].map((r, i) => (
                               <tr key={i} className="border-b border-emerald-100">
                                 <td className="px-2 py-1 border border-emerald-100 font-mono">{r.rate}</td>
