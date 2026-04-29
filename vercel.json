@@ -7,7 +7,7 @@
       "destination": "/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.csv$).*)",
       "destination": "/index.html"
     }
   ]
