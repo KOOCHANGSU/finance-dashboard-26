@@ -7610,7 +7610,7 @@ export default function FnFQ1_2026Dashboard() {
             <td className="px-3 py-2 text-blue-600 italic border-r border-zinc-200">{item.label}</td>
             <td colSpan="2" className="text-center px-3 py-2 text-blue-600 border-r border-zinc-200">{ratePrev}</td>
             <td colSpan="2" className="text-center px-3 py-2 font-medium text-blue-600 border-r border-zinc-200 bg-zinc-50">{rateCurr}</td>
-            <td colSpan="2" className={`text-center px-3 py-2 font-medium ${rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') ? 'text-rose-600' : 'text-blue-600'}`}>
+            <td colSpan="3" className={`text-center px-3 py-2 font-medium ${rateDiff.includes('+') ? 'text-emerald-600' : rateDiff.includes('-') ? 'text-rose-600' : 'text-blue-600'}`}>
               {rateDiff}
             </td>
           </tr>
@@ -7629,6 +7629,11 @@ export default function FnFQ1_2026Dashboard() {
       const _showPct = item.key !== '매출액';
       const pctPrev = _showPct && _sSalesPrev ? `${(valPrev / _sSalesPrev * 100).toFixed(1)}%` : '—';
       const pctCurr = _showPct && _sSalesCurr ? `${(valCurr / _sSalesCurr * 100).toFixed(1)}%` : '—';
+      // 증감 매출대비 %p (pctCurr - pctPrev)
+      const _ppRaw = _showPct && _sSalesPrev && _sSalesCurr
+        ? (valCurr / _sSalesCurr - valPrev / _sSalesPrev) * 100
+        : null;
+      const ppDiff = _ppRaw !== null ? `${_ppRaw >= 0 ? '+' : ''}${_ppRaw.toFixed(1)}%p` : '—';
 
       const highlightClass = item.highlight === 'green' ? 'bg-emerald-50/50' : '';
       const selectableClass = isSelectable ? 'cursor-pointer hover:bg-zinc-100' : '';
@@ -7656,8 +7661,11 @@ export default function FnFQ1_2026Dashboard() {
           <td className="text-right px-2 py-2 text-zinc-400 border-r border-zinc-200 tabular-nums text-xs">{pctPrev}</td>
           <td className={`text-right px-3 py-2 border-r border-zinc-100 tabular-nums bg-zinc-50/50 ${item.bold ? 'font-semibold text-zinc-900' : 'text-zinc-700'}`}>{formatNumber(valCurr)}</td>
           <td className={`text-right px-2 py-2 border-r border-zinc-200 tabular-nums text-xs bg-zinc-50/30 ${item.bold ? 'font-semibold text-zinc-600' : 'text-zinc-400'}`}>{pctCurr}</td>
-          <td className={`text-right px-3 py-2 font-medium border-r border-zinc-200 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <td className={`text-right px-3 py-2 font-medium border-r border-zinc-100 tabular-nums ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {diff !== 0 ? formatNumber(diff) : '-'}
+          </td>
+          <td className={`text-right px-2 py-2 border-r border-zinc-200 tabular-nums text-xs ${_ppRaw !== null ? (_ppRaw >= 0 ? 'text-emerald-600' : 'text-rose-600') : 'text-zinc-400'}`}>
+            {ppDiff}
           </td>
           <td className={`text-right px-3 py-2 font-medium tabular-nums ${parseFloat(changeRate) >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
             {changeRate !== '-' ? `${changeRate}%` : '-'}
@@ -7788,7 +7796,7 @@ export default function FnFQ1_2026Dashboard() {
                         return incomeViewMode === 'quarter' ? `${yearStr}.${quarterNum}Q` : `${yearStr}년`;
                       })()}
                     </th>
-                    <th rowSpan="2" className="text-center px-3 py-2 font-semibold text-zinc-600 border-r border-zinc-200 min-w-[80px] align-middle">증감액</th>
+                    <th colSpan="2" className="text-center px-3 py-1.5 font-semibold text-zinc-600 border-r border-zinc-200">증감액</th>
                     <th rowSpan="2" className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[65px] align-middle">증감률</th>
                   </tr>
                   {/* 2행: 금액/매출대비 서브헤더 */}
@@ -7797,6 +7805,8 @@ export default function FnFQ1_2026Dashboard() {
                     <th className="text-center px-2 py-1 font-medium text-zinc-400 border-r border-zinc-200 min-w-[52px] text-xs">매출대비</th>
                     <th className="text-center px-2 py-1 font-medium text-zinc-600 border-r border-zinc-100 min-w-[80px] text-xs bg-zinc-100/60">금액</th>
                     <th className="text-center px-2 py-1 font-medium text-zinc-500 border-r border-zinc-200 min-w-[52px] text-xs bg-zinc-100/30">매출대비</th>
+                    <th className="text-center px-2 py-1 font-medium text-zinc-500 border-r border-zinc-100 min-w-[60px] text-xs">금액</th>
+                    <th className="text-center px-2 py-1 font-medium text-zinc-400 border-r border-zinc-200 min-w-[46px] text-xs">%p</th>
                   </tr>
                 </thead>
                 <tbody>
