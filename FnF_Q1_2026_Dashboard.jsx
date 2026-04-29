@@ -8481,6 +8481,22 @@ export default function FnFQ1_2026Dashboard() {
           const marginEffect=gmP?deltaGM/gmP:0;
           const crossEffect=s*marginEffect;
           const dol=opC?(salesC-cogsC)/opC:0;
+          // GP 커버리지 (GP ÷ 판관비)
+          const gpCoverage=sgaC?gpC/sgaC:0;
+          const gpCoveragePrev=sgaP?gpP/sgaP:0;
+          // 판관비 항목별 OM 기여도 (ratePrev - rateCurr, 양수 = OM 개선 기여)
+          const sgaDecomp=[
+            {label:'수수료',C:commC,P:commP,isAdex:false},
+            {label:'감가상각비',C:deprC,P:deprP,isAdex:false},
+            {label:'기타판관비',C:otherC,P:otherP,isAdex:false},
+            {label:'인건비',C:laborC,P:laborP,isAdex:false},
+            {label:'광고선전비',C:adC,P:adP,isAdex:true},
+          ].map(it=>({...it, contrib: salesP&&salesC ? it.P/salesP - it.C/salesC : 0}))
+           .sort((a,b)=>b.contrib-a.contrib);
+          // 광고비 ROI
+          const adDiff=adC-adP, salesDiff=salesC-salesP;
+          const adROI=adDiff>0?salesDiff/adDiff:0;
+
           const simGrowths=[-0.05,0,0.03,0.05,0.10,0.15,0.20];
           const simResults=simGrowths.map(gr=>{ const ns=salesC*(1+gr),nc=cogsC*(1+gr),nv=variableC*(1+gr),nf=fixedC,nop=ns-nc-nf-nv; return {gr,ns,nop,nom:ns?nop/ns:0}; });
 
@@ -8505,18 +8521,23 @@ export default function FnFQ1_2026Dashboard() {
 
           return (
             <div className="bg-white rounded-lg border border-zinc-200 shadow-sm p-4 text-xs">
-              {/* 카드 헤더 */}
+              {/* 카드 헤더: KPI 뱃지 4개 */}
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h3 className="text-sm font-semibold text-zinc-900">손익률 변동 분석</h3>
                   <p className="text-[10px] text-zinc-400 mt-0.5">대표이사 보고용 · {prevLbl} → {currLbl}</p>
                 </div>
                 <div className="flex gap-1.5">
-                  {[{label:'GM',val:pct1(gmC),delta:pp1(deltaGM),c:cGM},{label:'OM',val:pct1(omC),delta:pp1(deltaOM),c:cOM}].map(({label,val,delta,c})=>(
-                    <div key={label} className="text-center bg-zinc-50 border border-zinc-100 rounded px-2 py-1">
+                  {[
+                    {label:'매출 YoY',val:`+${(s*100).toFixed(1)}%`,delta:null,c:'text-emerald-600'},
+                    {label:'GM',val:pct1(gmC),delta:pp1(deltaGM),c:cGM},
+                    {label:'OM',val:pct1(omC),delta:pp1(deltaOM),c:cOM},
+                    {label:'GP커버',val:`${gpCoverage.toFixed(2)}×`,delta:`전년 ${gpCoveragePrev.toFixed(2)}×`,c:'text-blue-600'},
+                  ].map(({label,val,delta,c})=>(
+                    <div key={label} className="text-center bg-zinc-50 border border-zinc-100 rounded px-2 py-1 min-w-[54px]">
                       <div className="text-[9px] text-zinc-400">{label}</div>
-                      <div className="text-xs font-bold text-zinc-800">{val}</div>
-                      <div className={`text-[10px] font-semibold tabular-nums ${c}`}>{delta}</div>
+                      <div className={`text-xs font-bold ${c}`}>{val}</div>
+                      {delta && <div className={`text-[10px] font-semibold tabular-nums ${c}`}>{delta}</div>}
                     </div>
                   ))}
                 </div>
@@ -8528,8 +8549,8 @@ export default function FnFQ1_2026Dashboard() {
                 <div className="grid grid-cols-4 gap-1 mb-2.5">
                   {[
                     {label:'매출 성장',v:pp1(s),c:s>=0?'text-emerald-600':'text-rose-600'},
-                    {label:'원가율 변동',v:pp1(deltaGM)+(deltaGM>=0?' ↓':' ↑'),c:cGM},
-                    {label:'판관비율 변동',v:pp1(-deltaSGA),c:-deltaSGA>=0?'text-emerald-600':'text-rose-600'},
+                    {label:'원가율 개선',v:pp1(deltaGM)+(deltaGM>=0?' ↓':' ↑'),c:cGM},
+                    {label:'판관비율 개선',v:pp1(-deltaSGA),c:-deltaSGA>=0?'text-emerald-600':'text-rose-600'},
                     {label:'영업이익률 변동',v:pp1(deltaOM),c:cOM},
                   ].map(({label,v,c})=>(
                     <div key={label} className="bg-white rounded border border-white/80 px-1.5 py-1.5 text-center shadow-sm">
@@ -8540,19 +8561,15 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-zinc-700 leading-relaxed">
                   <p>
-                    <span className="font-semibold text-zinc-900">{currLbl} 매출 {formatNumber(salesC)}백만원</span> ({pp(s)}) 성장.
-                    원가율 <span className={`font-semibold ${cGM}`}>{pct1(cogsRateP)}→{pct1(cogsRateC)}</span>({pp(deltaGM)}),
-                    판관비율 <span className={`font-semibold ${cSGA}`}>{pct1(sgaRateP)}→{pct1(sgaRateC)}</span>({pp(deltaSGA)}) 개선.
-                    영업이익률 <span className={`font-semibold ${cOM}`}>{pct1(omP)}→{pct1(omC)}</span>({pp(deltaOM)}) 달성.
-                    OM 기여: 원가관리 <span className={`font-semibold ${cGM}`}>{pp(deltaGM)}</span> + 판관비 레버리지 <span className={`font-semibold ${-deltaSGA>=0?'text-emerald-700':'text-rose-700'}`}>{pp(-deltaSGA)}</span>.
+                    <span className="font-semibold text-zinc-900">{currLbl} 영업이익률 {pct1(omC)}</span> ({pp1(deltaOM)} YoY).
+                    OM 개선 원천 3분해: 원가관리 <span className={`font-semibold ${cGM}`}>{pp1(deltaGM)}</span> + 판관비 레버리지 <span className="font-semibold text-emerald-700">{pp1(-deltaSGA)}</span> = <span className={`font-semibold ${cOM}`}>{pp1(deltaOM)}</span>.
+                    매출 {pct1(s)} 성장 대비 판관비 {pct1(g)} 증가에 그쳐 <span className="font-semibold text-emerald-700">{((s-g)*100).toFixed(1)}%p 레버리지 실현</span>.
+                    판관비 내 <span className="font-semibold text-zinc-800">수수료 효율화가 단일 최대 기여</span>({pp1(commP/salesP-commC/salesC)}).
                   </p>
                   <p>
-                    매출총이익 <span className={`font-semibold ${gpGrowth>=0?'text-emerald-700':'text-rose-700'}`}>{pp(gpGrowth)}</span> 성장 분해:
-                    외형 성장 기여 <span className="font-semibold text-zinc-800">{pp(s)}</span>
-                    + 마진 개선 기여 <span className={`font-semibold ${cGM}`}>{pp(marginEffect)}</span> (= ΔGM{pp(deltaGM)}÷GM₀{pct1(gmP)})
-                    + 교차항 <span className="text-zinc-600">{pp(crossEffect)}</span>.
-                    변동비 증가율({pct(varG)})이 매출 대비 <span className={`font-semibold ${varG<=s?'text-emerald-700':'text-rose-700'}`}>{((s-varG)*100).toFixed(1)}%p 억제</span>,
-                    DOL <span className="font-semibold text-zinc-800">{dol.toFixed(1)}배</span> 레버리지 효과 발현.
+                    매출총이익 <span className={`font-semibold ${gpGrowth>=0?'text-emerald-700':'text-rose-700'}`}>{pp1(gpGrowth)}</span> 성장 분해: 외형 {pp1(s)} + 마진개선 {pp1(marginEffect)} (ΔGM{pp1(deltaGM)}÷GM₀{pct1(gmP)}) + 교차항 {pp1(crossEffect)}.
+                    광고선전비 {pct1(adC/salesC)} (+{(adDiff/adP*100).toFixed(1)}% YoY)는 브랜드 경쟁력 강화를 위한 <span className="font-semibold text-amber-700">의도적 투자</span> — 광고비 1원당 매출 <span className="font-semibold">{adROI.toFixed(1)}원</span> 창출.
+                    GP커버리지 <span className="font-semibold text-blue-700">{gpCoverage.toFixed(2)}배</span> (전년 {gpCoveragePrev.toFixed(2)}배), DOL <span className="font-semibold">{dol.toFixed(1)}배</span> 레버리지 확대.
                   </p>
                 </div>
               </div>
@@ -8560,11 +8577,52 @@ export default function FnFQ1_2026Dashboard() {
               {/* 4열 가로 배치 */}
               <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 items-start">
 
-                {/* ① 매출총이익률 */}
+                {/* ① OM 개선 원천 분해 (판관비 항목별 %p 기여도) */}
+                <div className="border border-zinc-100 rounded-md p-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-zinc-700">① OM 개선 원천 분해</span>
+                    <span className={`text-sm font-bold tabular-nums ${cOM}`}>{pp1(deltaOM)}</span>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 mb-2">항목별 매출대비 %p 변화 → OM 기여도</p>
+                  {/* 원가율 개선 */}
+                  <div className="flex items-center justify-between py-1 border-b border-zinc-200 mb-1">
+                    <span className="text-xs font-medium text-zinc-700">원가율 개선 (ΔGM)</span>
+                    <span className={`text-xs font-bold tabular-nums ${cGM}`}>{pp1(deltaGM)}</span>
+                  </div>
+                  {/* 판관비 항목별 기여도 */}
+                  <div className="space-y-0.5 mb-1.5">
+                    {sgaDecomp.map(it=>{
+                      const ppNum=it.contrib*100;
+                      const color=it.isAdex?'text-amber-600':ppNum>=0?'text-emerald-600':'text-rose-600';
+                      return (
+                        <div key={it.label} className="flex items-center justify-between py-0.5">
+                          <span className="text-xs text-zinc-600 flex items-center gap-1">
+                            {it.label}
+                            {it.isAdex&&<span className="text-[8px] bg-amber-50 border border-amber-200 text-amber-600 px-1 rounded leading-tight">의도적투자</span>}
+                          </span>
+                          <span className={`text-xs font-semibold tabular-nums ${color}`}>{ppNum>=0?'+':''}{ppNum.toFixed(1)}%p</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* 판관비 소계 */}
+                  <div className="border-t border-zinc-200 pt-1.5 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-zinc-600">판관비율 기여 소계</span>
+                    <span className="text-xs font-bold tabular-nums text-emerald-600">{pp1(-deltaSGA)}</span>
+                  </div>
+                  {/* 총합 */}
+                  <div className="border-t border-dashed border-zinc-300 mt-1.5 pt-1.5 flex items-center justify-between bg-zinc-50 -mx-1 px-1.5 rounded">
+                    <span className="text-xs font-bold text-zinc-800">ΔOM 합계</span>
+                    <span className={`text-sm font-bold tabular-nums ${cOM}`}>{pp1(deltaOM)}</span>
+                  </div>
+                  <p className="text-[9px] text-zinc-400 mt-2 leading-relaxed">수수료 효율화가 단일 최대 기여. 광고비는 브랜드 투자로 매출 레버리지 창출 — OM 역기여 감안해도 전략적 집행.</p>
+                </div>
+
+                {/* ② 매총이익률 변동 + GP 성장률 분해 */}
                 <div className="border border-zinc-100 rounded-md p-2.5">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-zinc-700">① 매출총이익률 변동</span>
-                    <span className={`text-sm font-bold tabular-nums ${cGM}`}>{pp(deltaGM)}</span>
+                    <span className="text-xs font-semibold text-zinc-700">② 매출총이익률 변동</span>
+                    <span className={`text-sm font-bold tabular-nums ${cGM}`}>{pp1(deltaGM)}</span>
                   </div>
                   <div className="space-y-0.5">
                     <Row label="매출 증가율 (s)" value={pct(s)} />
@@ -8576,66 +8634,50 @@ export default function FnFQ1_2026Dashboard() {
                       <Row label={`${prevLbl} GM`} value={pct1(gmP)} sub />
                       <Row label={`${currLbl} GM`} value={pct1(gmC)} sub />
                     </div>
-                    <div className="border-t border-zinc-100 mt-1.5 pt-1.5">
-                      <p className="text-[10px] font-semibold text-zinc-600 mb-1">GP 성장률 분해</p>
-                      <table className="w-full" style={{fontSize:'9px'}}>
-                        <thead><tr className="border-b border-zinc-100"><th className="text-left py-0.5 text-zinc-400 font-medium">요인</th><th className="text-left py-0.5 text-zinc-400 font-medium">산식(계산값)</th><th className="text-right py-0.5 text-zinc-400 font-medium">기여도</th></tr></thead>
-                        <tbody>
-                          <tr className="border-b border-zinc-50"><td className="py-0.5 text-zinc-600">① 외형</td><td className="py-0.5 text-zinc-400">= s = <span className="text-zinc-600 font-medium">{pct(s)}</span></td><td className={`py-0.5 text-right tabular-nums ${s>=0?'text-emerald-600':'text-rose-600'}`}>{pp(s)}</td></tr>
-                          <tr className="border-b border-zinc-50"><td className="py-0.5 text-zinc-600">② 마진</td><td className="py-0.5 text-zinc-400">ΔGM÷GM₀ = <span className="text-zinc-600">{pp(deltaGM)}</span>÷<span className="text-zinc-600">{pct1(gmP)}</span></td><td className={`py-0.5 text-right tabular-nums ${marginEffect>=0?'text-emerald-600':'text-rose-600'}`}>{pp(marginEffect)}</td></tr>
-                          <tr className="border-b border-zinc-100"><td className="py-0.5 text-zinc-500">③ 교차</td><td className="py-0.5 text-zinc-400">①×② = {pct(s)}×{pp(marginEffect)}</td><td className={`py-0.5 text-right tabular-nums ${crossEffect>=0?'text-emerald-500':'text-rose-500'}`}>{pp(crossEffect)}</td></tr>
-                          <tr className="bg-zinc-50/60"><td className="py-0.5 font-semibold text-zinc-700" colSpan="2">GP 증가율 합계</td><td className={`py-0.5 text-right tabular-nums font-bold ${gpGrowth>=0?'text-emerald-600':'text-rose-600'}`}>{pp(gpGrowth)}</td></tr>
-                        </tbody>
-                      </table>
+                  </div>
+                  <div className="border-t border-zinc-100 mt-2 pt-2">
+                    <p className="text-[10px] font-semibold text-zinc-600 mb-1">GP 성장률 분해</p>
+                    <table className="w-full" style={{fontSize:'9px'}}>
+                      <thead><tr className="border-b border-zinc-100"><th className="text-left py-0.5 text-zinc-400 font-medium">요인</th><th className="text-left py-0.5 text-zinc-400 font-medium">산식(계산값)</th><th className="text-right py-0.5 text-zinc-400 font-medium">기여도</th></tr></thead>
+                      <tbody>
+                        <tr className="border-b border-zinc-50"><td className="py-0.5 text-zinc-600">① 외형</td><td className="py-0.5 text-zinc-400">s = <span className="text-zinc-600 font-medium">{pct(s)}</span></td><td className={`py-0.5 text-right tabular-nums ${s>=0?'text-emerald-600':'text-rose-600'}`}>{pp(s)}</td></tr>
+                        <tr className="border-b border-zinc-50"><td className="py-0.5 text-zinc-600">② 마진</td><td className="py-0.5 text-zinc-400">ΔGM÷GM₀ = <span className="text-zinc-600">{pp(deltaGM)}</span>÷<span className="text-zinc-600">{pct1(gmP)}</span></td><td className={`py-0.5 text-right tabular-nums ${marginEffect>=0?'text-emerald-600':'text-rose-600'}`}>{pp(marginEffect)}</td></tr>
+                        <tr className="border-b border-zinc-100"><td className="py-0.5 text-zinc-500">③ 교차</td><td className="py-0.5 text-zinc-400">①×② = {pct(s)}×{pp(marginEffect)}</td><td className={`py-0.5 text-right tabular-nums ${crossEffect>=0?'text-emerald-500':'text-rose-500'}`}>{pp(crossEffect)}</td></tr>
+                        <tr className="bg-zinc-50/60"><td className="py-0.5 font-semibold text-zinc-700" colSpan="2">GP 증가율 합계</td><td className={`py-0.5 text-right tabular-nums font-bold ${gpGrowth>=0?'text-emerald-600':'text-rose-600'}`}>{pp(gpGrowth)}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="border-t border-zinc-100 mt-2 pt-1.5 space-y-0.5">
+                    <Row label="ⓐ GM 개선 효과" value={pp(deltaGM)} valueColor={cGM} />
+                    <Row label="ⓑ 판관비율 레버리지" value={pp(-deltaSGA)} valueColor={-deltaSGA>=0?'text-emerald-600':'text-rose-600'} />
+                    <div className="flex items-center justify-between border-t border-zinc-100 pt-1 mt-0.5">
+                      <span className="text-xs font-semibold text-zinc-700">ΔOM = ⓐ+ⓑ</span>
+                      <span className={`text-xs font-bold tabular-nums ${cOM}`}>{pp(deltaOM)}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* ② 영업이익률 */}
-                <div className="border border-zinc-100 rounded-md p-2.5">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-semibold text-zinc-700">② 영업이익률 변동</span>
-                    <span className={`text-sm font-bold tabular-nums ${cOM}`}>{pp(deltaOM)}</span>
-                  </div>
-                  <div className="space-y-0.5">
-                    <Row label="판관비 증가율 (g)" value={pct(g)} />
-                    <Row label="차이 (g−s)" value={`${((g-s)*100).toFixed(2)}%p`} valueColor={g<=s?'text-emerald-600':'text-rose-600'} />
-                    <Row label={`판관비율₀ (${prevLbl})`} value={pct1(sgaRateP)} />
-                    <Row label={<span>Δ판관비율 = 판관비율₀×(g−s)÷(1+s)<br/><span className="text-[9px] text-zinc-400 tabular-nums">= {pct1(sgaRateP)}×{((g-s)*100).toFixed(2)}%p÷{(1+s).toFixed(3)}</span></span>} value={pp(deltaSGA)} valueColor={cSGA} />
-                    <div className="border-t border-zinc-100 mt-1 pt-1 space-y-0.5">
-                      <Row label="ⓐ GM 개선 효과" value={pp(deltaGM)} valueColor={cGM} sub />
-                      <Row label="ⓑ 판관비율 레버리지" value={pp(-deltaSGA)} valueColor={-deltaSGA>=0?'text-emerald-600':'text-rose-600'} sub />
-                      <div className="flex items-center justify-between border-t border-zinc-100 pt-1 mt-0.5">
-                        <span className="text-xs font-semibold text-zinc-700">ΔOM = ⓐ+ⓑ</span>
-                        <span className={`text-xs font-bold tabular-nums ${cOM}`}>{pp(deltaOM)}</span>
-                      </div>
-                      <Row label={`${prevLbl} OM`} value={pct1(omP)} sub />
-                      <Row label={`${currLbl} OM`} value={pct1(omC)} sub />
-                    </div>
-                  </div>
-                </div>
-
-                {/* ③ 판관비 분석 */}
+                {/* ③ 판관비 구조 + GP 커버리지 + DOL */}
                 <div className="border border-zinc-100 rounded-md p-2.5">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-zinc-700">③ 판관비 고정·변동 분석</span>
+                    <span className="text-xs font-semibold text-zinc-700">③ 판관비 구조 · 안전마진</span>
                   </div>
                   <table className="w-full" style={{fontSize:'10px'}}>
                     <thead>
                       <tr className="border-b border-zinc-100">
                         <th className="text-left py-1 font-medium text-zinc-500">항목</th>
-                        <th className="text-center py-1 font-medium text-zinc-400 w-[30px]">성격</th>
+                        <th className="text-center py-1 font-medium text-zinc-400 w-[28px]">성격</th>
                         <th className="text-right py-1 font-semibold text-zinc-600">{currLbl}</th>
-                        <th className="text-right py-1 font-medium text-zinc-400 w-[40px]">매출대비</th>
+                        <th className="text-right py-1 font-medium text-zinc-400 w-[36px]">비중</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        {label:'인건비',C:laborC,P:laborP,type:'고정',tc:'bg-blue-50 text-blue-600'},
-                        {label:'감가상각비',C:deprC,P:deprP,type:'고정',tc:'bg-blue-50 text-blue-600'},
-                        {label:'기타판관비',C:otherC,P:otherP,type:'준고정',tc:'bg-purple-50 text-purple-600'},
-                        {label:'광고선전비',C:adC,P:adP,type:'변동',tc:'bg-orange-50 text-orange-600'},
-                        {label:'수수료',C:commC,P:commP,type:'변동',tc:'bg-orange-50 text-orange-600'},
+                        {label:'인건비',C:laborC,type:'고정',tc:'bg-blue-50 text-blue-600'},
+                        {label:'감가상각비',C:deprC,type:'고정',tc:'bg-blue-50 text-blue-600'},
+                        {label:'기타판관비',C:otherC,type:'준고정',tc:'bg-purple-50 text-purple-600'},
+                        {label:'광고선전비',C:adC,type:'변동',tc:'bg-amber-50 text-amber-600'},
+                        {label:'수수료',C:commC,type:'변동',tc:'bg-orange-50 text-orange-600'},
                       ].map(({label,C,type,tc})=>(
                         <tr key={label} className="border-b border-zinc-50">
                           <td className="py-1 text-zinc-600">{label}</td>
@@ -8656,14 +8698,33 @@ export default function FnFQ1_2026Dashboard() {
                       </tr>
                     </tbody>
                   </table>
-                  <div className="mt-2 pt-1.5 border-t border-zinc-100 flex items-center justify-between">
-                    <span className="text-[10px] text-zinc-500">DOL = 매출총이익 ÷ 영업이익</span>
-                    <span className="text-xs font-bold text-zinc-800">{dol.toFixed(2)}×</span>
+                  {/* GP 커버리지 + DOL */}
+                  <div className="mt-2 pt-1.5 border-t border-zinc-200 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-semibold text-zinc-600">GP 커버리지</p>
+                        <p className="text-[9px] text-zinc-400">GP ÷ 판관비</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-blue-700">{gpCoverage.toFixed(2)}×</p>
+                        <p className="text-[9px] text-zinc-400">전년 {gpCoveragePrev.toFixed(2)}× → <span className="text-emerald-600 font-medium">+{(gpCoverage-gpCoveragePrev).toFixed(2)}×</span></p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-semibold text-zinc-600">DOL (영업 레버리지)</p>
+                        <p className="text-[9px] text-zinc-400">매출총이익 ÷ 영업이익</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-bold text-zinc-800">{dol.toFixed(2)}×</p>
+                        <p className="text-[9px] text-zinc-400">매출 1%↑ → OP {dol.toFixed(1)}%↑</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-[9px] text-zinc-400 mt-1">매출 1%↑ → 영업이익 약 {dol.toFixed(1)}% 증가 효과. 고정비({salesC?`${(fixedC/salesC*100).toFixed(1)}%`:'—'}) 비중↑ → 레버리지 확대.</p>
+                  <p className="text-[9px] text-zinc-400 mt-1.5 leading-relaxed">GP커버리지 {gpCoverage.toFixed(2)}배로 전년 대비 판관비 여유 확대. 고정비 비중 증가로 DOL 레버리지 유효.</p>
                 </div>
 
-                {/* ④ 시뮬레이션 */}
+                {/* ④ OM 개선 시뮬레이션 */}
                 <div className="border border-zinc-100 rounded-md p-2.5">
                   <div className="mb-2">
                     <span className="text-xs font-semibold text-zinc-700">④ OM 개선 시뮬레이션</span>
@@ -8692,7 +8753,7 @@ export default function FnFQ1_2026Dashboard() {
                       })}
                     </tbody>
                   </table>
-                  <p className="text-[9px] text-zinc-400 mt-1.5">※ 외형 성장만으로의 OM 변화 추정. 추가 비용 절감 시 실제 OM은 시나리오보다 높아질 수 있음.</p>
+                  <p className="text-[9px] text-zinc-400 mt-1.5 leading-relaxed">※ 외형 성장에 따른 OM 개선 추정. 광고비 효율 개선 또는 추가 비용 절감 시 실제 OM은 시나리오 상회 가능.</p>
                 </div>
 
               </div>
