@@ -7033,7 +7033,7 @@ export default function FnFQ1_2026Dashboard() {
         // 투자부동산처분손익: 역삼사옥 매각분 OC(국내) 전액 귀속
         if (accountKey === '투자부동산처분손익') return { 'OC(국내)': 104195 };
         // 영업외손익 합계: 투자부동산처분손익 104,195 포함된 OC(국내) 값 반영 (잔차는 연결조정 자동 계산)
-        if (accountKey === '영업외손익') return { 'OC(국내)': 119895, '중국': -1163, '홍콩': -98, 'ST미국': -1946 };
+        if (accountKey === '영업외손익') return { 'OC(국내)': 119481, '중국': -1163, '홍콩': -98, 'ST미국': -1946 };
       }
 
       const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
@@ -12913,8 +12913,8 @@ export default function FnFQ1_2026Dashboard() {
         if (account === '선물환손익' && resolvedPeriod === '2026_1Q') return 0;
         // 투자부동산처분손익: 역삼사옥 매각 (토지 93,473 + 건물 10,721 = 104,194 ≈ 104,195)
         if (account === '투자부동산처분손익' && resolvedPeriod === '2026_1Q') return 104195;
-        // 영업외손익 합계: CSV 15,700 + 투자부동산처분손익 104,195
-        if (account === '영업외손익' && resolvedPeriod === '2026_1Q') return 119895;
+        // 영업외손익 합계: CSV 영업외수익(127,813) - 영업외비용(8,332) = 119,481 (원 단위 검증)
+        if (account === '영업외손익' && resolvedPeriod === '2026_1Q') return 119481;
       }
 
       const keys = isAliasMap[account] || [account];
