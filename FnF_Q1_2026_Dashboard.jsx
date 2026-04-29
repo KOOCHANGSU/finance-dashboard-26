@@ -7814,12 +7814,30 @@ export default function FnFQ1_2026Dashboard() {
                 </tbody>
               </table>
               {/* 증분기여율 설명 각주 */}
-              <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-100">
-                <p className="text-[10px] text-zinc-400 leading-relaxed">
-                  <span className="font-medium text-zinc-500">증분기여율</span> — 이번 분기 추가 매출({(() => { const sp=incomeStatementData[prevPeriod]||{}, sc=incomeStatementData[currPeriod]||{}; const d=(sc.매출액||0)-(sp.매출액||0); return d>0?'+':''})()}{(() => { const sp=incomeStatementData[prevPeriod]||{}, sc=incomeStatementData[currPeriod]||{}; return formatNumber((sc.매출액||0)-(sp.매출액||0)); })()}백만원) 중 각 항목 증가분이 차지하는 비율.
-                  기존 매출이 고정비를 이미 부담하고 있어, 추가 매출은 변동비만 차감되므로 영업이익 증분기여율(+54%)이 실제 영업이익률(27.4%)보다 높게 나타남.
-                </p>
-              </div>
+              {(() => {
+                const sp=incomeStatementData[prevPeriod]||{}, sc=incomeStatementData[currPeriod]||{};
+                const salesP=sp.매출액||0, salesC=sc.매출액||0;
+                const opP=sp.영업이익||0, opC=sc.영업이익||0;
+                const salesDiff=salesC-salesP, opDiff=opC-opP;
+                const incrOM=salesDiff?opDiff/salesDiff:0;
+                const omC=salesC?opC/salesC:0;
+                const salesGr=salesP?(salesC-salesP)/salesP:0;
+                const opGr=opP?(opC-opP)/opP:0;
+                return (
+                  <div className="px-3 py-2 bg-amber-50/60 border-t border-amber-100">
+                    <p className="text-[10px] text-zinc-600 leading-relaxed">
+                      <span className="font-semibold text-zinc-700">증분기여율이란?</span>{' '}
+                      "매출이 1원 더 늘었을 때 이익이 얼마나 더 느냐."
+                      고정비(인건비·감가상각비 등)는 매출 증감과 무관하게 이미 지출되므로, 추가 매출은 변동비(원가·수수료)만 걷어내면 곧바로 이익이 된다.
+                      {' '}<span className="font-semibold text-emerald-700">F&F 현황:</span>{' '}
+                      이번 분기 매출 +{(salesGr*100).toFixed(1)}% 성장에 영업이익은 +{(opGr*100).toFixed(1)}% 증가.
+                      영업이익 증분기여율 <span className="font-bold text-emerald-700">{(incrOM*100).toFixed(0)}%</span>는
+                      "추가로 번 매출 2원 중 1원이 영업이익으로 귀속"된다는 뜻 — 실제 영업이익률 {(omC*100).toFixed(1)}%보다 훨씬 높은 이유는 고정비가 기존 매출에서 이미 커버되기 때문.
+                      현재 F&F는 <span className="font-semibold text-zinc-800">외형 성장이 곧 이익 성장으로 직결되는 레버리지 구조</span>에 있음.
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
