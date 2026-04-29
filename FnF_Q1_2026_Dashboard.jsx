@@ -7629,11 +7629,10 @@ export default function FnFQ1_2026Dashboard() {
       const _showPct = item.key !== '매출액';
       const pctPrev = _showPct && _sSalesPrev ? `${(valPrev / _sSalesPrev * 100).toFixed(1)}%` : '—';
       const pctCurr = _showPct && _sSalesCurr ? `${(valCurr / _sSalesCurr * 100).toFixed(1)}%` : '—';
-      // 증감 매출대비 %p (pctCurr - pctPrev)
-      const _ppRaw = _showPct && _sSalesPrev && _sSalesCurr
-        ? (valCurr / _sSalesCurr - valPrev / _sSalesPrev) * 100
-        : null;
-      const ppDiff = _ppRaw !== null ? `${_ppRaw >= 0 ? '+' : ''}${_ppRaw.toFixed(1)}%p` : '—';
+      // 증감액 ÷ 매출액 증감액 (매출액 증가분 대비 각 항목 증가분 비율)
+      const _salesDiff = _sSalesCurr - _sSalesPrev;
+      const _ppRaw = _salesDiff !== 0 ? (diff / _salesDiff) * 100 : null;
+      const ppDiff = _ppRaw !== null ? `${_ppRaw >= 0 ? '+' : ''}${_ppRaw.toFixed(1)}%` : '—';
 
       const highlightClass = item.highlight === 'green' ? 'bg-emerald-50/50' : '';
       const selectableClass = isSelectable ? 'cursor-pointer hover:bg-zinc-100' : '';
@@ -7806,7 +7805,7 @@ export default function FnFQ1_2026Dashboard() {
                     <th className="text-center px-2 py-1 font-medium text-zinc-600 border-r border-zinc-100 min-w-[80px] text-xs bg-zinc-100/60">금액</th>
                     <th className="text-center px-2 py-1 font-medium text-zinc-500 border-r border-zinc-200 min-w-[52px] text-xs bg-zinc-100/30">매출대비</th>
                     <th className="text-center px-2 py-1 font-medium text-zinc-500 border-r border-zinc-100 min-w-[60px] text-xs">금액</th>
-                    <th className="text-center px-2 py-1 font-medium text-zinc-400 border-r border-zinc-200 min-w-[46px] text-xs">%p</th>
+                    <th className="text-center px-2 py-1 font-medium text-zinc-400 border-r border-zinc-200 min-w-[52px] text-xs">매출↑대비</th>
                   </tr>
                 </thead>
                 <tbody>
