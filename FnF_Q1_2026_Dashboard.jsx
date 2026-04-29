@@ -7796,7 +7796,7 @@ export default function FnFQ1_2026Dashboard() {
                       })()}
                     </th>
                     <th colSpan="2" className="text-center px-3 py-1.5 font-semibold text-zinc-600 border-r border-zinc-200">증감액</th>
-                    <th rowSpan="2" className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[65px] align-middle">증감률</th>
+                    <th rowSpan="2" className="text-center px-3 py-2 font-semibold text-zinc-600 min-w-[65px] align-middle">YoY</th>
                   </tr>
                   {/* 2행: 금액/매출대비 서브헤더 */}
                   <tr className="bg-zinc-50 border-b border-zinc-200">
