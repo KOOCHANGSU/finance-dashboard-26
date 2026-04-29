@@ -7979,7 +7979,10 @@ export default function FnFQ1_2026Dashboard() {
                       <Row label="증가율 차이 (s − c)" value={`${((s-c)*100).toFixed(2)}%p`} valueColor={s>=c?'text-emerald-600':'text-rose-600'} />
                       <Row label={`기초 원가율₀ (${prevLbl})`} value={pct1(cogsRateP)} />
                       <div className="border-t border-zinc-100 mt-1 pt-1">
-                        <Row label="ΔGM = 원가율₀×(s−c)÷(1+s)" value={pp(deltaGM)} valueColor={cGM} />
+                        <Row
+                          label={<span>ΔGM = 원가율₀×(s−c)÷(1+s)<br/><span className="text-[9px] text-zinc-400 tabular-nums">= {pct1(cogsRateP)} × {((s-c)*100).toFixed(2)}%p ÷ {(1+s).toFixed(3)}</span></span>}
+                          value={pp(deltaGM)} valueColor={cGM}
+                        />
                         <Row label={`${prevLbl} GM`} value={pct1(gmP)} sub />
                         <Row label={`${currLbl} GM`} value={pct1(gmC)} sub />
                       </div>
@@ -7999,26 +8002,35 @@ export default function FnFQ1_2026Dashboard() {
                             <table className="w-full" style={{fontSize:'10px'}}>
                               <thead>
                                 <tr className="border-b border-zinc-100">
-                                  <th className="text-left py-0.5 font-medium text-zinc-400">기여 요인</th>
-                                  <th className="text-right py-0.5 font-medium text-zinc-400">기여도</th>
+                                  <th className="text-left py-0.5 font-medium text-zinc-400 w-[90px]">기여 요인</th>
+                                  <th className="text-left py-0.5 font-medium text-zinc-400">산식 (계산값)</th>
+                                  <th className="text-right py-0.5 font-medium text-zinc-400 w-[52px]">기여도</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 <tr className="border-b border-zinc-50">
-                                  <td className="py-0.5 text-zinc-600">① 외형 성장 효과 (= s)</td>
-                                  <td className={`py-0.5 text-right tabular-nums font-medium ${s>=0?'text-emerald-600':'text-rose-600'}`}>{pp(s)}</td>
+                                  <td className="py-1 text-zinc-600">① 외형 성장</td>
+                                  <td className="py-1 text-zinc-400 tabular-nums">= s = <span className="text-zinc-600 font-medium">{pct(s)}</span></td>
+                                  <td className={`py-1 text-right tabular-nums font-medium ${s>=0?'text-emerald-600':'text-rose-600'}`}>{pp(s)}</td>
                                 </tr>
                                 <tr className="border-b border-zinc-50">
-                                  <td className="py-0.5 text-zinc-600">② 마진 개선 효과 (ΔGM÷GM₀)</td>
-                                  <td className={`py-0.5 text-right tabular-nums font-medium ${marginEffect>=0?'text-emerald-600':'text-rose-600'}`}>{pp(marginEffect)}</td>
+                                  <td className="py-1 text-zinc-600">② 마진 개선</td>
+                                  <td className="py-1 text-zinc-400 tabular-nums">
+                                    ΔGM÷GM₀ = <span className="text-zinc-600 font-medium">{pp(deltaGM)}</span>÷<span className="text-zinc-600 font-medium">{pct1(gmP)}</span>
+                                  </td>
+                                  <td className={`py-1 text-right tabular-nums font-medium ${marginEffect>=0?'text-emerald-600':'text-rose-600'}`}>{pp(marginEffect)}</td>
                                 </tr>
                                 <tr className="border-b border-zinc-100">
-                                  <td className="py-0.5 text-zinc-500">③ 교차항 (① × ②)</td>
-                                  <td className={`py-0.5 text-right tabular-nums ${crossEffect>=0?'text-emerald-500':'text-rose-500'}`}>{pp(crossEffect)}</td>
+                                  <td className="py-1 text-zinc-500">③ 교차항</td>
+                                  <td className="py-1 text-zinc-400 tabular-nums">
+                                    ①×② = <span className="text-zinc-500">{pct(s)}</span>×<span className="text-zinc-500">{pp(marginEffect)}</span>
+                                  </td>
+                                  <td className={`py-1 text-right tabular-nums ${crossEffect>=0?'text-emerald-500':'text-rose-500'}`}>{pp(crossEffect)}</td>
                                 </tr>
                                 <tr className="bg-zinc-50/60">
-                                  <td className="py-0.5 font-semibold text-zinc-700">GP 증가율 (① + ② + ③)</td>
-                                  <td className={`py-0.5 text-right tabular-nums font-bold ${gpGrowth>=0?'text-emerald-600':'text-rose-600'}`}>{pp(gpGrowth)}</td>
+                                  <td className="py-1 font-semibold text-zinc-700">GP 증가율</td>
+                                  <td className="py-1 text-zinc-400">① + ② + ③</td>
+                                  <td className={`py-1 text-right tabular-nums font-bold ${gpGrowth>=0?'text-emerald-600':'text-rose-600'}`}>{pp(gpGrowth)}</td>
                                 </tr>
                               </tbody>
                             </table>
@@ -8038,7 +8050,10 @@ export default function FnFQ1_2026Dashboard() {
                       <Row label="판관비 증가율 (g)" value={pct(g)} />
                       <Row label="증가율 차이 (g − s)" value={`${((g-s)*100).toFixed(2)}%p`} valueColor={g<=s?'text-emerald-600':'text-rose-600'} />
                       <Row label={`기초 판관비율₀ (${prevLbl})`} value={pct1(sgaRateP)} />
-                      <Row label="Δ판관비율 = 판관비율₀×(g−s)÷(1+s)" value={pp(deltaSGA)} valueColor={cSGA} />
+                      <Row
+                        label={<span>Δ판관비율 = 판관비율₀×(g−s)÷(1+s)<br/><span className="text-[9px] text-zinc-400 tabular-nums">= {pct1(sgaRateP)} × {((g-s)*100).toFixed(2)}%p ÷ {(1+s).toFixed(3)}</span></span>}
+                        value={pp(deltaSGA)} valueColor={cSGA}
+                      />
                       <div className="border-t border-zinc-100 mt-1 pt-1 space-y-0.5">
                         <Row label="ⓐ GM 개선 효과" value={pp(deltaGM)} valueColor={cGM} sub />
                         <Row label="ⓑ 판관비율 레버리지 효과" value={pp(-deltaSGA)} valueColor={-deltaSGA>=0?'text-emerald-600':'text-rose-600'} sub />
