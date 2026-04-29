@@ -7605,9 +7605,18 @@ export default function FnFQ1_2026Dashboard() {
       // 비율 행 처리
       if (isRateRow) {
         const [num, denom] = item.rateOf;
-        const ratePrev = calcRate(incomeStatementData[prevPeriod]?.[num] || 0, incomeStatementData[prevPeriod]?.[denom] || 0);
-        const rateCurr = calcRate(incomeStatementData[currPeriod]?.[num] || 0, incomeStatementData[currPeriod]?.[denom] || 0);
-        const rateDiff = calcRateDiff(rateCurr, ratePrev);
+        const numPrev  = incomeStatementData[prevPeriod]?.[num]   || 0;
+        const denomPrev = incomeStatementData[prevPeriod]?.[denom] || 0;
+        const numCurr  = incomeStatementData[currPeriod]?.[num]   || 0;
+        const denomCurr = incomeStatementData[currPeriod]?.[denom] || 0;
+        const ratePrev = calcRate(numPrev, denomPrev);
+        const rateCurr = calcRate(numCurr, denomCurr);
+        // %p 차이는 반올림 전 raw 값으로 계산하여 누적 오차 방지
+        const rawDiff  = (denomPrev && denomCurr)
+          ? (numCurr / denomCurr - numPrev / denomPrev) * 100 : null;
+        const rateDiff = rawDiff !== null
+          ? (rawDiff >= 0 ? '+' : '') + rawDiff.toFixed(1) + '%p'
+          : '-';
 
         return (
           <tr key={idx} className="border-b border-zinc-100 bg-zinc-50/50">
