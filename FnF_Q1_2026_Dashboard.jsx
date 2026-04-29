@@ -7025,6 +7025,17 @@ export default function FnFQ1_2026Dashboard() {
       const overrides = getEntityAmountOverrides(accountKey, period);
       if (overrides) return overrides;
 
+      // ── 법인별 구성 하드코딩 오버라이드 (2026_1Q) ──
+      const rp = period.replace(/_Year$/, '');
+      if (rp === '2026_1Q') {
+        // 선물환손익: OC(국내) 귀속분 없음 (연결조정 항목) → 전체 0
+        if (accountKey === '선물환손익') return { 'OC(국내)': 0 };
+        // 투자부동산처분손익: 역삼사옥 매각분 OC(국내) 전액 귀속
+        if (accountKey === '투자부동산처분손익') return { 'OC(국내)': 104195 };
+        // 영업외손익 합계: 투자부동산처분손익 104,195 포함된 OC(국내) 값 반영 (잔차는 연결조정 자동 계산)
+        if (accountKey === '영업외손익') return { 'OC(국내)': 119895, '중국': -1163, '홍콩': -98, 'ST미국': -1946 };
+      }
+
       const fallbackPeriod = period.endsWith('_4Q') ? period.replace('_4Q', '_Year') : period;
       const csvPeriodKey = fallbackPeriod.replace(/_\dQ_Year$/, match => match.replace('_Year', ''));
       const tryKeys = [accountKey, ...(isAccountAliasesForPanel[accountKey] || [])];
@@ -10122,32 +10133,7 @@ export default function FnFQ1_2026Dashboard() {
                       <span className="text-[11px] font-semibold text-zinc-700">과세표준별 법인세율 (구간별 세율 참조)</span>
                     </div>
                     <div className="grid grid-cols-2 divide-x divide-zinc-200">
-                      {/* 2025년 세율 */}
-                      <div className="px-3 py-3">
-                        <div className="text-[10px] text-blue-700 font-semibold mb-2">2025년 법인세율</div>
-                        <table className="w-full text-[11px] border-collapse">
-                          <thead>
-                            <tr className="bg-blue-50 text-blue-700">
-                              <th className="px-2 py-1 text-left font-medium border border-blue-200">세율</th>
-                              <th className="px-2 py-1 text-right font-medium border border-blue-200">과세표준 (연환산)</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {[
-                              { rate: '10.0%', base: '200' },
-                              { rate: '20.0%', base: '20,000' },
-                              { rate: '22.0%', base: '300,000' },
-                              { rate: '25.0%', base: '3천억 초과' },
-                            ].map((r, i) => (
-                              <tr key={i} className="border-b border-blue-100">
-                                <td className="px-2 py-1 border border-blue-100 font-mono">{r.rate}</td>
-                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.base}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {/* 2026년 세율 */}
+                      {/* 2026년 세율 (왼쪽) */}
                       <div className="px-3 py-3">
                         <div className="text-[10px] text-emerald-700 font-semibold mb-2">2026년 법인세율</div>
                         <table className="w-full text-[11px] border-collapse">
@@ -10159,14 +10145,39 @@ export default function FnFQ1_2026Dashboard() {
                           </thead>
                           <tbody>
                             {[
+                              { rate: '10.0%', base: '200' },
+                              { rate: '20.0%', base: '20,000' },
+                              { rate: '22.0%', base: '300,000' },
+                              { rate: '25.0%', base: '3천억 초과' },
+                            ].map((r, i) => (
+                              <tr key={i} className="border-b border-emerald-100">
+                                <td className="px-2 py-1 border border-emerald-100 font-mono">{r.rate}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.base}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* 2025년 세율 (오른쪽) */}
+                      <div className="px-3 py-3">
+                        <div className="text-[10px] text-blue-700 font-semibold mb-2">2025년 법인세율</div>
+                        <table className="w-full text-[11px] border-collapse">
+                          <thead>
+                            <tr className="bg-blue-50 text-blue-700">
+                              <th className="px-2 py-1 text-left font-medium border border-blue-200">세율</th>
+                              <th className="px-2 py-1 text-right font-medium border border-blue-200">과세표준 (연환산)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
                               { rate: '9.0%',  base: '200' },
                               { rate: '19.0%', base: '20,000' },
                               { rate: '21.0%', base: '300,000' },
                               { rate: '24.0%', base: '3천억 초과' },
                             ].map((r, i) => (
-                              <tr key={i} className="border-b border-emerald-100">
-                                <td className="px-2 py-1 border border-emerald-100 font-mono">{r.rate}</td>
-                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.base}</td>
+                              <tr key={i} className="border-b border-blue-100">
+                                <td className="px-2 py-1 border border-blue-100 font-mono">{r.rate}</td>
+                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.base}</td>
                               </tr>
                             ))}
                           </tbody>
