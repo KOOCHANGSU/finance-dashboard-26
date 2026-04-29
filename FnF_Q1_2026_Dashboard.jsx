@@ -8598,6 +8598,21 @@ export default function FnFQ1_2026Dashboard() {
                     GP커버리지 <span className="font-semibold text-blue-700">{gpCoverage.toFixed(2)}배</span> (전년 {gpCoveragePrev.toFixed(2)}배), DOL <span className="font-semibold">{dol.toFixed(1)}배</span> 레버리지 확대.
                   </p>
                 </div>
+                {/* 총평 */}
+                <div className="mt-3 pt-3 border-t border-[#1e3a5f]/15">
+                  <div className="flex items-start gap-2">
+                    <span className="shrink-0 text-[9px] font-bold text-white bg-[#1e3a5f] rounded px-1.5 py-0.5 mt-0.5 tracking-wide">총평</span>
+                    <p className="text-[11px] text-zinc-700 leading-relaxed">
+                      {currLbl} F&F는 <span className="font-semibold text-zinc-900">'매출 성장 + 비용 레버리지'가 동시에 작동</span>한 이상적인 분기.
+                      영업이익률 <span className="font-bold text-emerald-700">{pct1(omC)}</span>은 전년 대비 <span className="font-semibold text-emerald-700">{pp1(deltaOM)}</span> 개선이며,
+                      특히 수수료 효율화({pp1(commP/salesP-commC/salesC)})를 중심으로 판관비율이 {pct1(sgaRateP)}→{pct1(sgaRateC)}로 구조적으로 낮아졌다.
+                      증분기여율 <span className="font-bold">{((opC-opP)/(salesC-salesP)*100).toFixed(0)}%</span>가 보여주듯 현재 F&F는
+                      <span className="font-semibold text-zinc-900"> 매출이 늘면 이익이 2배 이상 빠르게 성장하는 레버리지 구조</span>에 진입해 있다.
+                      광고비 확대는 브랜드 ROI({adROI.toFixed(1)}배)가 확인된 전략적 집행으로 중장기 성장 동력 확보 관점에서 긍정적.
+                      <span className="font-semibold text-[#1e3a5f]"> 외형 성장 모멘텀 유지 시 OM {(Math.ceil(omC*100/2.5)*2.5).toFixed(1)}% 돌파도 가시권</span> — 수수료 구조 및 고정비 관리가 핵심 변수.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* 4열 가로 배치 */}
