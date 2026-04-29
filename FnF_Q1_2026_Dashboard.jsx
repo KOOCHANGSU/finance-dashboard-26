@@ -3685,8 +3685,8 @@ export default function FnFQ1_2026Dashboard() {
   // 연결운전자본(24~25).csv 기준: 연결 기여분 (내부거래 제거 후), 단위: 백만원
   // OC(국내) 223,917 / 중국 303,083 / 홍콩 25,832 / ST 7,469 / 기타(엔터) 597  합계 560,898
   if (entityData['매출액']) {
-    entityData['매출액']['2026_1Q']      = { 'OC(국내)': 223872, '중국': 303083, '홍콩': 25832, 'ST미국': 7513, '엔터테인먼트': 597, '기타': 1 };
-    entityData['매출액']['2026_1Q_Year'] = { 'OC(국내)': 223872, '중국': 303083, '홍콩': 25832, 'ST미국': 7513, '엔터테인먼트': 597, '기타': 1 };
+    entityData['매출액']['2026_1Q']      = { 'OC(국내)': 223872, '중국': 303083, '홍콩': 25832, 'ST미국': 7513, '엔터테인먼트': 597, '기타': 0 };
+    entityData['매출액']['2026_1Q_Year'] = { 'OC(국내)': 223872, '중국': 303083, '홍콩': 25832, 'ST미국': 7513, '엔터테인먼트': 597, '기타': 0 };
   }
   if (entityData['매출원가']) {
     entityData['매출원가']['2026_1Q']      = { 'OC(국내)': 77444, '중국': 239238, '홍콩': 10848, 'ST미국': 2261, '엔터테인먼트': 827, '기타': -137480 };
@@ -6940,7 +6940,7 @@ export default function FnFQ1_2026Dashboard() {
 
     // 법인 표시명 매핑
     const getEntityDisplayName = (entity) => {
-      if (['매출액','매출원가','매출총이익'].includes(selectedAccount) && (entity === '기타' || entity === '기타(연결조정)')) return '수출분판매';
+      if (['매출액','매출원가','매출총이익'].includes(selectedAccount) && (entity === '기타' || entity === '기타(연결조정)')) return '수출판매';
       if (selectedAccount === '영업이익' && entity === 'OC(국내)') return 'OC(별도)';
       if (selectedAccount === '영업이익' && entity === '기타(연결조정)') return '수출,판매분 이익 조정';
       if (['매출원가','매출총이익'].includes(selectedAccount) && entity === 'OC(국내)') return 'OC(국내/제3자수출)';
