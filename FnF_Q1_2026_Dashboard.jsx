@@ -7435,10 +7435,12 @@ export default function FnFQ1_2026Dashboard() {
         const currRatio = totalCurr !== 0 ? Math.abs(currVal) / Math.abs(totalCurr) : 0;
 
         // 전기나 당기 중 하나라도 데이터가 있고, 그 기간의 비중이 3% 이상이면 개별 유지
+        // 엔터테인먼트·베트남은 비중과 무관하게 항상 개별 표시
+        const ALWAYS_SHOW = ['엔터테인먼트', '베트남'];
         const hasDataInEitherPeriod = prevVal !== 0 || currVal !== 0;
         const isSignificantInEitherPeriod = prevRatio >= MINOR_ENTITY_RATIO_THRESHOLD || currRatio >= MINOR_ENTITY_RATIO_THRESHOLD;
 
-        if (hasDataInEitherPeriod && isSignificantInEitherPeriod) {
+        if (hasDataInEitherPeriod && (isSignificantInEitherPeriod || ALWAYS_SHOW.includes(name))) {
           entitiesToKeep.add(name);
         }
       }
@@ -7496,9 +7498,9 @@ export default function FnFQ1_2026Dashboard() {
       // 매출액: 기타(연결조정) 없이 고정 순서 표시 (기타는 맨 마지막)
       const entityOrder = selectedAccount === '매출액'
         ? ['OC(국내)', '중국', '홍콩', 'ST미국', '엔터테인먼트', '베트남', '기타'].filter(k => keyUnion.includes(k))
-        : [...MAJOR_ENTITIES, ...dynamicEntities, MERGED_ENTITY_LABEL].filter(
-            (v, i, arr) => arr.indexOf(v) === i
-          );
+        : [...MAJOR_ENTITIES, ...dynamicEntities, MERGED_ENTITY_LABEL]
+            .filter((v, i, arr) => arr.indexOf(v) === i)
+            .filter(k => k === MERGED_ENTITY_LABEL || keyUnion.includes(k));
 
       return entityOrder.map(entity => {
         const prevVal = prev[entity] || 0;
