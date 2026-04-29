@@ -10001,10 +10001,10 @@ export default function FnFQ1_2026Dashboard() {
                         <table className="text-[11px] border-collapse">
                           <thead>
                             <tr className="bg-blue-50 text-blue-700">
-                              <th className="px-2 py-1 text-left font-medium border border-blue-200">세율</th>
-                              <th className="px-2 py-1 text-right font-medium border border-blue-200">과세표준</th>
-                              <th className="px-2 py-1 text-right font-medium border border-blue-200">법인세</th>
-                              <th className="px-2 py-1 text-right font-medium border border-blue-200">유효세율</th>
+                              <th className="px-3 py-1.5 text-left font-medium border-r border-blue-200">세율</th>
+                              <th className="px-3 py-1.5 text-right font-medium border-r border-blue-200">과세표준</th>
+                              <th className="px-3 py-1.5 text-right font-medium border-r border-blue-200">법인세</th>
+                              <th className="px-3 py-1.5 text-right font-medium">유효세율</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -10014,10 +10014,10 @@ export default function FnFQ1_2026Dashboard() {
                               { rate: '26.4%', base: '454,076', tax: '109,514', eff: '24.1%', bold: true },
                             ].map((r, i) => (
                               <tr key={i} className={`border-b border-blue-100 ${r.bold ? 'bg-blue-50/50 font-semibold' : ''}`}>
-                                <td className="px-2 py-1 border border-blue-100 font-mono">{r.rate}</td>
-                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.base}</td>
-                                <td className="px-2 py-1 text-right tabular-nums border border-blue-100">{r.tax}</td>
-                                <td className={`px-2 py-1 text-right border border-blue-100 ${r.bold ? 'text-blue-800 font-bold' : 'text-blue-700'}`}>{r.eff}</td>
+                                <td className="px-3 py-1.5 border-r border-blue-100 font-mono text-zinc-600">{r.rate}</td>
+                                <td className="px-3 py-1.5 text-right tabular-nums border-r border-blue-100">{r.base}</td>
+                                <td className="px-3 py-1.5 text-right tabular-nums border-r border-blue-100">{r.tax}</td>
+                                <td className={`px-3 py-1.5 text-right tabular-nums ${r.bold ? 'text-blue-800 font-bold' : 'text-blue-700'}`}>{r.eff}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -10029,10 +10029,10 @@ export default function FnFQ1_2026Dashboard() {
                         <table className="text-[11px] border-collapse">
                           <thead>
                             <tr className="bg-emerald-50 text-emerald-700">
-                              <th className="px-2 py-1 text-left font-medium border border-emerald-200">세율</th>
-                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">과세표준</th>
-                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">법인세</th>
-                              <th className="px-2 py-1 text-right font-medium border border-emerald-200">유효세율</th>
+                              <th className="px-3 py-1.5 text-left font-medium border-r border-emerald-200">세율</th>
+                              <th className="px-3 py-1.5 text-right font-medium border-r border-emerald-200">과세표준</th>
+                              <th className="px-3 py-1.5 text-right font-medium border-r border-emerald-200">법인세</th>
+                              <th className="px-3 py-1.5 text-right font-medium">유효세율</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -10042,10 +10042,10 @@ export default function FnFQ1_2026Dashboard() {
                               { rate: '27.5%', base: '881,998', tax: '232,187', eff: '26.3%', bold: true },
                             ].map((r, i) => (
                               <tr key={i} className={`border-b border-emerald-100 ${r.bold ? 'bg-emerald-50/50 font-semibold' : ''}`}>
-                                <td className="px-2 py-1 border border-emerald-100 font-mono">{r.rate}</td>
-                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.base}</td>
-                                <td className="px-2 py-1 text-right tabular-nums border border-emerald-100">{r.tax}</td>
-                                <td className={`px-2 py-1 text-right border border-emerald-100 ${r.bold ? 'text-emerald-800 font-bold' : 'text-emerald-700'}`}>{r.eff}</td>
+                                <td className="px-3 py-1.5 border-r border-emerald-100 font-mono text-zinc-600">{r.rate}</td>
+                                <td className="px-3 py-1.5 text-right tabular-nums border-r border-emerald-100">{r.base}</td>
+                                <td className="px-3 py-1.5 text-right tabular-nums border-r border-emerald-100">{r.tax}</td>
+                                <td className={`px-3 py-1.5 text-right tabular-nums ${r.bold ? 'text-emerald-800 font-bold' : 'text-emerald-700'}`}>{r.eff}</td>
                               </tr>
                             ))}
                           </tbody>
