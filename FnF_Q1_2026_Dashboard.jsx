@@ -7631,7 +7631,8 @@ export default function FnFQ1_2026Dashboard() {
       const pctCurr = _showPct && _sSalesCurr ? `${(valCurr / _sSalesCurr * 100).toFixed(1)}%` : '—';
       // 증감액 ÷ 매출액 증감액 (매출액 증가분 대비 각 항목 증가분 비율)
       const _salesDiff = _sSalesCurr - _sSalesPrev;
-      const _ppRaw = _salesDiff !== 0 ? (diff / _salesDiff) * 100 : null;
+      // 매출액 자신은 항상 100%로 자명 → '—' 처리
+      const _ppRaw = _salesDiff !== 0 && item.key !== '매출액' ? (diff / _salesDiff) * 100 : null;
       const ppDiff = _ppRaw !== null ? `${_ppRaw >= 0 ? '+' : ''}${_ppRaw.toFixed(1)}%` : '—';
 
       const highlightClass = item.highlight === 'green' ? 'bg-emerald-50/50' : '';
@@ -7805,13 +7806,20 @@ export default function FnFQ1_2026Dashboard() {
                     <th className="text-center px-2 py-1 font-medium text-zinc-600 border-r border-zinc-100 min-w-[80px] text-xs bg-zinc-100/60">금액</th>
                     <th className="text-center px-2 py-1 font-medium text-zinc-500 border-r border-zinc-200 min-w-[52px] text-xs bg-zinc-100/30">매출대비</th>
                     <th className="text-center px-2 py-1 font-medium text-zinc-500 border-r border-zinc-100 min-w-[60px] text-xs">금액</th>
-                    <th className="text-center px-2 py-1 font-medium text-zinc-400 border-r border-zinc-200 min-w-[52px] text-xs">매출↑대비</th>
+                    <th className="text-center px-2 py-1 font-medium text-zinc-400 border-r border-zinc-200 min-w-[52px] text-xs" title="추가 매출 대비 각 항목 증가분 비율 — 고정비가 기존 매출에서 이미 커버되므로 실제 영업이익률보다 높게 나타남 (한계이익률)">증분기여율</th>
                   </tr>
                 </thead>
                 <tbody>
                   {operatingItems.map((item, idx) => renderTableRow(item, idx, operatingItems, selectedAccount, setSelectedAccount, false))}
                 </tbody>
               </table>
+              {/* 증분기여율 설명 각주 */}
+              <div className="px-3 py-2 bg-zinc-50 border-t border-zinc-100">
+                <p className="text-[10px] text-zinc-400 leading-relaxed">
+                  <span className="font-medium text-zinc-500">증분기여율</span> — 이번 분기 추가 매출({(() => { const sp=incomeStatementData[prevPeriod]||{}, sc=incomeStatementData[currPeriod]||{}; const d=(sc.매출액||0)-(sp.매출액||0); return d>0?'+':''})()}{(() => { const sp=incomeStatementData[prevPeriod]||{}, sc=incomeStatementData[currPeriod]||{}; return formatNumber((sc.매출액||0)-(sp.매출액||0)); })()}백만원) 중 각 항목 증가분이 차지하는 비율.
+                  기존 매출이 고정비를 이미 부담하고 있어, 추가 매출은 변동비만 차감되므로 영업이익 증분기여율(+54%)이 실제 영업이익률(27.4%)보다 높게 나타남.
+                </p>
+              </div>
             </div>
           </div>
         </div>
