@@ -8798,6 +8798,113 @@ export default function FnFQ1_2026Dashboard() {
                 </div>
 
               </div>
+
+              {/* ── 증분기여율 항목별 해석 ── */}
+              {(() => {
+                const salesDiffV = salesC - salesP;
+                const items = [
+                  {label:'인건비',    C:laborC, P:laborP, isAdex:false, isComm:false},
+                  {label:'광고선전비', C:adC,    P:adP,    isAdex:true,  isComm:false},
+                  {label:'수수료',    C:commC,  P:commP,  isAdex:false, isComm:true},
+                  {label:'감가상각비', C:deprC,  P:deprP,  isAdex:false, isComm:false},
+                  {label:'기타판관비', C:otherC, P:otherP, isAdex:false, isComm:false},
+                ];
+                const getDesc = ({label,C,P,isAdex,isComm})=>{
+                  const diff=C-P;
+                  const rate=salesDiffV?(diff/salesDiffV*100):0;
+                  const rP=salesP?(P/salesP*100).toFixed(1):0;
+                  const rC=salesC?(C/salesC*100).toFixed(1):0;
+                  const rdiff=((C/salesC-P/salesP)*100).toFixed(1);
+                  if(diff<0) return `매출 +${formatNumber(salesDiffV)} 성장에도 ${label} ${formatNumber(Math.abs(diff))} 감소 — 기존 구조 효율화, 영업이익 직접 기여 (매출대비 ${rP}%→${rC}%, ${rdiff}%p)`;
+                  if(isAdex) return `추가 매출 중 ${rate.toFixed(1)}%(≈${formatNumber(diff)}) 광고비 투입 — 브랜드 경쟁력 강화 의도적 집행, 광고비 1원당 매출 ${adROI.toFixed(1)}원 창출 (매출대비 ${rP}%→${rC}%, +${Math.abs(rdiff)}%p)`;
+                  if(isComm) return `추가 매출 중 ${rate.toFixed(1)}%(≈${formatNumber(diff)}) 수수료 지출 — 온라인·유통 채널 매출 연동 구조. 단 매출대비 비율 ${rP}%→${rC}%(${rdiff}%p) 효율 개선`;
+                  return `추가 매출 중 ${rate.toFixed(1)}%(≈${formatNumber(diff)}) 지출 (매출대비 ${rP}%→${rC}%, ${rdiff}%p)`;
+                };
+                const sgaDiff=sgaC-sgaP;
+                const gpDiff=gpC-gpP;
+                const opDiff=opC-opP;
+                return (
+                  <div className="mt-3 pt-3 border-t border-zinc-100">
+                    <p className="text-[10px] font-semibold text-zinc-700 mb-2.5">
+                      증분기여율 항목별 해석
+                      <span className="font-normal text-zinc-400 ml-1.5">— 추가 매출 +{formatNumber(salesDiffV)}백만원 기준</span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* 판관비 항목별 */}
+                      <div>
+                        <p className="text-[9px] font-semibold text-zinc-500 mb-1 uppercase tracking-wide">판관비 항목별</p>
+                        <table className="w-full" style={{fontSize:'10px'}}>
+                          <thead>
+                            <tr className="border-b border-zinc-200 bg-zinc-50">
+                              <th className="text-left py-1.5 px-2 font-medium text-zinc-500 w-[80px]">항목</th>
+                              <th className="text-right py-1.5 px-2 font-medium text-zinc-500 w-[64px]">증분기여율</th>
+                              <th className="text-left py-1.5 px-2 font-medium text-zinc-500">의미</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map(it=>{
+                              const diff=it.C-it.P;
+                              const rate=salesDiffV?(diff/salesDiffV*100):0;
+                              const color=diff<0?'text-emerald-600':it.isAdex?'text-amber-600':'text-zinc-600';
+                              return (
+                                <tr key={it.label} className="border-b border-zinc-50 align-top">
+                                  <td className="py-1.5 px-2 font-medium text-zinc-700 whitespace-nowrap">{it.label}</td>
+                                  <td className={`py-1.5 px-2 text-right tabular-nums font-semibold whitespace-nowrap ${color}`}>{rate>=0?'+':''}{rate.toFixed(1)}%</td>
+                                  <td className="py-1.5 px-2 text-zinc-500 leading-relaxed">{getDesc(it)}</td>
+                                </tr>
+                              );
+                            })}
+                            <tr className="border-t border-zinc-200 bg-zinc-50/70 align-top">
+                              <td className="py-1.5 px-2 font-bold text-zinc-700">판관비 합계</td>
+                              <td className="py-1.5 px-2 text-right tabular-nums font-bold text-zinc-700">+{(sgaDiff/salesDiffV*100).toFixed(1)}%</td>
+                              <td className="py-1.5 px-2 text-zinc-500 leading-relaxed">추가 매출 중 {(sgaDiff/salesDiffV*100).toFixed(1)}%만 판관비로 소요 — 나머지 {(100-sgaDiff/salesDiffV*100-(cogsC-cogsP)/salesDiffV*100).toFixed(1)}%가 영업이익으로 귀속</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* 이익 항목 비교 + 한 줄 요약 */}
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <p className="text-[9px] font-semibold text-zinc-500 mb-1 uppercase tracking-wide">이익 항목 비교</p>
+                          <table className="w-full" style={{fontSize:'10px'}}>
+                            <thead>
+                              <tr className="border-b border-zinc-200 bg-zinc-50">
+                                <th className="text-left py-1.5 px-2 font-medium text-zinc-500 w-[80px]">항목</th>
+                                <th className="text-right py-1.5 px-2 font-medium text-zinc-500 w-[64px]">증분기여율</th>
+                                <th className="text-right py-1.5 px-2 font-medium text-zinc-500 w-[56px]">실제이익률</th>
+                                <th className="text-left py-1.5 px-2 font-medium text-zinc-500">의미</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-zinc-50 align-top">
+                                <td className="py-1.5 px-2 font-medium text-zinc-700">매출총이익</td>
+                                <td className="py-1.5 px-2 text-right tabular-nums font-semibold text-emerald-600">+{(gpDiff/salesDiffV*100).toFixed(1)}%</td>
+                                <td className="py-1.5 px-2 text-right tabular-nums text-zinc-400">{pct1(gmC)}</td>
+                                <td className="py-1.5 px-2 text-zinc-500 leading-relaxed">추가 매출 1원 중 {(gpDiff/salesDiffV).toFixed(2)}원이 총이익 — 한계 GM%({(gpDiff/salesDiffV*100).toFixed(1)}%)이 실제 GM%({pct1(gmC)})보다 높음 = 마진 개선 진행 중</td>
+                              </tr>
+                              <tr className="align-top">
+                                <td className="py-1.5 px-2 font-medium text-zinc-700">영업이익</td>
+                                <td className="py-1.5 px-2 text-right tabular-nums font-bold text-emerald-600">+{(opDiff/salesDiffV*100).toFixed(1)}%</td>
+                                <td className="py-1.5 px-2 text-right tabular-nums text-zinc-400">{pct1(omC)}</td>
+                                <td className="py-1.5 px-2 text-zinc-500 leading-relaxed">추가 매출 1원 중 {(opDiff/salesDiffV).toFixed(2)}원이 영업이익 — 실제 OM%({pct1(omC)})의 약 {(opDiff/salesDiffV/omC).toFixed(1)}배 수준, 고정비가 기존 매출에서 이미 커버되기 때문</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        {/* 한 줄 요약 */}
+                        <div className="p-2.5 bg-[#1e3a5f]/5 border border-[#1e3a5f]/15 rounded-lg">
+                          <p className="text-[10px] font-semibold text-[#1e3a5f] mb-1">한 줄 요약</p>
+                          <p className="text-[10px] text-zinc-600 leading-relaxed">
+                            수수료(+{(((commC-commP)/salesDiffV)*100).toFixed(1)}%)와 광고비(+{(((adC-adP)/salesDiffV)*100).toFixed(1)}%)는 추가 매출과 함께 늘었지만,
+                            인건비·감가상각비·기타는 오히려 줄어 판관비 전체 증분기여율이 +{(sgaDiff/salesDiffV*100).toFixed(1)}%에 그쳤습니다.
+                            덕분에 추가 매출의 <span className="font-bold text-emerald-700">{(opDiff/salesDiffV*100).toFixed(0)}%</span>가 영업이익으로 귀속됩니다.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })()}
