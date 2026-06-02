@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>F&F AI 자동정산 운영기준 (v1.0)</title>
+<style>
+  :root {
+    --primary: #1a3a5c; --primary-light: #2c5282; --accent: #c8a047;
+    --bg: #ffffff; --bg-soft: #f7f8fa; --bg-card: #fafbfc;
+    --border: #e1e4e8; --border-strong: #c8ccd1;
+    --text: #1a202c; --text-soft: #4a5568; --text-muted: #718096;
+    --warning: #92400e; --warning-bg: #fef9ed;
+    --danger: #9b2c2c; --danger-bg: #fdf0f0;
+    --ok: #276749; --ok-bg: #edf7f0;
+    --gold: #b8860b; --gold-bg: #fef9e7;
+    --ai: #6b4f8a; --ai-bg: #f4eef9;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg-soft); color: var(--text);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic","맑은 고딕","Segoe UI", Arial, sans-serif;
+    font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  code { font-family: "Consolas","D2Coding","Menlo",monospace; background:#f1f5f9; color:#1e40af; padding:1px 5px; border-radius:3px; font-size:12.5px; }
+  .layout { display:grid; grid-template-columns:280px 1fr; max-width:1480px; margin:0 auto; min-height:100vh; background:var(--bg); box-shadow:0 0 40px rgba(0,0,0,0.04); }
+  aside.toc { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; background:linear-gradient(180deg,#1a3a5c 0%,#0f2540 100%); color:#d8dee8; padding:32px 20px; }
+  .toc-brand { font-size:13px; letter-spacing:1px; color:var(--accent); font-weight:700; margin-bottom:4px; text-transform:uppercase; }
+  .toc-title { font-size:17px; color:#fff; font-weight:700; line-height:1.4; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px; }
+  .toc nav a { display:block; color:#b8c2d0; text-decoration:none; padding:6px 10px; border-radius:4px; font-size:13px; transition:all .15s; border-left:2px solid transparent; }
+  .toc nav a:hover { background:rgba(255,255,255,0.06); color:#fff; border-left-color:var(--accent); }
+  .toc nav a.chapter { font-weight:600; color:#fff; margin-top:14px; font-size:12.5px; text-transform:uppercase; letter-spacing:.5px; }
+  .toc nav a.chapter:first-of-type { margin-top:0; }
+  .toc nav a.sub { padding-left:20px; font-size:12.5px; }
+  .toc-footer { margin-top:28px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.1); font-size:11.5px; color:#8a96a8; line-height:1.5; }
+  main { padding:48px 56px 80px; max-width:1140px; }
+  .doc-header { border-bottom:3px solid var(--primary); padding-bottom:24px; margin-bottom:36px; }
+  .doc-tag { display:inline-block; background:var(--accent); color:#fff; font-size:11px; font-weight:700; letter-spacing:1.5px; padding:4px 10px; border-radius:3px; margin-bottom:12px; }
+  .doc-tag.v { background:var(--primary-light); margin-left:6px; }
+  .doc-tag.ai { background:var(--ai); margin-left:6px; }
+  h1.doc-title { font-size:30px; margin:0 0 8px 0; color:var(--primary); font-weight:800; letter-spacing:-.5px; }
+  .doc-subtitle { font-size:15px; color:var(--text-muted); margin-bottom:16px; }
+  .meta-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:20px; padding:16px 20px; background:var(--bg-soft); border-radius:6px; border-left:4px solid var(--accent); }
+  .meta-item .meta-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:4px; }
+  .meta-item .meta-value { font-size:14px; color:var(--text); font-weight:600; }
+
+  h2.chapter { font-size:23px; color:var(--primary); margin:54px 0 22px 0; padding:14px 0 14px 20px; border-left:6px solid var(--accent); background:linear-gradient(90deg,rgba(200,160,71,0.06),transparent); font-weight:700; letter-spacing:-.3px; scroll-margin-top:20px; }
+  h3.group { font-size:19px; color:var(--primary); margin:40px 0 6px 0; font-weight:800; scroll-margin-top:20px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  h3.group .g-def { font-size:13px; color:var(--text-muted); font-weight:500; }
+  h4.sub { font-size:15px; color:var(--text); margin:24px 0 8px 0; font-weight:700; }
+  p { margin:10px 0; }
+  ul.deep, ol.deep { padding-left:22px; margin:8px 0; } ul.deep li, ol.deep li { margin:4px 0; }
+
+  table { width:100%; border-collapse:collapse; margin:14px 0; background:#fff; border:1px solid var(--border); border-radius:6px; overflow:hidden; font-size:12.8px; }
+  th { background:var(--primary); color:#fff; padding:9px 10px; text-align:left; font-weight:600; font-size:12px; letter-spacing:.2px; white-space:nowrap; }
+  td { padding:8px 10px; border-top:1px solid var(--border); vertical-align:top; }
+  tr:nth-child(even) td { background:var(--bg-card); }
+  tr:hover td { background:#f0f4fa; }
+  td.center, th.center { text-align:center; }
+  td.gl { font-family:monospace; font-size:11.5px; color:var(--text-soft); white-space:nowrap; }
+  td.use { font-size:12.2px; color:var(--text-soft); }
+
+  .tag { display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px; font-weight:700; letter-spacing:.3px; white-space:nowrap; }
+  .tag-keep { background:var(--ok-bg); color:var(--ok); border:1px solid #c2e0cd; }
+  .tag-drop { background:var(--danger-bg); color:var(--danger); border:1px solid #f0cccc; }
+  .tag-new { background:var(--gold-bg); color:var(--gold); border:1px solid #f0e0a8; }
+  .tag-chg { background:#eef2f7; color:var(--primary-light); border:1px solid #d6e0ed; }
+  .tag-ai { background:var(--ai); color:#fff; font-size:10.5px; padding:2px 7px; border-radius:3px; letter-spacing:.5px; }
+  sup.mk { font-size:9.5px; font-weight:800; padding:1px 4px; border-radius:3px; margin-left:3px; vertical-align:super; }
+  sup.mk-chg { background:#eef2f7; color:var(--primary-light); }
+  sup.mk-new { background:var(--gold-bg); color:var(--gold); }
+  sup.mk-fix { background:var(--warning-bg); color:var(--warning); }
+
+  .appr { display:inline-block; padding:2px 7px; border-radius:3px; font-size:10.5px; font-weight:800; white-space:nowrap; }
+  .appr-req { background:var(--danger-bg); color:var(--danger); }
+  .appr-thr { background:var(--warning-bg); color:var(--warning); }
+  .appr-exempt { background:var(--ok-bg); color:var(--ok); }
+  .proof { display:inline-block; font-family:monospace; font-size:10.5px; font-weight:800; padding:2px 6px; border-radius:3px; background:#f1f5f9; color:var(--primary-light); border:1px solid #d6e0ed; }
+
+  .callout { margin:16px 0; padding:14px 16px; border-radius:6px; border-left:4px solid; font-size:13.5px; }
+  .callout-info { background:#f1f5f9; border-color:var(--primary-light); color:#1a3a5c; }
+  .callout-warn { background:var(--warning-bg); border-color:var(--warning); color:#5c3a0a; }
+  .callout-danger { background:var(--danger-bg); border-color:var(--danger); color:#5c1a1a; }
+  .callout-ok { background:var(--ok-bg); border-color:var(--ok); color:#1a3a26; }
+  .callout-ai { background:var(--ai-bg); border-color:var(--ai); color:#432961; }
+  .callout .c-title { display:block; font-weight:800; margin-bottom:5px; font-size:12.5px; letter-spacing:.3px; }
+  .callout strong { font-weight:700; }
+  .note { font-size:12px; color:var(--text-muted); margin:6px 0; }
+
+  .revbox { margin:12px 0; padding:11px 15px; background:var(--ok-bg); border-left:4px solid var(--ok); border-radius:5px; font-size:12.5px; color:#1a3a26; }
+  .revbox .rb-title { font-weight:800; font-size:11.5px; letter-spacing:.5px; color:var(--ok); margin-bottom:4px; display:block; }
+  .revbox ul { margin:4px 0 0 0; padding-left:18px; } .revbox li { margin:2px 0; }
+
+  .disc { margin:14px 0; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .disc-head { background:#eef2f7; color:var(--primary); font-weight:800; font-size:12.5px; padding:8px 14px; letter-spacing:.3px; }
+  .disc-body { padding:6px 14px 10px; }
+  .disc-item { padding:8px 0; border-top:1px dashed var(--border); }
+  .disc-item:first-child { border-top:none; }
+  .disc-item .di-t { font-weight:700; font-size:13px; color:var(--primary-light); }
+  .disc-item ul { margin:4px 0 0 0; padding-left:18px; font-size:12.3px; color:var(--text-soft); }
+
+  .tree { margin:16px 0; padding:18px 20px; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; }
+  .tree-title { font-size:13.5px; font-weight:800; color:var(--primary); margin-bottom:12px; }
+  .node-q { background:var(--primary); color:#fff; padding:8px 13px; border-radius:6px; font-size:13px; font-weight:700; display:inline-block; max-width:560px; }
+  .branch { margin:0 0 0 22px; padding:6px 0 6px 20px; border-left:2px dashed var(--border-strong); }
+  .branch-row { display:flex; align-items:center; gap:10px; margin:7px 0; flex-wrap:wrap; }
+  .cond { font-size:12.3px; color:var(--text-soft); font-weight:600; }
+  .arrow { color:var(--accent); font-weight:800; }
+  .result { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border-strong); border-left:4px solid var(--primary-light); padding:6px 11px; border-radius:5px; font-size:12.5px; }
+  .result .r-gl { font-family:monospace; font-size:11.5px; color:var(--text-muted); }
+  .result .r-name { font-weight:700; color:var(--primary); }
+
+  .body-with-notes { position:relative; padding-right:330px; }
+  .cmt { float:right; clear:right; width:296px; margin:4px -330px 14px 0; background:#fffdf7; border:1px solid #ece3c8; border-left:4px solid var(--accent); border-radius:8px; padding:11px 13px; font-size:11.7px; line-height:1.55; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+  .cmt-h { font-weight:800; font-size:11px; color:var(--primary); margin-bottom:7px; letter-spacing:.2px; }
+  .cmt-r { margin:5px 0; color:var(--text-soft); }
+  .cmt-tag { display:inline-block; font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px; margin-right:5px; vertical-align:1px; }
+  .cmt-tag.was { background:var(--danger-bg); color:var(--danger); }
+  .cmt-tag.now { background:var(--ok-bg); color:var(--ok); }
+  .cmt-intro { background:#fffdf7; border:1px dashed #e0d3a8; border-left:4px solid var(--accent); border-radius:6px; padding:12px 16px; margin:8px 0 24px; font-size:12.8px; color:#6b5a2a; }
+
+  @media print { aside.toc{display:none;} .layout{grid-template-columns:1fr;} main{padding:24px;} .body-with-notes{padding-right:0;} .cmt{float:none;width:auto;margin:10px 0;} }
+  @media (max-width:1240px){ .body-with-notes{padding-right:0;} .cmt{float:none;width:auto;margin:12px 0;} }
+  @media (max-width:1100px){ .meta-grid{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <aside class="toc">
+    <div class="toc-brand">F&amp;F FINANCE</div>
+    <div class="toc-title">AI 자동정산 운영기준 v1.0</div>
+    <nav>
+      <a class="chapter" href="#intro">개요</a>
+      <a class="chapter" href="#flow">1. 자동정산 5단계</a>
+      <a class="sub" href="#flow">프로세스 · C/B/P/E</a>
+      <a class="chapter" href="#purpose">2. 사용목적 우선</a>
+      <a class="chapter" href="#grade">3. 공급업체 3등급</a>
+      <a class="chapter" href="#exception">4. 다목적 가맹점 예외</a>
+      <a class="chapter" href="#approval">5. 승인 · 반려</a>
+      <a class="chapter" href="#disc">논의사항</a>
+    </nav>
+    <div class="toc-footer">
+      운영기준 v1.0 (정산운영기준)<br/>
+      작성: 재무팀 · 2026-06-02<br/>
+      ※ 회계규정 아님 — AI 추천·검증 룰<br/>
+      ※ 모(母)문서: 법인카드 정산계정 정비안 v1.0
+    </div>
+  </aside>
+
+  <main>
+    <div class="doc-header">
+      <span class="doc-tag">운영기준</span>
+      <span class="doc-tag v">v1.0</span>
+      <span class="doc-tag ai">AI 자동분류 연계</span>
+      <h1 class="doc-title">AI 자동정산 운영기준</h1>
+      <p class="doc-subtitle">법인카드 정산 — 계정 추천 · 통제검증(C/B/P/E) · 승인 · 예외 처리</p>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="meta-label">문서 성격</div><div class="meta-value">정산운영기준<br/>(회계규정 아님)</div></div>
+        <div class="meta-item"><div class="meta-label">입력</div><div class="meta-value">정비안 STEP 02<br/>계정 정의</div></div>
+        <div class="meta-item"><div class="meta-label">검증축</div><div class="meta-value">C/B/P/E ↔<br/>공통 운영 4원칙</div></div>
+        <div class="meta-item"><div class="meta-label">연계</div><div class="meta-value">자산처리 규정<br/>선급비용 가이드</div></div>
+      </div>
+    </div>
+
+    <div class="body-with-notes">
+    <div class="cmt-intro">📌 본 문서는 <strong>법인카드 정산계정 정비안</strong>에 통합되어 있던 <strong>AI 자동정산 운영기준</strong>을 <strong>별도 문서로 분리</strong>한 것입니다. 정비안 = 계정 스키마(회계 정의), 본 문서 = 추천·검증·승인 룰(운영기준)로 역할을 나눕니다. 우측 코멘트는 설계 근거(<span class="cmt-tag was">기존</span> 원본 / <span class="cmt-tag now">권장</span> 정비안)입니다.</div>
+
+    <!-- ===== 개요 ===== -->
+    <h2 class="chapter" id="intro">개요</h2>
+    <p>본 운영기준은 <strong>회계규정이 아니라 AI 자동정산 운영기준(추천·검증 룰)</strong>입니다. <strong>법인카드 정산계정 정비안 STEP 02</strong>의 계정 정의를 입력으로 <strong>① 계정 추천 → ② 통제 검증(C/B/P/E) → ③ 승인·예외 처리</strong> 흐름을 규정하며, 자동분류 기준 문서쌍(자산처리 규정·선급비용 가이드)과 연계됩니다.</p>
+    <div class="callout callout-ai"><span class="c-title"><span class="tag-ai">AI</span> 설계 대원칙</span> <strong>"공급업체(가맹점)는 힌트일 뿐, 근거가 아니다."</strong> 계정은 <strong>"어디서 결제했는가"가 아니라 "무엇을 위해 지출했는가(사용목적)"</strong>로 결정합니다. 가맹점 정보는 계정 결정의 <strong>주체가 아니라 합리성 검증 장치</strong>로만 사용합니다.</div>
+
+    <!-- ===== 1. 자동정산 5단계 ===== -->
+    <h2 class="chapter" id="flow">1. AI 자동정산 프로세스 (5단계)</h2>
+    <table>
+      <thead><tr><th style="width:96px">단계</th><th style="width:130px">수행 주체</th><th>처리 내용</th></tr></thead>
+      <tbody>
+        <tr><td class="center"><strong>STEP 1</strong><br>계정 추천</td><td>AI</td><td><strong>명확 시 세목까지 추천</strong>(사용자 확인 후 즉시 정산) · <strong>불명확 시 상위계정·후보 제시</strong>(신뢰도 표기)</td></tr>
+        <tr><td class="center"><strong>STEP 2</strong><br>추가 입력</td><td>직원(기안자)</td><td>AI가 <strong>판단 불가한 경우에만</strong> 사용목적 선택 요청 (예: 복리후생 → 회의 / 회식 / 접대)</td></tr>
+        <tr><td class="center"><strong>STEP 3</strong><br>세목 확정</td><td>AI</td><td>사용자 선택값 → 최종 계정 매핑 (회의 → 회의비 · 회식 → 회식대 · 접대 → 접대비_일반)</td></tr>
+        <tr><td class="center"><strong>STEP 4</strong><br>통제 검증</td><td>AI</td><td><strong>C/B/P/E 4등급 자동 검증</strong> (아래 표)</td></tr>
+        <tr><td class="center"><strong>STEP 5</strong><br>부족 증빙 요청</td><td>AI → 직원</td><td>미비 항목(품의·한도초과·증빙) 발견 시 <strong>자동 회신 요청</strong> — 계정 확정 보류, 후보만 제시</td></tr>
+      </tbody>
+    </table>
+
+    <p class="note" style="margin-top:14px"><strong>STEP 1 예시</strong></p>
+    <table>
+      <thead><tr><th style="width:160px">구분</th><th>결제 정보</th><th>AI 추천</th></tr></thead>
+      <tbody>
+        <tr><td class="center" rowspan="6"><span class="appr appr-exempt">Case 1</span><br>명확 → 세목 추천</td><td>Cursor</td><td><span class="r-gl">55210115</span> 지급수수료_IT사용료</td></tr>
+        <tr><td>KTX</td><td><span class="r-gl">55030101</span> 여비교통비_국내출장비</td></tr>
+        <tr><td>한국부동산개발협회 등록수수료</td><td>지급수수료_공증/등기</td></tr>
+        <tr><td>카카오비즈니스 택시 (22:30 이후)</td><td>여비교통비_야근교통비 <span class="tag tag-chg" style="font-size:9.5px">비카드</span></td></tr>
+        <tr><td>사전품의된 워크샵</td><td>복리후생비_워크샵</td></tr>
+        <tr><td>사전품의된 사내행사</td><td>복리후생비_사내행사</td></tr>
+        <tr><td class="center"><span class="appr appr-thr">Case 2</span><br>불명확 → 상위/후보</td><td>한우집 48만 · 스타벅스 2만 · 투썸 8만</td><td><strong>복리후생비</strong> (신뢰도 85%) 또는 <strong>복리후생비 / 접대비</strong> 후보 제시 → STEP 2</td></tr>
+      </tbody>
+    </table>
+    <p class="note">※ 야근교통비는 총무팀 정산·카드 불가 계정이므로 추천 시 <strong>비카드 배지</strong>로 표기. ※ Case 2는 가맹점만으로 세목 확정이 불가 → 사용목적 입력으로 분기.</p>
+
+    <p class="note" style="margin-top:14px"><strong>STEP 4 · 통제체계 C/B/P/E 검증</strong> <span style="color:var(--text-muted)">— 정비안 공통 운영 원칙 4축과 1:1 대응</span></p>
+    <table>
+      <thead><tr><th class="center" style="width:90px">등급</th><th style="width:170px">검증 내용</th><th>연계 (공통 운영 원칙)</th></tr></thead>
+      <tbody>
+        <tr><td class="center"><strong>C</strong> Grade</td><td>품의 존재 여부 <span style="color:var(--text-muted)">(Control)</span></td><td>§사전품의 — 필수 / 임계치초과시 / 면제 · 밴드(B1·B2·B3)</td></tr>
+        <tr><td class="center"><strong>B</strong> Grade</td><td>금액 한도 <span style="color:var(--text-muted)">(Budget)</span></td><td>§한도 — 금액 / 관리주기 / 대상</td></tr>
+        <tr><td class="center"><strong>P</strong> Grade</td><td>결제수단 적정성 <span style="color:var(--text-muted)">(Payment)</span></td><td>§결제수단 — 기명식 / 공용 / 계좌이체 · 비카드</td></tr>
+        <tr><td class="center"><strong>E</strong> Grade</td><td>증빙 첨부 여부 <span style="color:var(--text-muted)">(Evidence)</span></td><td>§증빙 — L1 ~ L4</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info"><span class="c-title">STEP 5 예시</span> 회식대 추천 후 검증 → <strong>C: 팀장/품의 존재? · B: 월 한도 초과? · E: 영수증(L1) 첨부?</strong> 중 미비 항목 발견 시 직원에게 자동 회신 요청(증빙 추가·사유 입력). 충족 전까지 <strong>자동전표 생성 보류</strong>.</div>
+    <aside class="cmt"><div class="cmt-h">◆ AI 자동정산 프로세스</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 계정 추천 로직·통제 검증 항목·증빙 보완 절차가 문서화되지 않음</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 5단계 프로세스 + C/B/P/E 검증을 공통 운영 원칙 4축과 1:1로 연결. 미비 시 자동 회신·전표 보류로 자동전표 게이트 구성</div></aside>
+
+    <!-- ===== 2. 사용목적 우선 ===== -->
+    <h2 class="chapter" id="purpose">2. 사용목적 우선 분류 <span style="font-size:14px;color:var(--text-muted);font-weight:500">— 가맹점은 검증용</span></h2>
+    <p>동일 가맹점도 <strong>사용목적에 따라 계정이 갈립니다.</strong> 가맹점을 1차 분류축으로 쓰면 오분류가 구조적으로 발생하므로, 자동정산은 <strong>① 사용목적 선택 → ② 계정 자동 매핑 → ③ 가맹점 적합성 검증</strong> 순으로 계층화합니다.</p>
+    <table>
+      <thead><tr><th style="width:150px">가맹점</th><th>사용목적별 계정 분기</th></tr></thead>
+      <tbody>
+        <tr><td>주유소</td><td>회사차량 운영 → <strong>차량유지비</strong> · 출장 중 주유 → <strong>국내출장비</strong> · 물류 차량 → <strong>운반비</strong></td></tr>
+        <tr><td>백화점 · 온라인몰</td><td>직원 선물 → <strong>복리후생비</strong> · 거래처 선물 → <strong>접대비</strong> · 상품 샘플 → <strong>판매촉진비·샘플구입대</strong> · 사무용품 → <strong>소모품비</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:14px"><strong>① 사용목적 선택 → ② 계정 자동 매핑</strong></p>
+    <table>
+      <thead><tr><th>사용목적</th><th>기본 계정</th><th>사용목적</th><th>기본 계정</th></tr></thead>
+      <tbody>
+        <tr><td>출장</td><td>여비교통비_국내/해외출장비</td><td>광고/마케팅</td><td>광고선전비</td></tr>
+        <tr><td>차량운영</td><td>차량유지비</td><td>샘플구입</td><td>샘플구입대 · 판매촉진비</td></tr>
+        <tr><td>복리후생</td><td>복리후생비 (회의/회식/접대 분기)</td><td>사무용품</td><td>소모품비</td></tr>
+        <tr><td>접대</td><td>접대비_일반</td><td>교육</td><td>지급수수료_교육훈련</td></tr>
+        <tr><td>IT/SaaS</td><td>지급수수료_IT사용료 / 선급비용</td><td>기타</td><td>(후보 제시 → 사용자 확인)</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:14px"><strong>③ 가맹점 = 합리성 검증 장치(이상거래 경고)</strong></p>
+    <div class="callout callout-warn"><span class="c-title">이상거래 경고 룰</span> 주유소 + "사무용품" → <strong>경고</strong> · 백화점 + "차량운영" → <strong>경고</strong> · PG사 + "출장" → <strong>추가 증빙 요청</strong>. 사용목적과 가맹점 업종이 상충하면 자동 확정하지 않고 플래그.</div>
+    <aside class="cmt"><div class="cmt-h">◆ 사용목적 우선</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 가맹점(공급업체)명 기반 분류 가정 — 다목적 가맹점에서 오분류</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 사용목적을 핵심 분류축으로, 가맹점은 적합성 검증(이상거래 경고)으로 역할 분리 — 향후 AI 추천모델 확장에도 유리</div></aside>
+
+    <!-- ===== 3. 공급업체 3등급 ===== -->
+    <h2 class="chapter" id="grade">3. 공급업체 3등급 · AI 추천 근거 우선순위</h2>
+    <table>
+      <thead><tr><th class="center" style="width:70px">등급</th><th style="width:150px">성격</th><th>예시</th><th>AI 처리</th></tr></thead>
+      <tbody>
+        <tr><td class="center"><span class="appr appr-exempt">A</span></td><td>고정 (비용성격 고정)</td><td>Microsoft · AWS · SAP · OpenAI · 잡코리아 · 원티드</td><td>가맹점명 자체가 강한 근거 → <strong>자동 추천</strong></td></tr>
+        <tr><td class="center"><span class="appr appr-thr">B</span></td><td>준고정</td><td>법무법인 · 회계법인</td><td>과거 이력 참고 → 추천 + 확인</td></tr>
+        <tr><td class="center"><span class="appr appr-req">C</span></td><td>다목적 (가맹점 불명 취급)</td><td>나이스결제대행·KG이니시스·토스페이먼츠(PG) · 네이버페이·카카오페이(간편결제) · 쿠팡·오픈마켓</td><td><strong>품목·증빙 필수 확인</strong> → 미첨부 시 후보만 제시</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:14px"><strong>AI 추천 근거 우선순위</strong> — 가맹점 이력은 하위 보조 신호</p>
+    <table>
+      <thead><tr><th class="center" style="width:60px">순위</th><th>근거 정보</th><th class="center" style="width:120px">신뢰도</th></tr></thead>
+      <tbody>
+        <tr><td class="center">1</td><td>품의번호</td><td class="center"><strong>매우 높음</strong></td></tr>
+        <tr><td class="center">2</td><td>계약서 · 발주서</td><td class="center"><strong>매우 높음</strong></td></tr>
+        <tr><td class="center">3</td><td>품목명 (전자세금계산서 상세내역)</td><td class="center">높음</td></tr>
+        <tr><td class="center">4</td><td>인보이스</td><td class="center">높음</td></tr>
+        <tr><td class="center">5</td><td>공급업체 과거 이력</td><td class="center" style="color:var(--text-muted)">보조</td></tr>
+        <tr><td class="center">6</td><td>부서</td><td class="center" style="color:var(--text-muted)">보조</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info"><span class="c-title">나이스결제대행(PG) 예시 — "공급업체는 힌트일 뿐"</span> 동일 가맹점이 <strong>배달의민족 주문(복리후생비) · SaaS 구독(IT사용료) · 교육 수강(교육훈련) · 사무용품(소모품비) · 샘플 구매(샘플구입대) · 광고 집행(광고선전비)</strong>로 모두 달라집니다. <strong>품목 없음 → 계정 확정 불가</strong>(거래명세서·구매내역·인보이스 요청), <strong>품목 = "GPT Team Annual Subscription" → 지급수수료_IT사용료</strong>로 확정.</div>
+
+    <!-- ===== 4. 다목적 가맹점 예외 ===== -->
+    <h2 class="chapter" id="exception">4. 다목적 가맹점 예외규정 <span style="font-size:14px;color:var(--text-muted);font-weight:500">— PG·간편결제·오픈마켓·백화점·주유소</span></h2>
+    <p>아래 업종은 <strong>"가맹점 정보만으로 계정 확정이 어렵다"</strong>는 공통점을 가지므로, AI는 이를 <strong>가맹점 불명</strong>으로 취급하고 추가 증빙을 요청합니다. 이는 회계규정이 아니라 <strong>정산운영기준(AI 추천기준)</strong>에 명시합니다.</p>
+    <div class="revbox">
+      <span class="rb-title">예외규정 (정산운영기준)</span>
+      <ul>
+        <li><strong>PG사·간편결제 예외:</strong> 공급자가 PG사(나이스·KG이니시스·토스페이먼츠 등) 또는 간편결제 사업자(네이버페이·카카오페이 등)인 경우 <strong>공급자 정보만으로 계정을 확정하지 않으며</strong>, 구매내역·거래명세서·인보이스 등으로 실제 거래내용을 확인 후 계정을 결정한다.</li>
+        <li><strong>다목적 업종 일괄:</strong> PG사 · 간편결제 · 오픈마켓(쿠팡 등) · 백화점 · 대형마트 · 편의점 · 주유소를 한 그룹으로 묶어 <strong>"사용목적 선택 → 계정 추천 → 가맹점 적합성 검증"</strong> 순으로 처리한다.</li>
+      </ul>
+    </div>
+    <p class="note" style="margin-top:8px">정비안 §소모품비 단서를 전 업종으로 확대 반영:<sup class="mk mk-chg">변경</sup> "전자상거래PG, 네이버페이, 쿠팡 등 … 구매내역 첨부 필수" → <strong>"전자상거래PG·간편결제·오픈마켓·결제대행 등을 통한 거래는 공급자 정보만으로 비용 성격을 판단할 수 없으므로 구매내역·거래명세서·인보이스 등 실제 거래내용 확인이 가능한 증빙을 필수 첨부한다."</strong></p>
+    <table>
+      <thead><tr><th>AI Rule (공급자)</th><th class="center" style="width:170px">처리</th></tr></thead>
+      <tbody>
+        <tr><td>Microsoft · OpenAI (A등급)</td><td class="center"><span class="appr appr-exempt">자동추천</span></td></tr>
+        <tr><td>나이스결제대행 · 네이버페이 · 카카오페이 (PG·간편결제)</td><td class="center"><span class="appr appr-req">추가증빙 요청</span></td></tr>
+        <tr><td>쿠팡 (오픈마켓)</td><td class="center"><span class="appr appr-req">구매내역 요청</span></td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ 다목적 가맹점 예외</div><div class="cmt-r"><span class="cmt-tag was">기존</span> PG·간편결제 단서가 소모품비 등 일부 계정에만 존재</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 전 계정 공통 예외규정으로 격상 + 가맹점 불명 취급 룰. 회계규정이 아닌 정산운영기준에 명시</div></aside>
+
+    <!-- ===== 5. 승인 · 반려 ===== -->
+    <h2 class="chapter" id="approval">5. 승인 · 반려 워크플로 <span style="font-size:14px;color:var(--text-muted);font-weight:500">— 목적 책임=현업 / 회계처리 책임=회계팀</span></h2>
+    <p>자동정산의 목표는 <strong>"계정 자동 확정"이 아니라 "승인 시점까지 대부분의 거래가 올바른 사용목적으로 분류되도록 하는 것"</strong>입니다. 회계팀은 이후 전수 검토가 아니라 <strong>예외·오류 건 중심 모니터링</strong>으로 전환합니다.</p>
+    <table>
+      <thead><tr><th style="width:120px">단계</th><th style="width:110px">수행자</th><th>역할</th></tr></thead>
+      <tbody>
+        <tr><td>카드 사용</td><td>직원</td><td>결제</td></tr>
+        <tr><td>정산 등록</td><td>직원</td><td><strong>사용목적 선택</strong> (책임: 현업)</td></tr>
+        <tr><td>자동화</td><td>시스템</td><td>계정 추천 · C/B/P/E 검증</td></tr>
+        <tr><td>승인</td><td>부서장</td><td><strong>사용목적 · 업무관련성 · 증빙 일치</strong> 확인</td></tr>
+        <tr><td>회계</td><td>재무팀</td><td>예외건 모니터링 (책임: 회계처리)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">※ 백화점·온라인몰·PG사·상품권·고액 접대성 지출·샘플구입은 시스템이 좋아도 <strong>승인자 확인이 특히 유용</strong>(승인자는 업무상 필요성·거래 배경을 앎). 예: 현대백화점 50만원 "복리후생비" → 실제 거래처 선물 → 승인자가 접대비로 정정.</p>
+    <p class="note" style="margin-top:14px"><strong>회계팀 변경 절차 — 반려 vs 직접수정 2분기</strong></p>
+    <table>
+      <thead><tr><th>상황</th><th class="center" style="width:150px">회계팀 조치</th><th>사유</th></tr></thead>
+      <tbody>
+        <tr><td>사용목적 오류 (거래 성격 자체가 오분류) — 예: 복리후생비 → 접대비</td><td class="center"><span class="appr appr-req">반려</span><br>(사용목적 재확인)</td><td>계정 문제가 아니라 거래 성격 분류 오류 → 현업이 재확인·재선택. 조용히 수정 금지</td></tr>
+        <tr><td>증빙 부족 · 업무관련성 불명확</td><td class="center"><span class="appr appr-req">반려</span></td><td>현업 보완 필요 (증빙 추가·설명)</td></tr>
+        <tr><td>계정 세부 조정 (거래 실질 동일) — 예: 지급수수료 → 전산운영비</td><td class="center"><span class="appr appr-exempt">회계팀 수정</span><br>(이력 기록)</td><td>거래 실질 동일 → 회계 분류 세부 조정. 회계팀 직접 수정·이력 보존이 효율적</td></tr>
+        <tr><td>세무처리(부가세 코드·비용귀속부서) 변경</td><td class="center"><span class="appr appr-exempt">회계팀 수정</span></td><td>회계 전문 영역</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info"><span class="c-title">반려 사유 2분류 (시스템 설계)</span> <strong>A. 사용목적 재확인</strong>(사용목적 재선택 · 증빙 추가 · 업무관련성 설명 → 사용자 회신) · <strong>B. 회계조정</strong>(계정과목 · 부가세 코드 · 비용귀속부서 변경 → 회계팀 직접 수정). 감사 대응상 <strong>사용목적은 현업, 회계처리는 회계팀</strong>이 책임지는 구조가 가장 명확합니다.</div>
+    <aside class="cmt"><div class="cmt-h">◆ 승인·반려 워크플로</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 회계팀 임의 수정 시 책임 소재·감사 추적 불명</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 거래 성격 변경=반려(현업 책임), 회계 세부 조정=회계팀 수정(이력 기록)으로 2분기. 책임 소재 명확화</div></aside>
+
+    <!-- ===== 논의사항 ===== -->
+    <h2 class="chapter" id="disc">논의사항</h2>
+    <div class="disc">
+      <div class="disc-head">논의사항 — AI 자동정산</div>
+      <div class="disc-body">
+        <div class="disc-item"><div class="di-t">1. PG사·간편결제 거래의 증빙 의무화 <sup class="mk mk-new">신규</sup></div><ul><li><strong>현황:</strong> 공급자가 PG사·간편결제 사업자인 경우 실제 거래 상대방·품목 확인이 어려움.</li><li><strong>정비안(검토):</strong> 자동추천·자동정산 정확도 확보를 위해 구매내역·거래명세서·인보이스 추가 증빙 첨부 의무화. 미첨부 시 AI는 계정 확정 없이 후보만 제시하고 사용자 확인.</li><li><strong>논의:</strong> 의무화 범위·소액 면제 기준을 총무팀·재무팀 합의로 확정.</li></ul></div>
+        <div class="disc-item"><div class="di-t">2. 자동전표 게이트 기준 <sup class="mk mk-new">신규</sup></div><ul><li>C/B/P/E 4등급 모두 충족 시에만 자동전표 생성, 1개라도 미비 시 보류·후보 제시로 운영할지 검토.</li></ul></div>
+        <div class="disc-item"><div class="di-t">3. 승인자 정정 범위 <sup class="mk mk-new">신규</sup></div><ul><li>거래 성격 변경(반려) vs 계정 세부 조정(회계팀 수정)의 경계 사례 점검.</li></ul></div>
+      </div>
+    </div>
+    <div class="callout callout-ai"><span class="c-title"><span class="tag-ai">AI</span> 문서쌍 연계</span> 본 운영기준은 <strong>AI 기반 비용정산시스템</strong>의 자동 분류 로직과 직접 연결됩니다. 자본적/수익적 지출(자산처리 규정)·기간성 비용(선급비용 가이드) 분기는 해당 기준 문서를 호출해 일관 적용합니다.</div>
+
+    <p class="note" style="margin-top:40px">※ 본 운영기준은 검토용 초안입니다. 증빙 의무화 범위·자동전표 게이트 기준·승인자 정정 범위 등은 총무팀·재무팀 합의로 확정합니다. (모문서: 법인카드 정산계정 정비안 v1.0)</p>
+    </div><!-- /body-with-notes -->
+  </main>
+</div>
+</body>
+</html>

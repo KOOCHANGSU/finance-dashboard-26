@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>F&F 법인카드 정산 계정 사용·정산 기준 (정비안 v1.0)</title>
+<style>
+  :root {
+    --primary: #1a3a5c; --primary-light: #2c5282; --accent: #c8a047;
+    --bg: #ffffff; --bg-soft: #f7f8fa; --bg-card: #fafbfc;
+    --border: #e1e4e8; --border-strong: #c8ccd1;
+    --text: #1a202c; --text-soft: #4a5568; --text-muted: #718096;
+    --warning: #92400e; --warning-bg: #fef9ed;
+    --danger: #9b2c2c; --danger-bg: #fdf0f0;
+    --ok: #276749; --ok-bg: #edf7f0;
+    --gold: #b8860b; --gold-bg: #fef9e7;
+    --ai: #6b4f8a; --ai-bg: #f4eef9;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg-soft); color: var(--text);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Malgun Gothic","맑은 고딕","Segoe UI", Arial, sans-serif;
+    font-size: 15px; line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  code { font-family: "Consolas","D2Coding","Menlo",monospace; background:#f1f5f9; color:#1e40af; padding:1px 5px; border-radius:3px; font-size:12.5px; }
+  .layout { display:grid; grid-template-columns:280px 1fr; max-width:1480px; margin:0 auto; min-height:100vh; background:var(--bg); box-shadow:0 0 40px rgba(0,0,0,0.04); }
+  aside.toc { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; background:linear-gradient(180deg,#1a3a5c 0%,#0f2540 100%); color:#d8dee8; padding:32px 20px; }
+  .toc-brand { font-size:13px; letter-spacing:1px; color:var(--accent); font-weight:700; margin-bottom:4px; text-transform:uppercase; }
+  .toc-title { font-size:17px; color:#fff; font-weight:700; line-height:1.4; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:16px; }
+  .toc nav a { display:block; color:#b8c2d0; text-decoration:none; padding:6px 10px; border-radius:4px; font-size:13px; transition:all .15s; border-left:2px solid transparent; }
+  .toc nav a:hover { background:rgba(255,255,255,0.06); color:#fff; border-left-color:var(--accent); }
+  .toc nav a.chapter { font-weight:600; color:#fff; margin-top:14px; font-size:12.5px; text-transform:uppercase; letter-spacing:.5px; }
+  .toc nav a.chapter:first-of-type { margin-top:0; }
+  .toc nav a.sub { padding-left:20px; font-size:12.5px; }
+  .toc-footer { margin-top:28px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.1); font-size:11.5px; color:#8a96a8; line-height:1.5; }
+  main { padding:48px 56px 80px; max-width:1140px; }
+  .doc-header { border-bottom:3px solid var(--primary); padding-bottom:24px; margin-bottom:36px; }
+  .doc-tag { display:inline-block; background:var(--accent); color:#fff; font-size:11px; font-weight:700; letter-spacing:1.5px; padding:4px 10px; border-radius:3px; margin-bottom:12px; }
+  .doc-tag.v { background:var(--primary-light); margin-left:6px; }
+  .doc-tag.ai { background:var(--ai); margin-left:6px; }
+  h1.doc-title { font-size:30px; margin:0 0 8px 0; color:var(--primary); font-weight:800; letter-spacing:-.5px; }
+  .doc-subtitle { font-size:15px; color:var(--text-muted); margin-bottom:16px; }
+  .meta-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:20px; padding:16px 20px; background:var(--bg-soft); border-radius:6px; border-left:4px solid var(--accent); }
+  .meta-item .meta-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; font-weight:600; margin-bottom:4px; }
+  .meta-item .meta-value { font-size:14px; color:var(--text); font-weight:600; }
+
+  h2.chapter { font-size:23px; color:var(--primary); margin:54px 0 22px 0; padding:14px 0 14px 20px; border-left:6px solid var(--accent); background:linear-gradient(90deg,rgba(200,160,71,0.06),transparent); font-weight:700; letter-spacing:-.3px; scroll-margin-top:20px; }
+  h3.group { font-size:19px; color:var(--primary); margin:40px 0 6px 0; font-weight:800; scroll-margin-top:20px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+  h3.group .g-def { font-size:13px; color:var(--text-muted); font-weight:500; }
+  h4.sub { font-size:15px; color:var(--text); margin:24px 0 8px 0; font-weight:700; }
+  p { margin:10px 0; }
+  ul.deep, ol.deep { padding-left:22px; margin:8px 0; } ul.deep li, ol.deep li { margin:4px 0; }
+
+  table { width:100%; border-collapse:collapse; margin:14px 0; background:#fff; border:1px solid var(--border); border-radius:6px; overflow:hidden; font-size:12.8px; }
+  th { background:var(--primary); color:#fff; padding:9px 10px; text-align:left; font-weight:600; font-size:12px; letter-spacing:.2px; white-space:nowrap; }
+  td { padding:8px 10px; border-top:1px solid var(--border); vertical-align:top; }
+  tr:nth-child(even) td { background:var(--bg-card); }
+  tr:hover td { background:#f0f4fa; }
+  td.center, th.center { text-align:center; }
+  td.gl { font-family:monospace; font-size:11.5px; color:var(--text-soft); white-space:nowrap; }
+  td.use { font-size:12.2px; color:var(--text-soft); }
+
+  .tag { display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px; font-weight:700; letter-spacing:.3px; white-space:nowrap; }
+  .tag-keep { background:var(--ok-bg); color:var(--ok); border:1px solid #c2e0cd; }
+  .tag-drop { background:var(--danger-bg); color:var(--danger); border:1px solid #f0cccc; }
+  .tag-new { background:var(--gold-bg); color:var(--gold); border:1px solid #f0e0a8; }
+  .tag-chg { background:#eef2f7; color:var(--primary-light); border:1px solid #d6e0ed; }
+  .tag-ai { background:var(--ai); color:#fff; font-size:10.5px; padding:2px 7px; border-radius:3px; letter-spacing:.5px; }
+  sup.mk { font-size:9.5px; font-weight:800; padding:1px 4px; border-radius:3px; margin-left:3px; vertical-align:super; }
+  sup.mk-chg { background:#eef2f7; color:var(--primary-light); }
+  sup.mk-new { background:var(--gold-bg); color:var(--gold); }
+  sup.mk-fix { background:var(--warning-bg); color:var(--warning); }
+
+  /* 사전품의 enum */
+  .appr { display:inline-block; padding:2px 7px; border-radius:3px; font-size:10.5px; font-weight:800; white-space:nowrap; }
+  .appr-req { background:var(--danger-bg); color:var(--danger); }
+  .appr-thr { background:var(--warning-bg); color:var(--warning); }
+  .appr-exempt { background:var(--ok-bg); color:var(--ok); }
+  /* 증빙 등급 */
+  .proof { display:inline-block; font-family:monospace; font-size:10.5px; font-weight:800; padding:2px 6px; border-radius:3px; background:#f1f5f9; color:var(--primary-light); border:1px solid #d6e0ed; }
+
+  .callout { margin:16px 0; padding:14px 16px; border-radius:6px; border-left:4px solid; font-size:13.5px; }
+  .callout-info { background:#f1f5f9; border-color:var(--primary-light); color:#1a3a5c; }
+  .callout-warn { background:var(--warning-bg); border-color:var(--warning); color:#5c3a0a; }
+  .callout-danger { background:var(--danger-bg); border-color:var(--danger); color:#5c1a1a; }
+  .callout-ok { background:var(--ok-bg); border-color:var(--ok); color:#1a3a26; }
+  .callout-ai { background:var(--ai-bg); border-color:var(--ai); color:#432961; }
+  .callout .c-title { display:block; font-weight:800; margin-bottom:5px; font-size:12.5px; letter-spacing:.3px; }
+  .callout strong { font-weight:700; }
+  .note { font-size:12px; color:var(--text-muted); margin:6px 0; }
+
+  .revbox { margin:12px 0; padding:11px 15px; background:var(--ok-bg); border-left:4px solid var(--ok); border-radius:5px; font-size:12.5px; color:#1a3a26; }
+  .revbox .rb-title { font-weight:800; font-size:11.5px; letter-spacing:.5px; color:var(--ok); margin-bottom:4px; display:block; }
+  .revbox ul { margin:4px 0 0 0; padding-left:18px; } .revbox li { margin:2px 0; }
+
+  /* 논의사항 */
+  .disc { margin:14px 0; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .disc-head { background:#eef2f7; color:var(--primary); font-weight:800; font-size:12.5px; padding:8px 14px; letter-spacing:.3px; }
+  .disc-body { padding:6px 14px 10px; }
+  .disc-item { padding:8px 0; border-top:1px dashed var(--border); }
+  .disc-item:first-child { border-top:none; }
+  .disc-item .di-t { font-weight:700; font-size:13px; color:var(--primary-light); }
+  .disc-item ul { margin:4px 0 0 0; padding-left:18px; font-size:12.3px; color:var(--text-soft); }
+
+  /* 결정 트리 */
+  .tree { margin:16px 0; padding:18px 20px; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; }
+  .tree-title { font-size:13.5px; font-weight:800; color:var(--primary); margin-bottom:12px; }
+  .node-q { background:var(--primary); color:#fff; padding:8px 13px; border-radius:6px; font-size:13px; font-weight:700; display:inline-block; max-width:560px; }
+  .branch { margin:0 0 0 22px; padding:6px 0 6px 20px; border-left:2px dashed var(--border-strong); }
+  .branch-row { display:flex; align-items:center; gap:10px; margin:7px 0; flex-wrap:wrap; }
+  .cond { font-size:12.3px; color:var(--text-soft); font-weight:600; }
+  .arrow { color:var(--accent); font-weight:800; }
+  .result { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border-strong); border-left:4px solid var(--primary-light); padding:6px 11px; border-radius:5px; font-size:12.5px; }
+  .result .r-gl { font-family:monospace; font-size:11.5px; color:var(--text-muted); }
+  .result .r-name { font-weight:700; color:var(--primary); }
+
+  .legend { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:16px 0; }
+  .legend .lg-card { border:1px solid var(--border); border-radius:8px; padding:14px 16px; background:#fff; }
+  .legend .lg-card h5 { margin:0 0 8px; font-size:13px; color:var(--primary); }
+  .legend .lg-row { display:flex; align-items:center; gap:10px; margin:6px 0; font-size:12.3px; color:var(--text-soft); }
+
+  .status-pills { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
+  .status-pills .pill { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:700; border:1px solid; }
+  .pill.keep { background:var(--ok-bg); color:var(--ok); border-color:#c2e0cd; }
+  .pill.drop { background:var(--danger-bg); color:var(--danger); border-color:#f0cccc; }
+
+  /* 우측 코멘트 (기존 → 권장 차이) */
+  .body-with-notes { position:relative; padding-right:330px; }
+  .cmt { float:right; clear:right; width:296px; margin:4px -330px 14px 0; background:#fffdf7; border:1px solid #ece3c8; border-left:4px solid var(--accent); border-radius:8px; padding:11px 13px; font-size:11.7px; line-height:1.55; box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+  .cmt-h { font-weight:800; font-size:11px; color:var(--primary); margin-bottom:7px; letter-spacing:.2px; }
+  .cmt-r { margin:5px 0; color:var(--text-soft); }
+  .cmt-tag { display:inline-block; font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:3px; margin-right:5px; vertical-align:1px; }
+  .cmt-tag.was { background:var(--danger-bg); color:var(--danger); }
+  .cmt-tag.now { background:var(--ok-bg); color:var(--ok); }
+  .cmt-intro { background:#fffdf7; border:1px dashed #e0d3a8; border-left:4px solid var(--accent); border-radius:6px; padding:12px 16px; margin:8px 0 24px; font-size:12.8px; color:#6b5a2a; }
+
+  @media print { aside.toc{display:none;} .layout{grid-template-columns:1fr;} main{padding:24px;} .legend{grid-template-columns:1fr 1fr;} .body-with-notes{padding-right:0;} .cmt{float:none;width:auto;margin:10px 0;} }
+  @media (max-width:1240px){ .body-with-notes{padding-right:0;} .cmt{float:none;width:auto;margin:12px 0;} }
+  @media (max-width:1100px){ .legend{grid-template-columns:1fr;} .meta-grid{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="toc">
+    <div class="toc-brand">F&amp;F FINANCE</div>
+    <div class="toc-title">법인카드 정산 계정<br/>사용·정산 기준 v1.0</div>
+    <nav>
+      <a class="chapter" href="#intro">개요</a>
+      <a class="chapter" href="#common">공통 운영 원칙</a>
+      <a class="sub" href="#common-appr">사전품의 임계치</a>
+      <a class="sub" href="#common-limit">한도 단위</a>
+      <a class="sub" href="#common-proof">증빙 등급</a>
+      <a class="sub" href="#common-pay">결제수단</a>
+      <a class="chapter" href="#step01">STEP 01 계정 현황</a>
+      <a class="chapter" href="#step02a">STEP 02 일반 업무비용</a>
+      <a class="sub" href="#g-welfare">복리후생비</a>
+      <a class="sub" href="#g-travel">여비교통비</a>
+      <a class="sub" href="#g-car">차량유지비</a>
+      <a class="sub" href="#g-supply">소모품비</a>
+      <a class="sub" href="#g-sample">샘플구입대</a>
+      <a class="sub" href="#g-fee">지급수수료</a>
+      <a class="sub" href="#g-ad">광고선전비</a>
+      <a class="sub" href="#g-comm">통신비</a>
+      <a class="sub" href="#g-prepaid">선급비용</a>
+      <a class="sub" href="#g-etc">기타</a>
+      <a class="chapter" href="#step02b">STEP 02 출장 비용</a>
+      <a class="chapter" href="#step03">STEP 03 AI 자동정산 <span style="font-size:10px;color:var(--accent)">↗ 별도문서</span></a>
+    </nav>
+    <div class="toc-footer">
+      정비안 v1.0 (권장안 반영)<br/>
+      작성: 재무팀 · 2026-06-01<br/>
+      ※ 검토용 초안 — 임계 수치 확정 전
+    </div>
+  </aside>
+
+  <main>
+    <div class="doc-header">
+      <span class="doc-tag">정비안</span>
+      <span class="doc-tag v">v1.0</span>
+      <span class="doc-tag ai">AI 자동분류 연계</span>
+      <h1 class="doc-title">법인카드 정산 계정 사용·정산 기준</h1>
+      <p class="doc-subtitle">통일 스키마 · 공통 운영 원칙 · 계정 경계 결정 트리 반영</p>
+      <div class="meta-grid">
+        <div class="meta-item"><div class="meta-label">대상</div><div class="meta-value">정산 계정 74개<br/>(유지 47 / 제거 27)</div></div>
+        <div class="meta-item"><div class="meta-label">데이터 기준</div><div class="meta-value">기명식·공용<br/>24.01 ~ 26.03</div></div>
+        <div class="meta-item"><div class="meta-label">개정 방식</div><div class="meta-value">공통 규칙 우선<br/>개별 예외 최소화</div></div>
+        <div class="meta-item"><div class="meta-label">연계</div><div class="meta-value">선급비용 가이드<br/>AI 비용정산시스템</div></div>
+      </div>
+    </div>
+
+    <div class="body-with-notes">
+    <div class="cmt-intro">📌 <strong>우측 여백의 코멘트</strong>는 <strong>기존 보고서</strong> 대비 본 정비안에서 <strong>달라진 점</strong>을 표시합니다. <span class="cmt-tag was">기존</span> 원본 / <span class="cmt-tag now">권장</span> 정비안. (인쇄·좁은 화면에서는 코멘트가 본문 아래로 배치됩니다)</div>
+
+    <!-- ===== 개요 ===== -->
+    <h2 class="chapter" id="intro">개요</h2>
+    <p>법인카드 정산 시 비용 성격에 맞는 계정을 선택해야 하나, 일부 계정은 실제 카드 사용 형태와 부합하지 않거나 사용 빈도가 낮아 오분류 가능성이 존재합니다.
+    이에 카드 사용 패턴 및 정산 데이터를 기반으로 계정별 적합성을 재검토하고, 카드 결제 대상에서 제외가 필요한 계정을 정비하여 <strong>사용자 선택 오류와 운영 복잡도를 최소화</strong>하고자 합니다.</p>
+    <div class="callout callout-info">
+      <span class="c-title">본 정비안의 개정 원칙</span>
+      개별 계정 정의를 다듬기보다 <strong>① 사전품의·한도·증빙 등 횡단 공통 규칙을 먼저 통일</strong>하고, <strong>② 용도가 겹치는 계정은 결정 트리로 1개 계정에 떨어지도록</strong> 강제했습니다.
+      표의 <sup class="mk mk-chg">변경</sup> <sup class="mk mk-new">신규</sup> <sup class="mk mk-fix">수정</sup> 표시는 기존안 대비 달라진 부분입니다.
+    </div>
+
+    <!-- ===== 공통 운영 원칙 ===== -->
+    <h2 class="chapter" id="common">공통 운영 원칙 <span style="font-size:14px;color:var(--text-muted);font-weight:500">— 모든 계정에 우선 적용</span></h2>
+    <p>아래 4개 규칙은 전 계정에 동일하게 적용됩니다. 각 계정 표는 이 규칙의 <em>값</em>만 표기하며, 정의는 본 절을 따릅니다.</p>
+
+    <h4 class="sub" id="common-appr">1) 사전품의 — 금액 임계치 기준 (3값)</h4>
+    <p>"규정엔 품의 필수인데 실제론 소액·관행으로 생략"되는 괴리(회식대·소모품비·IT사용료 논의)를 한 규칙으로 해소합니다. ○/✕ 2값을 다음 <strong>3값</strong>으로 대체합니다.</p>
+    <table>
+      <thead><tr><th style="width:140px">값</th><th>의미</th><th>적용 예</th></tr></thead>
+      <tbody>
+        <tr><td><span class="appr appr-req">필수</span></td><td>금액 무관 항상 사전품의</td><td>워크샵·사내행사·선급비용·출장</td></tr>
+        <tr><td><span class="appr appr-thr">임계치초과시</span></td><td>건당 <strong>밴드 임계치 이상</strong>만 사전품의, 미만은 사후 모니터링 (밴드는 아래 표)</td><td>회식대·소모품비·IT사용료 등</td></tr>
+        <tr><td><span class="appr appr-exempt">면제</span></td><td>품의 불요, 증빙·모니터링으로 통제</td><td>통신비·우편료·총무지원(증빙 강화)</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:14px"><strong>임계치는 계정마다 따로 정하지 않고, 위험·금액대로 묶은 '임계치 밴드' 3개 중 하나를 부여</strong>합니다. 금액을 조정할 때 계정 74개가 아니라 밴드 3개만 손보면 되어, 차등은 반영하되 규칙은 단순하게 유지됩니다.</p>
+    <table>
+      <thead><tr><th style="width:90px">밴드</th><th style="width:130px">임계치(건당)</th><th>적용 대상 예</th><th>근거</th></tr></thead>
+      <tbody>
+        <tr><td class="center"><span class="appr appr-exempt">B1</span></td><td class="center"><strong>5만원</strong></td><td>소모품비·회식대·잡비</td><td>소액 빈발, 남용 위험</td></tr>
+        <tr><td class="center"><span class="appr appr-thr">B2</span></td><td class="center"><strong>30만원</strong></td><td>IT사용료·교육훈련·지급용역</td><td>중액 정기성</td></tr>
+        <tr><td class="center"><span class="appr appr-req">B3</span></td><td class="center"><strong>100만원</strong></td><td>광고선전·사내행사·렌탈</td><td>계약·견적 선행</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-warn"><strong>확정 필요:</strong> 밴드별 임계치 금액(<code>5 / 30 / 100만원</code>)과 각 계정의 밴드 배정은 총무팀·재무팀 합의로 확정합니다. 출장·선급비용·자본적지출 등 <strong>사전승인이 본질인 계정은 밴드와 무관하게 <span class="appr appr-req">필수</span></strong>로 유지합니다.</div>
+    <aside class="cmt"><div class="cmt-h">◆ 사전품의 기준</div><div class="cmt-r"><span class="cmt-tag was">기존</span> ○/✕ 2값. 회식대·소모품비·IT사용료는 규정상 ○이나 실무는 소액·관행으로 생략 → 규정과 괴리</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 필수 / 임계치초과시 / 면제 <strong>3값</strong> + 임계치초과시는 <strong>밴드 3개(B1 5만 · B2 30만 · B3 100만)</strong>로 차등. 단일값의 과잉·공백, 계정별 개별값의 제각각 문제를 모두 회피</div></aside>
+
+    <h4 class="sub" id="common-limit">2) 금액 한도 — 기간 단위 표준화</h4>
+    <p>한도는 <code>금액 / 관리주기 / 대상</code> 형식으로 표기하며, <strong>관리주기는 계정별로 '월 단위'인지 '시즌 단위'인지(또는 일·분기·반기·건)를 명시적으로 정의</strong>합니다. 월 관리와 시즌 관리는 단순 표기 차이가 아니라 <strong>한도가 리셋·누적되는 방식이 다른 별개의 통제 주기</strong>이므로, 계정마다 하나를 확정해야 합니다.</p>
+    <ul class="deep">
+      <li><strong>월 단위</strong> — 매월 한도가 리셋. 예: 회식대 <code>월 / 1인 / 5만원</code> → 달마다 새로 부여</li>
+      <li><strong>시즌 단위</strong> — 시즌 전체에 1회 한도 풀(<code>SS: 3~8월</code> / <code>FW: 9~2월</code>, 각 6개월). 예: 워크샵 <code>시즌 / 1인 / 10만원</code> → 시즌당 1회</li>
+    </ul>
+    <p class="note">사용 가능 관리주기: <code>일 · 월 · 분기 · 반기 · 시즌 · 건</code> — 각 계정은 이 중 하나로 확정(혼합·미정의 금지). 시즌은 월 매핑이 명확해 시스템 카운팅 가능.</p>
+    <aside class="cmt"><div class="cmt-h">◆ 한도 관리주기</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 한도가 월·시즌·일 혼재, <em>관리 주기의 의미</em>(월=리셋 vs 시즌=누적)가 미정의</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 계정별로 <strong>월 관리 / 시즌 관리</strong>를 명시 정의. 시즌(SS·FW)은 정식 주기로 유지 — 워크샵은 시즌 단위</div></aside>
+
+    <h4 class="sub" id="common-proof">3) 증빙 — 강도 등급</h4>
+    <div class="legend">
+      <div class="lg-card">
+        <h5>증빙 등급</h5>
+        <div class="lg-row"><span class="proof">L1</span> 영수증</div>
+        <div class="lg-row"><span class="proof">L2</span> 구매내역 + 영수증</div>
+        <div class="lg-row"><span class="proof">L3</span> 인보이스(세금계산서) 필수</div>
+        <div class="lg-row"><span class="proof">L4</span> 인보이스 + 계약서</div>
+      </div>
+      <div class="lg-card">
+        <h5>온라인 결제 공통 단서 <sup class="mk mk-chg">전계정 격상</sup></h5>
+        <div class="lg-row">PG·네이버페이·쿠팡 등 <strong>실제 구매 품목 확인이 어려운 결제 건은 구매내역 첨부 필수</strong>.</div>
+        <div class="lg-row" style="color:var(--text-muted)">기존엔 소모품비·샘플·광고선전비에만 명시 → 전 계정 공통으로 격상.</div>
+      </div>
+    </div>
+
+    <aside class="cmt"><div class="cmt-h">◆ 증빙 표기</div><div class="cmt-r"><span class="cmt-tag was">기존</span> "영수증" / "구매내역+영수증" / "인보이스" 자유 표기 → 통제 강도 들쭉날쭉. 온라인 결제 단서는 3개 계정에만</div><div class="cmt-r"><span class="cmt-tag now">권장</span> L1~L4 등급화. PG·네이버페이·쿠팡 구매내역 첨부 단서를 <strong>전 계정 공통</strong>으로 격상</div></aside>
+    <h4 class="sub" id="common-pay">4) 결제수단 표기</h4>
+    <p>결제수단은 <code>기명식카드 · 공용카드 · 총무팀정산 · 세금계산서/계좌이체</code>로 표준화합니다.
+    <strong>카드로 정산하지 않는 계정(총무팀정산 등)은 표에 <span class="tag tag-chg">비카드</span> 배지로 명시</strong>하여, '법인카드 정산 가능' 목록 내 범위 모순을 제거합니다.</p>
+    <p class="note" style="margin-top:8px"><strong>※ '회사 계정'은 결제수단이 아닙니다.</strong> 구독·SaaS 서비스 계정이 <strong>개인 명의가 아닌 법인(회사) 명의로 등록</strong>되어야 한다는 <strong>계정 귀속 속성</strong>이므로, 결제수단이 아닌 <code>사용용도/조건</code>란에 표기합니다.</p>
+    <aside class="cmt"><div class="cmt-h">◆ 결제수단 / 범위</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 결제수단 컬럼이 여비·차량유지비에만 존재. 야근교통비(총무팀정산·카드 불가)가 '법인카드 정산 가능' 목록에 혼재 → 범위 모순</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 전 계정 결제수단 표기 + 비카드 배지로 모순 제거</div></aside>
+
+    <!-- ===== STEP 01 ===== -->
+    <h2 class="chapter" id="step01">STEP 01 · 법인카드 정산 계정 현황</h2>
+    <p class="note">기명식/공용 법인카드 전체 정산내역 기준 (24.01 ~ 26.03)</p>
+    <div class="status-pills">
+      <span class="pill keep">유지 47</span>
+      <span class="pill drop">제거 27</span>
+    </div>
+    <table>
+      <thead><tr><th class="center" style="width:50px">NO</th><th style="width:110px">계정코드</th><th>계정명</th><th style="width:120px">합계</th><th class="center" style="width:90px">상태</th></tr></thead>
+      <tbody>
+        <tr><td class="center" colspan="5" style="color:var(--text-muted)">※ 계정별 합계·상태 명세는 정산 데이터(엑셀)와 연동하여 채움 — 유지 47 / 제거 27 / 연도별 펼치기 · 엑셀 다운로드 제공</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info"><strong>유지/제거 판정 기준 명문화 권장:</strong> 사용 빈도(건수)·금액·대체 계정 존재 여부를 기준으로 제거 27개의 사유를 한 컬럼으로 표기하면, 차기 정비 시 판단 근거가 일관됩니다.</div>
+    <aside class="cmt"><div class="cmt-h">◆ STEP 01 현황표</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 표 헤더(NO·계정코드·계정명·합계·상태)만 3회 반복, 실제 데이터 없음</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 정산 데이터 연동으로 합계·상태 채움 + <strong>제거 사유 컬럼</strong> 추가</div></aside>
+
+    <!-- ===== STEP 02 일반 업무비용 ===== -->
+    <h2 class="chapter" id="step02a">STEP 02 · 계정별 사용·정산 기준 (일반 업무비용)</h2>
+    <p>항목별로 어떤 조건을 충족해야 회사 비용으로 인정받는지(사용자·한도·사용일·장소·용도·정산 방식)를 정의합니다. 별도 예외 없이 동일 기준으로 운영합니다.</p>
+
+    <!-- 복리후생비 -->
+    <h3 class="group" id="g-welfare">복리후생비 <span class="g-def">임직원의 복리후생 및 조직 활성화를 위한 비용</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>한도</th><th>시간·장소</th><th class="center">사전품의</th><th class="center">증빙</th><th class="center">안분</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55010109</td><td>복리후생비_회식대</td><td>전직원<sup class="mk mk-chg">변경</sup></td><td>월 / 1인 / 5만원</td><td>근무일</td><td class="center"><span class="appr appr-thr">임계치초과시</span><sup class="mk mk-chg">변경</sup></td><td class="center"><span class="proof">L1</span></td><td class="center">○</td><td class="use">부서·사업부 단위 회식 및 조직 활성화 목적 식대</td></tr>
+        <tr><td class="gl">55010111</td><td>복리후생비_회의비</td><td>전직원</td><td>월 / 1인 / 3만원</td><td>업무시간(08~19시) · 사내·업무 미팅</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L1</span></td><td class="center">○</td><td class="use">업무 회의·외부 미팅 진행 시 식음료 (※ 단순 직원 점심식대 불가 — §결정트리)</td></tr>
+        <tr><td class="gl">55010113</td><td>복리후생비_워크샵</td><td>전직원</td><td>시즌 / 1인 / 10만원</td><td>근무일</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="center">○</td><td class="use">부서 단위 워크샵·교육·조직문화 프로그램 운영</td></tr>
+        <tr><td class="gl">55010117</td><td>복리후생비_사내행사</td><td>행사 주관부서</td><td>—</td><td>근무일</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="center">○</td><td class="use">행사 시 임직원 제공 복리후생성 물품·식음료(케이터링·기념품·굿즈·경품 등)</td></tr>
+        <tr><td class="gl">55010119</td><td>복리후생비_부서</td><td>전직원<sup class="mk mk-chg">정의축소</sup></td><td>임계치 품의 통제<br><span style="font-size:10px;color:var(--text-muted)">1인/5만원 식대캡 폐지(안)</span><sup class="mk mk-chg">검토</sup></td><td>근무일</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="center">✕<sup class="mk mk-chg">검토</sup></td><td class="use"><strong>타 세부계정 어디에도 속하지 않는</strong> 부서 단위 <strong>비(非)식대 업무경비</strong>(영업·VMD·디자인 외근, 생산업체 방문 교통·물품 등). <em>간담회·생산업체 미팅의 식대(식음료)는 §결정트리로 회의비/접대비에 분기 — 본 계정엔 식대 미포함</em></td></tr>
+        <tr><td class="gl">55010125</td><td>복리후생비_총무지원</td><td>총무팀·동호회장</td><td>동호회 월 / 1인 / 5만원</td><td>근무일</td><td class="center"><span class="appr appr-exempt">면제</span></td><td class="center"><span class="proof">L1</span></td><td class="center">✕</td><td class="use">총무 주관 생일케이크·명절선물·동호회 정산</td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ 복리후생비</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 회식대=팀장급·품의✕(팀원도 사용·통제 부재), _부서는 사용자·한도·품의 전량 "논의대상"인 catch-all → 식대 3중첩</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 회식대 전직원+임계치 품의, _부서 정의 축소·식대는 결정 트리로 회수 (워크샵 시즌 한도는 유지)</div></aside>
+    <div class="revbox">
+      <span class="rb-title">정비 반영</span>
+      <ul>
+        <li><strong>회식대 사용 주체 팀장급 → 전직원</strong>: 실제 팀원도 사용 중·사전 통제 부재(논의1) → 임계치초과시 품의로 통제 전환.</li>
+        <li><strong>워크샵 한도 "시즌" 유지</strong> — 시즌(SS 3~8월·FW 9~2월)은 월 매핑이 명확한 정식 단위. 표기 형식만 <code>시즌/1인/10만원</code>으로 통일.</li>
+        <li><strong>_부서(55010119)</strong> catch-all 정의를 "타 계정 미분류 부서비용"으로 축소, 식대는 결정 트리로 회수(제안). <strong>단, _부서의 식대 포함 여부·비식대 전환과 식대형 한도(<code>월/1인/5만원</code>) 폐지는 현업 영향이 커 논의 필요 — 아래 논의사항 6 참조.</strong></li>
+      </ul>
+    </div>
+    <div class="tree">
+      <div class="tree-title">식대 1건 → 계정 결정 (회식대·회의비·_부서·접대비 분기)</div>
+      <div class="node-q">Q1. 외부 거래처·사업관계자(생산업체 등)가 동석했는가?</div>
+      <div class="branch">
+        <div class="branch-row"><span class="cond">예 — 향응·접대 목적</span><span class="arrow">→</span><span class="result"><span class="r-gl">55190105</span><span class="r-name">접대비_일반</span></span></div>
+        <div class="branch-row"><span class="cond">예 — 업무 협의 목적(간담회·실무 미팅)</span><span class="arrow">→</span><span class="result"><span class="r-gl">55010111</span><span class="r-name">복리후생비_회의비</span></span></div>
+        <div class="branch-row"><span class="cond">아니오 (임직원만)</span><span class="arrow">→</span><span class="cond">Q2</span></div>
+      </div>
+      <p class="note" style="margin:6px 0 10px">※ <strong>외부 동석 ≠ 자동 접대비.</strong> 향응·접대 목적이면 접대비, <strong>생산업체와의 업무 간담회·실무 협의 식대는 회의비</strong>(외부 미팅 식음료 포함). 식대가 아닌 부서 운영경비(외근·방문 물품 등)는 _부서.<br>※ <strong>현업에서도 거래처 동반 식대 대부분은 복리후생비(회의비·회식대)로 처리</strong>되며, <strong>접대비_일반은 향응성 접대에 한정해 좁게 사용</strong>합니다. 그래서 접대비 사용 시 증빙도 회식대와 동일한 <span class="proof">L1</span>입니다.</p>
+      <div class="node-q">Q2. 업무 회의·미팅(08~19시) 중 발생한 식음료인가?</div>
+      <div class="branch">
+        <div class="branch-row"><span class="cond">예</span><span class="arrow">→</span><span class="result"><span class="r-gl">55010111</span><span class="r-name">복리후생비_회의비</span></span></div>
+        <div class="branch-row"><span class="cond">아니오</span><span class="arrow">→</span><span class="cond">Q3</span></div>
+      </div>
+      <div class="node-q">Q3. 부서·사업부 단위 회식(조직 활성화)인가?</div>
+      <div class="branch">
+        <div class="branch-row"><span class="cond">예</span><span class="arrow">→</span><span class="result"><span class="r-gl">55010109</span><span class="r-name">복리후생비_회식대</span></span></div>
+        <div class="branch-row"><span class="cond">그 외 부서 업무비용</span><span class="arrow">→</span><span class="result"><span class="r-gl">55010119</span><span class="r-name">복리후생비_부서</span></span></div>
+      </div>
+    </div>
+    <div class="disc">
+      <div class="disc-head">논의사항 — 복리후생비</div>
+      <div class="disc-body">
+        <div class="disc-item"><div class="di-t">1. 회식대 결제 권한</div><ul><li>전직원 확대 + 임계치초과시 사전품의로 통제(반영) — 확정 여부 검토</li></ul></div>
+        <div class="disc-item"><div class="di-t">2. 예산 운영 기준</div><ul><li>한도 유지 + 사후정산 자율사용 형태 유지 여부</li></ul></div>
+        <div class="disc-item"><div class="di-t">3·4. 회의비 식대·_부서 기준</div><ul><li>결정 트리로 기준 명확화(반영). 잔여 모호 케이스 점검</li></ul></div>
+        <div class="disc-item"><div class="di-t">5. 안분 정산 편의</div><ul><li>안분 기준 현행 유지, 정산 시스템 내 안분 기능 고도화</li></ul></div>
+        <div class="disc-item"><div class="di-t">6. _부서 식대 포함 여부·한도 <sup class="mk mk-chg">신규</sup></div><ul><li><strong>현황:</strong> 현업은 _부서에 식대 포함, 한도도 식대형 <code>월/1인/5만원</code>·안분 ○.</li><li><strong>정비안(검토):</strong> _부서를 비식대로 축소(식대는 결정트리로 회수) + 식대캡 폐지·임계치 통제 전환·안분 해제.</li><li><strong>논의:</strong> 식대 회수 범위와 비식대 전환 시 <strong>부서 예산 상한</strong>을 총무팀·재무팀 합의로 확정. 현업 사용 패턴 영향 점검.</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 여비교통비 -->
+    <h3 class="group" id="g-travel">여비교통비 <span class="g-def">업무 수행을 위한 이동 및 교통비</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>결제수단</th><th>사용일·시간·장소</th><th class="center">사전품의</th><th class="center">안분</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55030105</td><td>여비교통비_야근교통비 <sup class="mk mk-chg">명칭변경</sup></td><td>야근 근무자</td><td>총무팀정산 <span class="tag tag-chg" style="font-size:9.5px">비카드</span></td><td>평일 / 22:30 이후 / 회사 출발</td><td class="center"><span class="appr appr-exempt">면제</span></td><td class="center">✕</td><td class="use">평일 야근 귀가 택시비 (카카오 비즈니스 전용, 개인/기명식 카드 결제 불가)</td></tr>
+        <tr><td class="gl">55030105</td><td>여비교통비_야근교통비 (주말)</td><td>야근 근무자</td><td>총무팀정산 <span class="tag tag-chg" style="font-size:9.5px">비카드</span></td><td>주말 / 22:30 이후 / 회사 출발</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center">✕</td><td class="use">주말 근무 귀가 택시비 (카카오 비즈니스 전용)</td></tr>
+        <tr><td class="gl">신규</td><td>여비교통비_외근교통비 <sup class="mk mk-new">신규</sup></td><td>외근 임직원</td><td>기명식 법인카드</td><td>근무일 / 서울시 내</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center">✕</td><td class="use">서울 내 외근 업무 이동 교통비, 개인차량 이용 및 주차비</td></tr>
+      </tbody>
+    </table>
+    <p class="note">※ 주말 출근 택시비, 경조사 참석 이동, 회식 장소 이동 등 업무 외 목적의 택시비는 지원하지 않음.</p>
+    <aside class="cmt"><div class="cmt-h">◆ 여비교통비</div><div class="cmt-r"><span class="cmt-tag was">기존</span> "시내교통비" 명칭이나 실제는 야근 귀가 택시. 외근 교통비 계정 부재. 야근교통비가 카드 정산 목록에 혼재</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 야근교통비로 개칭+비카드 배지, 외근교통비 신설</div></aside>
+    <div class="revbox">
+      <span class="rb-title">정비 반영</span>
+      <ul>
+        <li><strong>시내교통비 → 야근교통비</strong> 명칭 변경(실제 용도 일치, 논의1).</li>
+        <li><strong>야근교통비에 <span class="tag tag-chg" style="font-size:9.5px">비카드</span> 배지</strong>: 총무팀정산 전용이라 '법인카드 정산' 목록 내 범위 모순 해소(§공통원칙 4).</li>
+        <li><strong>외근교통비 신규</strong>: 야근교통비와 분리, 사용 목적·통제 기준 명확화(논의3).</li>
+      </ul>
+    </div>
+    <div class="disc">
+      <div class="disc-head">논의사항 — 여비교통비</div>
+      <div class="disc-body">
+        <div class="disc-item"><div class="di-t">2. 외근/출장 분류 기준</div><ul><li>외근지가 서울시를 벗어나면 당일 일정이라도 출장(국내출장비)으로 분류할지 — 거리·시간·부서 기준 정의 필요</li><li>분류에 따라 정산 계정·결제수단 상이</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 차량유지비 -->
+    <h3 class="group" id="g-car">차량유지비 <span class="g-def">법인차량의 운영·유지·관리 및 차량지원 비용</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>결제수단</th><th>차량구분</th><th class="center">사전품의</th><th class="center">증빙</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55050101</td><td>차량유지비_총무지원 <sup class="mk mk-chg">명칭변경</sup></td><td>총무팀</td><td>총무팀정산 <span class="tag tag-chg" style="font-size:9.5px">비카드</span></td><td>개인차량</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L1</span></td><td class="use">과장급 이상 임직원 차량보조비 (임원 제외)</td></tr>
+        <tr><td class="gl">55050103</td><td>차량유지비_차량유지</td><td>총무팀</td><td>총무팀정산 <span class="tag tag-chg" style="font-size:9.5px">비카드</span></td><td>법인차량</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="use">법인 차량 수리·정비·세차 및 하이패스 비용</td></tr>
+        <tr><td class="gl">55050105</td><td>차량유지비_주차비</td><td>법인차량 이용자</td><td>기명식 법인카드</td><td>법인차량</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="use">외근·출장 시 업무용 법인차량 주차비 (개인소유 차량 불가)</td></tr>
+        <tr><td class="gl">신규</td><td>차량유지비_유류대 <sup class="mk mk-new">신규</sup></td><td>법인차량 이용 임원</td><td>주유카드 <sup class="mk mk-fix">오타수정</sup></td><td>법인차량</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="use">임원/공용 법인차량 주유 유류대 (개인소유 차량 불가)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">※ 법인차량이 아닌 개인 소유 차량으로 외근·출장 시 → 여비교통비_외근교통비 또는 여비교통비_국내출장비로 처리.</p>
+    <aside class="cmt"><div class="cmt-h">◆ 차량유지비</div><div class="cmt-r"><span class="cmt-tag was">기존</span> "차량보조" 명칭(실제는 차량보조비). 유류대 결제수단 <code>주휴카드</code> 오타. 유류대 별도 계정 부재</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 총무지원 개칭(복리후생비_총무지원과는 계정 대분류·코드가 달라 별개 계정 — 충돌 아님)+<code>주유카드</code> 수정+유류대 신설</div></aside>
+    <div class="revbox">
+      <span class="rb-title">정비 반영</span>
+      <ul>
+        <li><strong>차량보조 → 총무지원</strong> 명칭 변경(실제 용도 일치, 논의1). 복리후생비_총무지원과 suffix는 같으나 <strong>계정 대분류(차량유지비/복리후생비)·계정코드가 달라 완전히 구별되는 별개 계정</strong>이므로 충돌 없음.</li>
+        <li><strong>유류대 신규</strong>: 결제수단 <code>주휴카드</code> → <strong><code>주유카드</code></strong> 오타 수정(논의2·3).</li>
+      </ul>
+    </div>
+    <div class="disc">
+      <div class="disc-head">논의사항 — 차량유지비</div>
+      <div class="disc-body">
+        <div class="disc-item"><div class="di-t">3. (자금팀) 임원 주유카드 별도 발급</div><ul><li>현재 임원 유류대는 임원 기명식 카드로 개별 결제 중 → 업무용 차량 주유 한정 별도 주유카드 발급·운영 검토</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 소모품비 -->
+    <h3 class="group" id="g-supply">소모품비 <span class="g-def">업무·사업 운영에 필요한 소모품·비품 구매</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th class="center">사전품의</th><th class="center">증빙</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55110101</td><td>소모품비_사무용품</td><td>전직원</td><td class="center"><span class="appr appr-thr">임계치초과시</span><sup class="mk mk-chg">변경</sup></td><td class="center"><span class="proof">L2</span></td><td class="use">링코 미등록 사무용품 (업무 무관 품목 불가)</td></tr>
+        <tr><td class="gl">55110103</td><td>소모품비_VMD소모품</td><td>VMD팀</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">매장 연출·마네킨·VMD 운영 소모품</td></tr>
+        <tr><td class="gl">55110105</td><td>소모품비_샘플대</td><td>소재·소싱·디자인·공간기획팀</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">샘플·컬러칩·부자재 구매 및 관·부가세 (§샘플 결정트리)</td></tr>
+        <tr><td class="gl">55110117</td><td>소모품비_전산소모품</td><td>전직원</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">링코 미등록 전산 소모품 (프린터 토너·잉크 등)</td></tr>
+        <tr><td class="gl">55110119</td><td>소모품비_매장소품대</td><td>영업팀</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">매장 운영 집기·비품·소모품</td></tr>
+        <tr><td class="gl">55110129</td><td>소모품비_행사</td><td>행사 주관부서</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="use">행사 운영 물품·비품·제작물 소모품</td></tr>
+        <tr><td class="gl">55110131</td><td>소모품비_부서</td><td>전직원</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">타 소모품 계정 미분류 부서 소모품</td></tr>
+        <tr><td class="gl">55110149</td><td>소모품비_안전보건용품</td><td>안전보건팀</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">임직원 안전·보건 및 사업장 안전관리 물품 (개인 용도 불가)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">※ 업무 목적 한정 — 개인 의약품·위생용품·사무용품 구매 불가. ※ <strong>전자상거래PG·간편결제·오픈마켓·결제대행 등을 통한 거래는 공급자 정보만으로 비용 성격을 판단할 수 없으므로, 구매내역·거래명세서·인보이스 등 실제 거래내용 확인이 가능한 증빙을 필수 첨부</strong>(§공통원칙 3 · §STEP 03 다목적 가맹점 예외).<sup class="mk mk-chg">변경</sup></p>
+    <aside class="cmt"><div class="cmt-h">◆ 소모품비</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 8개 계정 전부 사전품의 ○. 소액 건은 품의 없이 집행되는 관행과 괴리(논의1)</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 임계치초과시로 전환(행사 소모품만 필수 유지)</div></aside>
+    <div class="revbox">
+      <span class="rb-title">정비 반영</span>
+      <ul><li><strong>사전품의 ○ → 임계치초과시</strong>: 소액 건 무품의 관행과 규정 괴리 해소(논의1). 행사 소모품만 사전 통제 필요로 필수 유지.</li></ul>
+    </div>
+
+    <!-- 샘플구입대 -->
+    <h3 class="group" id="g-sample">샘플구입대 <span class="g-def">상품 개발·시장조사·벤치마킹용 오리지널 샘플 구매·수입</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>장소</th><th class="center">사전품의</th><th class="center">증빙</th><th>샘플 등록</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55240101</td><td>샘플구입대_국내</td><td>상품기획·디자인팀</td><td>국내</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td>밀키웨이 등록</td><td class="use">국내 오리지널 샘플 구매 + 관세·관부가세</td></tr>
+        <tr><td class="gl">55240103</td><td>샘플구입대_해외</td><td>상품기획·디자인팀</td><td>해외</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td>밀키웨이 등록</td><td class="use">해외 오리지널 샘플 구매 + 관세·관부가세</td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ 샘플 2종</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 소모품비_샘플대(부자재)와 샘플구입대(오리지널)가 디자인팀 공통 사용 → 경계 기준 불명</div><div class="cmt-r"><span class="cmt-tag now">권장</span> "오리지널 완제품(밀키웨이 등록)=샘플구입대 / 부자재·컬러칩=소모품비" 결정 트리 신설</div></aside>
+    <div class="tree">
+      <div class="tree-title">샘플 구매 1건 → 계정 결정 (소모품비_샘플대 vs 샘플구입대)</div>
+      <div class="node-q">완제품 "오리지널 샘플"이며 샘플 등록(밀키웨이) 대상인가?</div>
+      <div class="branch">
+        <div class="branch-row"><span class="cond">예 — 국내</span><span class="arrow">→</span><span class="result"><span class="r-gl">55240101</span><span class="r-name">샘플구입대_국내</span></span></div>
+        <div class="branch-row"><span class="cond">예 — 해외(관세 포함)</span><span class="arrow">→</span><span class="result"><span class="r-gl">55240103</span><span class="r-name">샘플구입대_해외</span></span></div>
+        <div class="branch-row"><span class="cond">아니오 — 부자재·컬러칩·소재</span><span class="arrow">→</span><span class="result"><span class="r-gl">55110105</span><span class="r-name">소모품비_샘플대</span></span></div>
+      </div>
+    </div>
+
+    <!-- 지급수수료 -->
+    <h3 class="group" id="g-fee">지급수수료 <span class="g-def">외부 서비스·용역·플랫폼 이용 및 운영 지원 비용</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>결제수단</th><th class="center">사전품의</th><th class="center">증빙</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55210113</td><td>지급수수료_IT유지보수비</td><td>전직원</td><td>세금계산서 권장</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">총무팀 확인 하 IT 전산장비·시스템 유지보수·수리·점검·부품교체</td></tr>
+        <tr><td class="gl">55210115</td><td>지급수수료_IT사용료</td><td>전직원</td><td>기명식카드<sup class="mk mk-chg">검토</sup></td><td class="center"><span class="appr appr-thr">임계치초과시</span><sup class="mk mk-chg">검토</sup></td><td class="center"><span class="proof">L3</span></td><td class="use">업무용 AI·SaaS·클라우드 구독(커서·클로드·GPT 등) — <strong>법인(회사) 명의 계정으로 가입 필수</strong> · ※ 연간 구독은 선급비용</td></tr>
+        <tr><td class="gl">55210131</td><td>지급수수료_인사채용</td><td>인사팀</td><td>—</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">채용 플랫폼·공고 등록비·구인광고·채용 수수료</td></tr>
+        <tr><td class="gl">55210133</td><td>지급수수료_교육훈련</td><td>전직원</td><td>—</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">직무교육·세미나·컨퍼런스 참가·전시 관람</td></tr>
+        <tr><td class="gl">55210139</td><td>지급수수료_공증/등기</td><td>법무·총무·영업</td><td>—</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">공증·등기·제증명 발급 (법인등기·등기부등본·인감증명 등)</td></tr>
+        <tr><td class="gl">55210145</td><td>지급수수료_사내행사</td><td>총무팀</td><td>세금계산서 권장</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">사내행사 외부 용역(꽃장식·연출·촬영·사회자·대행)</td></tr>
+        <tr><td class="gl">55210161</td><td>지급수수료_보안</td><td>총무팀·영업팀</td><td>—</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">사옥·매장 보안 서비스·운영 비용</td></tr>
+        <tr><td class="gl">55210169</td><td>지급수수료_렌탈료(차량제외)</td><td>법무팀·총무팀</td><td>—</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">정수기·공기청정기 등 사무환경 렌탈</td></tr>
+        <tr><td class="gl">55210179</td><td>지급수수료_지급용역비</td><td>전직원</td><td>세금계산서 권장</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td class="use">외부 용역·서비스(예약·운영 플랫폼·번역·디자인·촬영·데이터 등)</td></tr>
+      </tbody>
+    </table>
+    <p class="note">※ 연간 구독/계약 건은 선급비용 계정을 사용함(§선급비용 결정트리).</p>
+    <aside class="cmt"><div class="cmt-h">◆ 지급수수료</div><div class="cmt-r"><span class="cmt-tag was">기존</span> IT사용료 사전품의 ○ 운영이나 무품의 사례 다수(논의1). 연간 구독↔선급비용 경계 모호</div><div class="cmt-r"><span class="cmt-tag now">권장</span> IT사용료 임계치초과시+사후 모니터링. 연간 구독은 선급비용 결정 트리로 분기</div></aside>
+    <div class="disc">
+      <div class="disc-head">논의사항 — 지급수수료</div>
+      <div class="disc-body">
+        <div class="disc-item"><div class="di-t">1. IT사용료 사전품의 운영</div><ul><li>총무팀은 사전품의 필수 운영, 실제 무품의 사례 다수 → 임계치초과시 + 사후 모니터링으로 전환 검토(반영안)</li><li>확인사항: 사전품의 의무화 vs 사후 모니터링 중심 운영 가능 여부</li></ul></div>
+      </div>
+    </div>
+
+    <!-- 광고선전비 -->
+    <h3 class="group" id="g-ad">광고선전비 <span class="g-def">브랜드·제품 인지도 제고와 고객 유치 광고·홍보·콘텐츠·협찬·프로모션</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th class="center">사전품의</th><th class="center">증빙</th><th>적요</th><th>사용용도 · 예시</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55170103</td><td>광고선전비_협찬/제휴</td><td>마케팅팀</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td>제휴 브랜드명</td><td class="use"><strong>제품·비용 제공</strong>: 인플루언서 시딩·연예인/방송/행사/경품 협찬·브랜드 제휴</td></tr>
+        <tr><td class="gl">55170105</td><td>광고선전비_콘텐츠제작</td><td>마케팅팀</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td>촬영 프로젝트명</td><td class="use"><strong>제작 발주</strong>: 모델비·촬영·영상·사진·디자인·소품·사입품</td></tr>
+        <tr><td class="gl">55170107</td><td>광고선전비_이벤트/행사</td><td>마케팅팀</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td>행사명</td><td class="use">고객·인플루언서 행사: 팝업·오픈·초청행사·케이터링·공간대관</td></tr>
+        <tr><td class="gl">55170109</td><td>광고선전비_기타</td><td>관련부서</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td>집행 목적</td><td class="use">미분류 광고: 메타·인스타·구글·네이버 광고 등</td></tr>
+        <tr><td class="gl">55170115</td><td>광고선전비_PR/홍보</td><td>관련부서</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td>캠페인명</td><td class="use"><strong>노출 대가</strong>: PR대행·언론홍보·보도자료·인플루언서 콘텐츠 업로드비·매체 협업</td></tr>
+        <tr><td class="gl">55170123</td><td>(E-BIZ)광고선전비_촬영/기타</td><td>E-BIZ팀</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L3</span></td><td>—</td><td class="use">E-BIZ 전용: 상세페이지·상품컷·라이브커머스 촬영</td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ 광고선전비</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 인플루언서 비용이 협찬·콘텐츠제작·PR 3계정에 분산, 분류 원칙 부재 → 실무 최대 혼선 지점</div><div class="cmt-r"><span class="cmt-tag now">권장</span> "제품 제공=협찬 / 제작 발주=콘텐츠제작 / 노출 대가=PR" 행위 기준 원칙+결정 트리</div></aside>
+    <div class="callout callout-info"><strong>인플루언서 분류 원칙:</strong> 제품 제공 = <strong>협찬</strong> / 제작 발주 = <strong>콘텐츠제작</strong> / 노출 대가 = <strong>PR</strong>.</div>
+    <div class="tree">
+      <div class="tree-title">인플루언서 관련 지출 1건 → 계정 결정</div>
+      <div class="node-q">지출의 본질은?</div>
+      <div class="branch">
+        <div class="branch-row"><span class="cond">제품·비용 무상 제공(시딩)</span><span class="arrow">→</span><span class="result"><span class="r-gl">55170103</span><span class="r-name">협찬/제휴</span></span></div>
+        <div class="branch-row"><span class="cond">콘텐츠 제작 발주(모델·촬영)</span><span class="arrow">→</span><span class="result"><span class="r-gl">55170105</span><span class="r-name">콘텐츠제작</span></span></div>
+        <div class="branch-row"><span class="cond">게시·노출 대가(업로드·매체)</span><span class="arrow">→</span><span class="result"><span class="r-gl">55170115</span><span class="r-name">PR/홍보</span></span></div>
+      </div>
+    </div>
+
+    <h4 class="sub" id="influencer-auto">인플루언서 지출 — 품의·증빙 기반 자동 분류</h4>
+    <p>이 3계정은 금액·거래처가 아니라 <strong>거래의 성격(계약 의도)</strong>으로 갈리므로, 카드 승인내역만으로는 구분이 불가능합니다. 따라서 AI가 사후에 <strong>추측</strong>하게 두지 않고, <strong>품의 단계에서 '거래유형'을 필수 선택해 계정으로 확정</strong>한 뒤 <strong>증빙으로 교차검증</strong>하는 2단계 구조로 자동화합니다.</p>
+    <table>
+      <thead><tr><th style="width:130px">계정</th><th style="width:130px">품의 거래유형<br><span style="font-weight:400;font-size:10px">(필수 선택 → 계정 1:1 매핑)</span></th><th>증빙 시그니처 (AI 검증 신호)</th><th>세금계산서 품목</th></tr></thead>
+      <tbody>
+        <tr><td><span class="r-gl">55170103</span> 협찬/제휴</td><td class="center"><code>시딩-무상제공</code></td><td>제품 출고내역 · 무상제공 확인 <strong>(대가 지급 ✕)</strong></td><td>대부분 없음 · 제품원가</td></tr>
+        <tr><td><span class="r-gl">55170105</span> 콘텐츠제작</td><td class="center"><code>콘텐츠-발주</code></td><td>발주서 + 산출물(촬영본·영상) 납품</td><td>"촬영/제작/모델"</td></tr>
+        <tr><td><span class="r-gl">55170115</span> PR/홍보</td><td class="center"><code>게시-노출대가</code></td><td>게시 링크·캡처 + 매체 단가표</td><td>"광고게재/포스팅"</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info"><strong>자동 분류 동작:</strong> ① 기안자가 품의에서 <code>거래유형</code>을 필수 선택 → 그 값이 계정코드로 <strong>결정론적 매핑</strong>(오분류 원천 차단). ② 첨부 증빙의 시그니처(산출물 유무·무상/유상·세금계산서 품목)를 AI가 읽어 <strong>품의 선택과 일치하는지 검증</strong> → 불일치 시 플래그·사람 확인. (예: 거래유형 <code>시딩-무상</code>인데 세금계산서 품목이 "촬영비" → 콘텐츠제작 의심 알림)</div>
+    <aside class="cmt"><div class="cmt-h">◆ 인플루언서 자동 분류</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 행위 기준 원칙만 제시 — 분류 주체·시점·검증 수단 불명. 카드 데이터만으론 3계정 구분 불가</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 품의 <strong>거래유형 필수화</strong>로 계정 결정론적 확정 + 증빙 시그니처 AI 교차검증. 증빙등급·자동전표 게이트와 연결</div></aside>
+
+    <!-- 통신비 -->
+    <h3 class="group" id="g-comm">통신비 <span class="g-def">업무용 통신 및 우편 서비스 이용</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>장소</th><th class="center">사전품의</th><th class="center">증빙</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55070101</td><td>통신비_전화사용료</td><td>비서실</td><td>—</td><td class="center"><span class="appr appr-exempt">면제</span></td><td class="center"><span class="proof">L1</span></td><td class="use">사무실·매장 전화·팩스 등 유선 통신</td></tr>
+        <tr><td class="gl">55070103</td><td>통신비_우편료</td><td>전직원</td><td>—</td><td class="center"><span class="appr appr-exempt">면제</span></td><td class="center"><span class="proof">L1</span></td><td class="use">서류·물품 발송 일반우편·등기·택배</td></tr>
+        <tr><td class="gl">55070107</td><td>통신비_해외로밍</td><td>해외출장자</td><td>해외출장</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L1</span></td><td class="use">해외출장·업무 로밍(로밍·유심칩 포함)</td></tr>
+      </tbody>
+    </table>
+
+    <!-- 선급비용 -->
+    <h3 class="group" id="g-prepaid">선급비용 <span class="g-def">기간에 걸쳐 사용되는 비용을 선지급 후 기간별 안분</span></h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th class="center">사전품의</th><th class="center">증빙</th><th>계약기간</th><th>대체 예정 계정</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">11091501</td><td>선급비용_일반</td><td>전직원</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L4</span></td><td>작성 필수</td><td>작성 필수</td><td class="use">연간 계약 등 장기 비용(IT 연간 구독·보험료·유지보수 계약·모델 계약금 등)</td></tr>
+      </tbody>
+    </table>
+    <div class="tree">
+      <div class="tree-title">기간성 비용 1건 → 선급 여부 결정 (선급비용 vs 지급수수료)</div>
+      <div class="node-q">선지급 후 2개 회계기간 이상에 걸쳐 사용·안분되는가?</div>
+      <div class="branch">
+        <div class="branch-row"><span class="cond">예 (연간 구독·보험·유지보수·모델 계약금)</span><span class="arrow">→</span><span class="result"><span class="r-gl">11091501</span><span class="r-name">선급비용_일반</span></span></div>
+        <div class="branch-row"><span class="cond">아니오 (당월 발생·당월 비용화)</span><span class="arrow">→</span><span class="result"><span class="r-gl">55210115</span><span class="r-name">지급수수료_IT사용료 등</span></span></div>
+      </div>
+    </div>
+    <aside class="cmt"><div class="cmt-h">◆ 선급비용 ↔ 지급수수료</div><div class="cmt-r"><span class="cmt-tag was">기존</span> "연간 구독은 선급" 단서만 있어 월구독 IT사용료와 경계 모호</div><div class="cmt-r"><span class="cmt-tag now">권장</span> "선지급+2회계기간 이상 안분" 기준으로 분기, 선급비용 가이드와 동일 문구로 정합</div></aside>
+    <div class="callout callout-ai"><span class="c-title"><span class="tag-ai">AI</span> 문서쌍 정합성</span> 위 분기 기준("선지급 + 2기간 이상 안분")을 <strong>선급비용 처리 가이드와 동일 문구</strong>로 맞춰, 자동분류 시 두 계정 충돌을 차단합니다.</div>
+
+    <!-- 기타 -->
+    <h3 class="group" id="g-etc">기타</h3>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th class="center">사전품의</th><th class="center">증빙</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">51070101</td><td>식부재료 <span class="tag tag-chg" style="font-size:9.5px">51계열·원가성</span></td><td>외식팀</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center"><span class="proof">L2</span></td><td class="use">식음료 제공·외식사업 운영 식재료·부재료 (※ 판관비 아님 — 매출원가 성격)</td></tr>
+        <tr><td class="gl">55150101</td><td>도서인쇄비</td><td>전직원</td><td class="center"><span class="appr appr-thr">임계치초과시</span></td><td class="center"><span class="proof">L2</span></td><td class="use">도서 구입·정기간행물·전문자료 구독</td></tr>
+        <tr><td class="gl">55190105</td><td>접대비_일반</td><td>관련부서</td><td class="center"><span class="appr appr-thr">임계치초과시</span><sup class="mk mk-chg">변경</sup></td><td class="center"><span class="proof">L1</span><sup class="mk mk-chg">변경</sup></td><td class="use">거래처·사업관계자 접대 식대 <strong>(법인카드 정산분)</strong> — <strong>복리후생비 식대 규정 준용(회식대·회의비와 동일 L1)</strong> · <strong>접대 대상(동석자)·목적 기재 필수</strong>(L등급과 별개 소명요건) <span class="tag tag-chg" style="font-size:9.5px">경조사 제외</span></td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ 기타</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 식부재료(51계열·원가성)가 55계열 '기타'에 혼재. 접대비_일반이 면제·L3이며 거래처 접대와 경조사가 한 행에 혼재</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 식부재료 "51계열·원가성" 분리. 접대비_일반 <strong>법인카드 정산분은 복리후생비 식대 규정 준용(임계치초과시·L1, 회식대와 동일)</strong>, 동석자·목적 기재는 별도 소명요건, 경조사비는 비카드로 분리</div></aside>
+    <div class="callout callout-info"><span class="c-title">거래처 경조사비 분리 <sup class="mk mk-chg">변경</sup></span> 거래처·사업관계자 <strong>경조사비는 현실적으로 법인카드로 발행하지 않습니다(현금·계좌이체)</strong>. 따라서 본 '법인카드 정산 가능' 목록에서 제외하고 <strong>별도 비카드 처리 섹션</strong>으로 이관합니다. (접대비_일반 행에서 '경조사' 용도 삭제)</div>
+    <div class="callout callout-warn"><span class="c-title">접대비 세법 한도 주의</span> 법인카드 정산분의 사전품의·증빙은 복리후생비 기준을 따르되, <strong>세법상 접대비 손금 한도</strong>는 별개로 적용됩니다. 한도 초과분 손금불산입 처리 기준은 규정에 별도 명시하십시오.</div>
+
+    <!-- ===== STEP 02 출장 비용 ===== -->
+    <h2 class="chapter" id="step02b">STEP 02 · 계정별 사용·정산 기준 (국내·해외 출장 비용)</h2>
+    <table>
+      <thead><tr><th>계정코드</th><th>계정명</th><th>사용 주체</th><th>금액 한도</th><th>장소</th><th class="center">사전품의</th><th class="center">안분</th><th>사용용도</th></tr></thead>
+      <tbody>
+        <tr><td class="gl">55030101</td><td>여비교통비_국내출장비</td><td>전직원</td><td>식대 일 / 1인 / 30,000원</td><td>서울시 외</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center">✕</td><td class="use">대중교통 원칙(불가 시 택시) · KTX·항공 Economy</td></tr>
+        <tr><td class="gl">55030103</td><td>여비교통비_해외출장비</td><td>전직원</td><td>별도 가이드 준용</td><td>해외</td><td class="center"><span class="appr appr-req">필수</span></td><td class="center">✕</td><td class="use">별도 가이드 준용 · 예산 초과 시 사유서</td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ STEP 02 출장 비용</div><div class="cmt-r"><span class="cmt-tag was">기존</span> "내용 작성 예정"으로 미완성. 해외출장비 "별도 가이드 준용"만 기재</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 표 채움+해외 가이드 링크/요약, 외근↔국내출장 분류 기준(서울시 외=출장) 연결</div></aside>
+    <div class="callout callout-info"><strong>보강 필요:</strong> 해외출장비의 "별도 가이드"를 본 문서에 링크/요약하고, 외근↔국내출장 분류 기준(서울시 외 = 출장)을 §여비교통비 논의2와 연결해 일관 적용하십시오.</div>
+
+    <!-- ===== STEP 03 · AI 자동정산 운영기준 (별도 문서로 분리) ===== -->
+    <h2 class="chapter" id="step03">STEP 03 · AI 자동정산 운영기준 <span style="font-size:14px;color:var(--text-muted);font-weight:500">— 별도 문서로 분리</span></h2>
+    <p>법인카드 정산의 <strong>AI 계정 추천 · 통제검증(C/B/P/E) · 승인·예외 처리</strong> 룰은 회계규정(계정 스키마)이 아니라 <strong>정산운영기준</strong>이므로, <strong>별도 문서 「AI 자동정산 운영기준 v1.0」</strong>으로 분리했습니다. 본 정비안 STEP 02의 계정 정의를 입력으로 동작합니다.</p>
+    <div class="callout callout-ai"><span class="c-title"><span class="tag-ai">AI</span> 별도 문서 참조</span> 상세 내용(자동정산 5단계 · 사용목적 우선 분류 · 공급업체 3등급 · <strong>다목적 가맹점 예외규정(PG·간편결제·백화점·주유소)</strong> · 승인·반려 워크플로 · 논의사항)은 → <strong><a href="./ai-settlement-operating-standard-v1.html">AI 자동정산 운영기준 v1.0</a></strong> 문서를 참조하십시오.</div>
+    <table>
+      <thead><tr><th style="width:160px">구성</th><th>요지</th></tr></thead>
+      <tbody>
+        <tr><td>자동정산 5단계</td><td>추천 → (목적 입력) → 세목 확정 → <strong>C/B/P/E 검증</strong> → 부족증빙 자동요청. 미비 시 자동전표 보류</td></tr>
+        <tr><td>사용목적 우선</td><td>"가맹점은 힌트, 근거 아님" — 사용목적으로 계정 결정, 가맹점은 이상거래 검증용</td></tr>
+        <tr><td>공급업체 3등급</td><td>A(고정·자동추천) / B(준고정) / C(다목적·증빙필수). 추천 근거: 품의 &gt; 계약/발주 &gt; 품목 &gt; 인보이스 &gt; 이력 &gt; 부서</td></tr>
+        <tr><td>다목적 가맹점 예외</td><td>PG·간편결제·오픈마켓·백화점·주유소 = 가맹점 불명 취급 → 추가 증빙 요청</td></tr>
+        <tr><td>승인·반려</td><td>목적 책임=현업 / 회계처리 책임=회계팀. 거래성격 변경=반려, 세부조정=회계팀 수정</td></tr>
+      </tbody>
+    </table>
+    <aside class="cmt"><div class="cmt-h">◆ STEP 03 분리</div><div class="cmt-r"><span class="cmt-tag was">기존</span> 운영기준이 정비안 본문에 통합 — 계정 스키마(회계)와 추천·검증 룰(운영)이 혼재</div><div class="cmt-r"><span class="cmt-tag now">권장</span> 운영기준을 별도 문서로 분리. 정비안=회계 정의 / 운영기준=AI 추천·검증으로 역할 분리</div></aside>
+
+    <p class="note" style="margin-top:40px">※ 본 정비안은 검토용 초안입니다. 사전품의 임계치 밴드(B1·B2·B3), 한도 수치, 계정별 밴드 배정, AI 자동정산 운영기준(증빙 의무화·자동전표 게이트) 등은 총무팀·재무팀·자금팀 합의로 확정합니다.</p>
+    </div><!-- /body-with-notes -->
+  </main>
+</div>
+</body>
+</html>
